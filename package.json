@@ -1,0 +1,29 @@
+{
+  "name": "csp",
+  "version": "0.0.0",
+  "workspaces": [
+    "app/**/*",
+    "config/**/*",
+    "lib/**/*"
+  ],
+  "private": true,
+  "dependencies": {
+    "@types/node": "^16.6.1",
+    "lerna": "^4.0.0",
+    "stripe": "^8.169.0"
+  },
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "test:sdk": "lerna run test --scope @csp/sdk --stream",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "prepare": "husky install",
+    "postinstall": "husky install",
+    "tsc": "tsc -v"
+  },
+  "devDependencies": {
+    "@csp/eslint-config": "^0.0.0",
+    "@csp/prettier-config": "^0.0.0",
+    "husky": "^7.0.0",
+    "typescript": "^3.9.10"
+  }
+}

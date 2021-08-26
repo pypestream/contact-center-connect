@@ -1,0 +1,11 @@
+{
+  "name": "@csp/typescript-config",
+  "version": "0.0.0",
+  "main": "tsconfig.json",
+  "dependencies": {
+    "@types/node": "^16.6.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.5"
+  }
+}
