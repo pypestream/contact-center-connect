@@ -3,6 +3,7 @@ import {
   CspMessage,
   SendMessageResponse,
   ServiceNowConfig,
+  MessageType,
 } from "../common/interfaces";
 import axis from "axios";
 import { v4 as uuidv4 } from "uuid";
@@ -68,6 +69,10 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
     return {
       message: {
         value: body.body[0].value,
+        type:
+          body.body[0].uiType === "OutputText"
+            ? MessageType.Text
+            : MessageType.Image,
       },
       sender: {
         username: body.body[0].group,

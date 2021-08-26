@@ -10,6 +10,7 @@ export type CspMessage = {
   message: {
     id?: string;
     value: string;
+    type: MessageType;
   };
   sender: User;
   conversationId: string;
@@ -31,6 +32,11 @@ export interface Service<T> {
 export enum ServiceEnum {
   ServiceNow,
   ContactCenterPro,
+}
+
+export enum MessageType {
+  Text,
+  Image,
 }
 
 export type ServiceConfig = {

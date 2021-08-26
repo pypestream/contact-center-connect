@@ -1,8 +1,9 @@
 import {
-  Service,
-  SendMessageResponse,
-  ServiceEnum,
   CspMessage,
+  MessageType,
+  SendMessageResponse,
+  Service,
+  ServiceEnum,
 } from "../common/interfaces";
 import axis from "axios";
 import { v4 as uuidv4 } from "uuid";
@@ -50,6 +51,7 @@ export class ContactCenterProService
     return {
       message: {
         value: body.body[0].value,
+        type: MessageType.Text,
       },
       sender: {
         username: body.body[0].group,
