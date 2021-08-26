@@ -6,6 +6,7 @@ export type ContactCenterProApiWebhookBody = {
   userId: string;
   body: Body[];
   agentChat: boolean;
+  completed: boolean;
   score: number;
 };
 

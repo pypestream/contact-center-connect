@@ -18,12 +18,20 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prepare": "husky install",
     "postinstall": "husky install",
-    "tsc": "tsc -v"
+    "tsc": "tsc -v",
+    "lint-staged": "lint-staged"
   },
   "devDependencies": {
     "@csp/eslint-config": "^0.0.0",
     "@csp/prettier-config": "^0.0.0",
     "husky": "^7.0.0",
+    "lint-staged": "^11.1.2",
     "typescript": "^3.9.10"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --ext .js,.jsx,.ts,.tsx --fix"
+    ]
   }
 }

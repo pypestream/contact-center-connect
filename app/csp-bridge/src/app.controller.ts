@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Res, Response } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AppService } from './app.service';
-import {SendMessageResponse} from "@csp/sdk/dist/services/common/interfaces";
+import { SendMessageResponse } from '@csp/sdk/dist/services/common/interfaces';
+import { ServiceNowWebhookBody } from '@csp/sdk/dist/services/service-now/types';
 
 @Controller()
 export class AppController {
@@ -28,8 +29,20 @@ export class AppController {
     return sendMessageRes;
   }
 
-  @Post('send-to-end-user')
-  sendToEndUser(): string {
+  @Post('agent-webhook')
+  agentWebhook(@Body() body: ServiceNowWebhookBody): string {
+    const isChatEnded = this.appService.serviceNowService.isChatEnded(body);
+    const isAgentMessage =
+      this.appService.serviceNowService.isMessageSentByAgent(body);
+    if (isChatEnded) {
+      // send chat ended message to end-user
+    }
+    // if webhook triggered for agent message then forward it to end-user
+    if (isAgentMessage) {
+      const cspMessage =
+        this.appService.serviceNowService.mapToCspMessage(body);
+    }
+    // then we will send it middleware api
     return null;
   }
 }

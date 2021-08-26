@@ -6,6 +6,7 @@ export type ServiceNowWebhookBody = {
   userId: string;
   body: Body[];
   agentChat: boolean;
+  completed: boolean;
   score: number;
 };
 
