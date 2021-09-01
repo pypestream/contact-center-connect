@@ -1,19 +1,18 @@
-import { Csp } from '../src/csp';
+import { Ccp } from '../src/ccp';
 
 describe('Test CS ServiceNow service', () => {
   it('Create ServiceNow instance if ServiceNow config is passed', () => {
-    const csp = new Csp({serviceNow:{
+    const ccp = new Ccp({serviceNow:{
       instanceUrl:'test_instance_url',
-        apiKey:'test'
       }})
-    expect(csp.serviceNowService).toBeDefined();
-    expect(csp.serviceNowService.instanceUrl).toEqual('test_instance_url');
+    expect(ccp.serviceNowService).toBeDefined();
+    expect(ccp.serviceNowService.instanceUrl).toEqual('test_instance_url');
   });
 
-  it('ServiceNow should be null if Csp configs not include servicenow key', () => {
-    let csp = new Csp({})
-    expect(csp.serviceNowService).toBeNull();
-    csp = new Csp({serviceNow:null});
-    expect(csp.serviceNowService).toBeNull();
+  it('ServiceNow should be null if Ccp configs not include servicenow key', () => {
+    let ccp = new Ccp({})
+    expect(ccp.serviceNowService).toBeNull();
+    ccp = new Ccp({serviceNow:null});
+    expect(ccp.serviceNowService).toBeNull();
   });
 });

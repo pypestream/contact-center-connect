@@ -1,22 +1,25 @@
 import {
   Service,
-  CspMessage,
+  CcpMessage,
   SendMessageResponse,
   ServiceNowConfig,
   MessageType,
+  ContactCenterProConfig,
 } from "../common/interfaces";
 import axis from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceNowWebhookBody } from "./types";
 
 export class ServiceNowService implements Service<ServiceNowWebhookBody> {
-  instanceUrl: string;
+  serviceNowConfig: ServiceNowConfig;
+  contactCenterProConfig: ContactCenterProConfig;
 
-  constructor(config: ServiceNowConfig) {
-    this.instanceUrl = config.instanceUrl;
+  constructor(ccpConfig: ContactCenterProConfig, config: ServiceNowConfig) {
+    this.serviceNowConfig = ccpConfig;
+    this.contactCenterProConfig = config;
   }
 
-  private sendMessageRequestBody(message: CspMessage) {
+  private sendMessageRequestBody(message: CcpMessage) {
     const requestId = uuidv4();
     return {
       requestId,
@@ -43,10 +46,10 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
     };
   }
 
-  async sendMessage(message: CspMessage): Promise<SendMessageResponse> {
+  async sendMessage(message: CcpMessage): Promise<SendMessageResponse> {
     try {
       const res = await axis.post(
-        this.instanceUrl + "/api/sn_va_as_service/bot/integration",
+        this.serviceNowConfig.instanceUrl + "/api/sn_va_as_service/bot/integration",
         this.sendMessageRequestBody(message)
       );
       return {
@@ -65,7 +68,7 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
     return body.body[0].agentInfo.sentFromAgent;
   }
 
-  mapToCspMessage(body: ServiceNowWebhookBody): CspMessage {
+  mapToCcpMessage(body: ServiceNowWebhookBody): CcpMessage {
     return {
       message: {
         value: body.body[0].value,
@@ -83,5 +86,13 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
 
   isChatEnded(message: ServiceNowWebhookBody): boolean {
     return message.completed;
+  }
+
+  isAvailable(): boolean {
+    return true;
+  }
+
+  waitTime(): boolean {
+    return true;
   }
 }

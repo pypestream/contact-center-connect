@@ -1,5 +1,5 @@
 {
-  "extends": "@csp/typescript-config",
+  "extends": "@ccp/typescript-config",
   "compilerOptions": {
     "outDir": "dist",
     "baseUrl": "."

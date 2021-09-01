@@ -1,11 +1,9 @@
-import { ServiceNowWebhookBody } from "../service-now/types";
-
 type User = {
   username: string;
   email?: string;
 };
 
-export type CspMessage = {
+export type CcpMessage = {
   skill?: string;
   message: {
     id?: string;
@@ -22,11 +20,12 @@ export type SendMessageResponse = {
 };
 
 export interface Service<T> {
-  instanceUrl: string;
-  sendMessage(message: CspMessage): Promise<SendMessageResponse>;
-  mapToCspMessage(message: T): CspMessage;
+  sendMessage(message: CcpMessage): Promise<SendMessageResponse>;
+  mapToCcpMessage(message: T): CcpMessage;
   isMessageSentByAgent(message: T): boolean;
   isChatEnded(message: T): boolean;
+  isAvailable(): boolean;
+  waitTime(): boolean;
 }
 
 export enum ServiceEnum {
@@ -39,16 +38,21 @@ export enum MessageType {
   Image,
 }
 
-export type ServiceConfig = {
-  apiKey: string;
-  serviceName: ServiceEnum;
-};
-
-export type CspConfig = {
+export type CcpConfig = {
+  ccp?: ContactCenterProConfig,
   serviceNow?: ServiceNowConfig;
+  middlewareApi?: MiddlewareApiConfig;
 };
 
 export type ServiceNowConfig = {
-  apiKey: string;
+  instanceUrl: string;
+};
+
+export type MiddlewareApiConfig = {
+  instanceUrl: string;
+  token: string;
+};
+
+export type ContactCenterProConfig = {
   instanceUrl: string;
 };

@@ -1,5 +1,5 @@
 {
-  "name": "csp",
+  "name": "ccp",
   "version": "0.0.0",
   "workspaces": [
     "app/**/*",
@@ -14,16 +14,18 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "test:sdk": "lerna run test --scope @csp/sdk --stream",
+    "test:sdk": "lerna run test --scope @ccp/sdk --stream",
+    "test:app": "lerna run test --scope ccp-bridge --stream",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prepare": "husky install",
     "postinstall": "husky install",
     "tsc": "tsc -v",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "start:dev": "lerna run start:dev --scope ccp-bridge --stream"
   },
   "devDependencies": {
-    "@csp/eslint-config": "^0.0.0",
-    "@csp/prettier-config": "^0.0.0",
+    "@ccp/eslint-config": "^0.0.0",
+    "@ccp/prettier-config": "^0.0.0",
     "husky": "^7.0.0",
     "lint-staged": "^11.1.2",
     "typescript": "^3.9.10"

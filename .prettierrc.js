@@ -1,3 +1,3 @@
 module.exports = {
-  prettier: '@csp/prettier-config'
+  prettier: '@ccp/prettier-config'
 };

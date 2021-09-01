@@ -1,4 +1,4 @@
-export { Csp } from './csp';
+export { Ccp } from './ccp';
 export { ServiceNowService } from './services/service-now/service';
-export { ContactCenterProService } from './services/contact-center-pro/service';
-export { CspConfig, ServiceNowConfig, ServiceEnum } from './services/common/interfaces';
+export { MiddlewareApiService } from './services/middleware-api/service';
+export { CcpConfig, ServiceNowConfig, ServiceEnum, MessageType, SendMessageResponse } from './services/common/interfaces';
