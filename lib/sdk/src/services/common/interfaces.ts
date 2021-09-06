@@ -1,3 +1,5 @@
+import { AxiosResponse } from "axios";
+
 type User = {
   username: string;
   email?: string;
@@ -20,12 +22,13 @@ export type SendMessageResponse = {
 };
 
 export interface Service<T> {
-  sendMessage(message: CcpMessage): Promise<SendMessageResponse>;
+  sendMessage(message: CcpMessage): Promise<AxiosResponse<SendMessageResponse>>;
   mapToCcpMessage(message: T): CcpMessage;
   isMessageSentByAgent(message: T): boolean;
   isChatEnded(message: T): boolean;
-  isAvailable(): boolean;
-  waitTime(): boolean;
+  isAvailable(skill: string): boolean;
+  waitTime(skill: string): boolean;
+  typing(): boolean;
 }
 
 export enum ServiceEnum {
@@ -39,7 +42,7 @@ export enum MessageType {
 }
 
 export type CcpConfig = {
-  ccp?: ContactCenterProConfig,
+  ccp?: ContactCenterProConfig;
   serviceNow?: ServiceNowConfig;
   middlewareApi?: MiddlewareApiConfig;
 };

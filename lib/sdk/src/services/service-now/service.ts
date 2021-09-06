@@ -6,7 +6,7 @@ import {
   MessageType,
   ContactCenterProConfig,
 } from "../common/interfaces";
-import axis from "axios";
+import axis, { AxiosResponse } from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceNowWebhookBody } from "./types";
 
@@ -15,8 +15,8 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
   contactCenterProConfig: ContactCenterProConfig;
 
   constructor(ccpConfig: ContactCenterProConfig, config: ServiceNowConfig) {
-    this.serviceNowConfig = ccpConfig;
-    this.contactCenterProConfig = config;
+    this.serviceNowConfig = config;
+    this.contactCenterProConfig = ccpConfig;
   }
 
   private sendMessageRequestBody(message: CcpMessage) {
@@ -46,22 +46,19 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
     };
   }
 
-  async sendMessage(message: CcpMessage): Promise<SendMessageResponse> {
-    try {
-      const res = await axis.post(
-        this.serviceNowConfig.instanceUrl + "/api/sn_va_as_service/bot/integration",
-        this.sendMessageRequestBody(message)
-      );
-      return {
-        message: res.data.status,
-        status: res.status,
-      };
-    } catch (ex) {
-      return {
-        message: ex.message,
-        status: 400,
-      };
-    }
+  async sendMessage(
+    message: CcpMessage
+  ): Promise<AxiosResponse<SendMessageResponse>> {
+    const res = await axis.post(
+      this.serviceNowConfig.instanceUrl +
+        "/api/sn_va_as_service/bot/integration",
+      this.sendMessageRequestBody(message)
+    );
+    return res;
+  }
+
+  typing(): boolean {
+    return true;
   }
 
   isMessageSentByAgent(body: ServiceNowWebhookBody): boolean {
@@ -88,11 +85,14 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
     return message.completed;
   }
 
-  isAvailable(): boolean {
-    return true;
+  isAvailable(skill: string): boolean {
+    return !!skill;
   }
 
-  waitTime(): boolean {
+  waitTime(skill: string): boolean {
+    return !!skill;
+  }
+  escalate(): boolean {
     return true;
   }
 }

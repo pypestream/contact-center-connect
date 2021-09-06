@@ -1,13 +1,12 @@
 import {
   CcpMessage,
   MessageType,
-  SendMessageResponse,
   MiddlewareApiConfig,
-  ContactCenterProConfig
-} from '../common/interfaces';
-import axis from 'axios';
-import { v4 as uuidv4 } from 'uuid';
-import { ContactCenterProApiWebhookBody, SettingsObject } from './types';
+  ContactCenterProConfig,
+} from "../common/interfaces";
+import axis, { AxiosResponse } from "axios";
+import { ContactCenterProApiWebhookBody, SettingsObject } from "./types";
+import { components } from "./types/openapi-types";
 
 export class MiddlewareApiService {
   config: MiddlewareApiConfig;
@@ -18,48 +17,36 @@ export class MiddlewareApiService {
     this.ccpConfig = ccpConfig;
   }
 
-  sendMessageRequestBody(message: CcpMessage) {
-    const requestId = uuidv4();
+  private sendMessageRequestBody(
+    message: CcpMessage
+  ): components["schemas"]["Message"] {
     return {
-      requestId,
-      action: 'AGENT',
-      // Currently unused.
-      enterpriseId: 'ServiceNow',
-      // Currently unused.
-      nowBotId: '',
-      clientSessionId: message.conversationId,
-      // Currently unused.
-      nowSessionId: '',
-      message: {
-        text: message.message.value,
-        typed: true,
-        clientMessageId: message.message.id
-      },
-      userId: message.sender.username,
-      emailId: message.sender.email,
-      timestamp: '1588824102',
-      timezone: 'America/New_York'
+      content: message.message.value,
+      senderId: message.sender.username,
+      side: "ask Humberto",
     };
   }
 
-  sendMessage(message: CcpMessage): Promise<SendMessageResponse> {
-    axis.post(
-      this.config.instanceUrl + '/api/sn_va_as_service/bot/integration',
+  async sendMessage(
+    message: CcpMessage
+  ): Promise<AxiosResponse<components["schemas"]["Message"]>> {
+    const res = await axis.post(
+      `${this.config.instanceUrl}/contactCenter/v1/conversations/${message.conversationId}/messages/${message.message.id}`,
       this.sendMessageRequestBody(message)
     );
-    return Promise.resolve(undefined);
+    return res;
   }
 
   mapToCcpMessage(body: ContactCenterProApiWebhookBody): CcpMessage {
     return {
       message: {
         value: body.body[0].value,
-        type: MessageType.Text
+        type: MessageType.Text,
       },
       sender: {
-        username: body.body[0].group
+        username: body.body[0].group,
       },
-      conversationId: body.clientSessionId
+      conversationId: body.clientSessionId,
     };
   }
 
@@ -71,23 +58,41 @@ export class MiddlewareApiService {
     return message.completed;
   }
 
-  async getSettings() {
+  async getSettings(): Promise<
+    AxiosResponse<components["schemas"]["Setting"]>
+  > {
     const result = await axis.get(
       `${this.config.instanceUrl}/contactCenter/v1/settings`
     );
-    return result.data;
+    return result;
   }
 
-  async putSettings(token, data: SettingsObject) {
+  async putSettings(
+    data: SettingsObject
+  ): Promise<AxiosResponse<components["schemas"]["Setting"]>> {
     const result = await axis.put(
       `${this.config.instanceUrl}/contactCenter/v1/settings`,
       data,
       {
         headers: {
-          'x-pypestream-token': token
-        }
+          "x-pypestream-token": this.config.token,
+        },
       }
     );
-    return result.data;
+    return result;
+  }
+
+  async history(
+    conversationId: string
+  ): Promise<AxiosResponse<components["schemas"]["History"]>> {
+    const response = await axis.get(
+      `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/history`,
+      {
+        headers: {
+          "x-pypestream-token": this.config.token,
+        },
+      }
+    );
+    return response;
   }
 }
