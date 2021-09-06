@@ -3,7 +3,7 @@ import { AppService } from './app.service';
 import { MessageType, SendMessageResponse } from '@ccp/sdk';
 
 @Controller('agent')
-export class AppController {
+export class AgentController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
@@ -19,7 +19,7 @@ export class AppController {
         skill: 'english',
         message: {
           id: '123',
-          value: '123',
+          value: 'test message',
           type: MessageType.Text,
         },
         sender: {

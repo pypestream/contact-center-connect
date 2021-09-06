@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { MiddlewareApiController } from './middleware-api.controller';
+import { AgentController } from './agent.controller';
 import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
 
@@ -21,6 +21,6 @@ import { CcpModule } from '@ccp/nestjs-module';
     }),
   ],
   providers: [AppService],
-  controllers: [AppController, MiddlewareApiController],
+  controllers: [AgentController, MiddlewareApiController],
 })
 export class AppModule {}

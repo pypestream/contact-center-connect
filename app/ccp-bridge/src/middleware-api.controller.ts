@@ -4,6 +4,7 @@ import {
   middlewareApiComponents,
   middlewareApiOperations,
   MessageType,
+  SendMessageResponse,
 } from '@ccp/sdk';
 import { AxiosResponse } from 'axios';
 
@@ -121,5 +122,27 @@ export class MiddlewareApiController {
     });
 
     return sendMessageRes;
+  }
+
+  // for testing, we should remove it later
+  @Get('/conversations/:conversationId/message/:messageId')
+  async getMessage(
+    @Param('conversationId') conversationId,
+    @Param('messageId') messageId,
+  ): Promise<SendMessageResponse> {
+    const sendMessageRes = await this.appService.serviceNowService.sendMessage({
+      conversationId: conversationId,
+      skill: 'english',
+      message: {
+        id: '123',
+        value: 'test message',
+        type: MessageType.Text,
+      },
+      sender: {
+        email: 'test@test.com',
+        username: 'username',
+      },
+    });
+    return sendMessageRes.data;
   }
 }
