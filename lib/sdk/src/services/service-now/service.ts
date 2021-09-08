@@ -32,7 +32,7 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
       // Currently unused.
       nowSessionId: "",
       contextVariables: {
-        LiveAgent_mandatory_skills: "english",
+        LiveAgent_mandatory_skills: message.skill,
       },
       message: {
         text: message.message.value,
@@ -41,8 +41,8 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
       },
       userId: message.sender.username,
       emailId: message.sender.email,
-      timestamp: "1588824102",
-      timezone: "America/New_York",
+      // timestamp: "1588824102",
+      // timezone: "America/New_York",
     };
   }
 

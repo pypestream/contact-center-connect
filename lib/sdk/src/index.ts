@@ -7,6 +7,8 @@ export {
   ServiceEnum,
   MessageType,
   SendMessageResponse,
+  MiddlewareApiConfig,
+  ContactCenterProConfig,
 } from "./services/common/interfaces";
 export {
   components as middlewareApiComponents,

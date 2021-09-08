@@ -1,27 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppController } from './app.controller';
+import { AgentController } from './agent.controller';
 import { CcpModule } from '@ccp/nestjs-module';
 import { AppService } from './app.service';
+import { MiddlewareApiConfig } from '@ccp/sdk';
 
-const serviceNowConfig = {
-  instanceUrl: 'https://dev78406.service-now.com'
+const middlewareApiConfig: MiddlewareApiConfig = {
+  instanceUrl: 'https://middleware.claybox.usa.pype.engineering',
+  token: 'ydeHKGvMxhpMOeUqvgFG//jdsauXvpFqySTa740KsBdWMSc+3iNBdNRjGLHJ6frY',
 };
 
 describe('AppService', () => {
-  let appController: AppController;
+  let agentController: AgentController;
   let spyAppService: AppService;
   let appService = {
-    serviceNowService: {
-      sendMessage: () => ({ status: 'success' }),
+    middlewareApiService: {
+      sendMessage: () => ({
+        status: 'success',
+        data: {
+          content: 'fake message',
+        },
+      }),
     },
   };
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
+      controllers: [AgentController],
       imports: [
         CcpModule.forRoot({
-          serviceNow: serviceNowConfig,
+          middlewareApi: middlewareApiConfig,
         }),
       ],
       providers: [AppService],
@@ -30,15 +37,14 @@ describe('AppService', () => {
       .useValue(appService)
       .compile();
 
-    appController = app.get<AppController>(AppController);
+    agentController = app.get<AgentController>(AgentController);
     spyAppService = app.get<AppService>(AppService);
   });
 
   describe('Send Message to Agent', () => {
-
-    it('Should send message to servicenow',async () => {
-      const res = await appController.sendToAgent();
-      expect(res.status).toEqual('success')
+    it('Should send message to servicenow', async () => {
+      const res = await agentController.message();
+      expect(res.status).toEqual('success');
     });
   });
 });

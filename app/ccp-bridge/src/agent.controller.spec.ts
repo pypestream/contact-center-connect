@@ -1,40 +1,51 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppController } from './app.controller';
+import { AgentController } from './agent.controller';
 import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
-import { ServiceNowService } from '@ccp/sdk';
+import {
+  ServiceNowConfig,
+  MiddlewareApiConfig,
+  MiddlewareApiService,
+  ContactCenterProConfig,
+} from '@ccp/sdk';
 
-const serviceNowConfig = {
+const middlewareApiConfig: MiddlewareApiConfig = {
+  instanceUrl: 'https://dev78406.service-now.com',
+  token: 'fake token',
+};
+
+const serviceNowConfig: ServiceNowConfig = {
   instanceUrl: 'https://dev78406.service-now.com',
 };
 
-const ccpConfig = {
+const ccpConfig: ContactCenterProConfig = {
   instanceUrl: 'https://localhost:3000',
 };
 
-describe('AppController', () => {
-  let appController: AppController;
+describe('AgentController', () => {
+  let agentController: AgentController;
   let spyAppService: AppService;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
+      controllers: [AgentController],
       imports: [
         CcpModule.forRoot({
           serviceNow: serviceNowConfig,
+          middlewareApi: middlewareApiConfig,
           ccp: ccpConfig,
         }),
       ],
       providers: [AppService],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    agentController = app.get<AgentController>(AgentController);
     spyAppService = app.get<AppService>(AppService);
   });
 
   describe('root', () => {
     it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+      expect(agentController.getHello()).toBe('Hello World!');
     });
 
     it('ApiService - should be defined', () => {
@@ -45,11 +56,11 @@ describe('AppController', () => {
 
   describe('Send Message to Agent', () => {
     it('should call send message to agent', async () => {
-      const result = new ServiceNowService(ccpConfig, serviceNowConfig);
+      const result = new MiddlewareApiService(ccpConfig, middlewareApiConfig);
       const spy = jest
-        .spyOn(spyAppService, 'serviceNowService', 'get')
+        .spyOn(spyAppService, 'middlewareApiService', 'get')
         .mockImplementationOnce(() => result);
-      await appController.sendToAgent();
+      await agentController.message();
       expect(spy).toHaveBeenCalled();
     });
   });

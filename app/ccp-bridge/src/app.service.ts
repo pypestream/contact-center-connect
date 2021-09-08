@@ -4,9 +4,7 @@ import { InjectCcp } from '@ccp/nestjs-module';
 
 @Injectable()
 export class AppService {
-  public constructor(@InjectCcp() private readonly ccpClient: Ccp) {
-    console.info('Ccp client was loaded', this.ccpClient);
-  }
+  public constructor(@InjectCcp() private readonly ccpClient: Ccp) {}
 
   get serviceNowService() {
     return this.ccpClient.serviceNowService;

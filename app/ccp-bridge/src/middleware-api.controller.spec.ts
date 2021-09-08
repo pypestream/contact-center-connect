@@ -12,7 +12,7 @@ const ccpConfig = {
   instanceUrl: 'https://localhost:3000',
 };
 
-describe('AppController', () => {
+describe('MiddlewareApiController', () => {
   let middlewareApiController: MiddlewareApiController;
   let spyAppService: AppService;
 
@@ -35,8 +35,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(middlewareApiController.availability({})).toBe('Hello World!');
+    it('should return object', () => {
+      expect(typeof middlewareApiController.availability({})).toBe('object');
     });
 
     it('ApiService - should be defined', () => {
@@ -46,12 +46,16 @@ describe('AppController', () => {
   });
 
   describe('Send Message to Agent', () => {
-    it('should call send message to agent', async () => {
+    it('Should call send message to agent', async () => {
       const result = new ServiceNowService(ccpConfig, serviceNowConfig);
       const spy = jest
         .spyOn(spyAppService, 'serviceNowService', 'get')
         .mockImplementationOnce(() => result);
-      await middlewareApiController.settings();
+      await middlewareApiController.message('conversation-id', 'message-id', {
+        content: 'fake message',
+        senderId: 'sender-id',
+        side: 'agent',
+      });
       expect(spy).toHaveBeenCalled();
     });
   });

@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import {
   middlewareApiComponents,
@@ -67,29 +77,42 @@ export class MiddlewareApiController {
       conversationId,
     );
 
-    await this.appService.serviceNowService.sendMessage({
-      conversationId: conversationId,
-      skill: body.skill,
-      message: {
-        id: '123',
-        value: '123',
-        type: MessageType.Text,
-      },
-      sender: {
-        email: 'test@test.com',
-        username: body.userId,
-      },
+    const messages = historyResponse.data.messages.map((item) => {
+      return this.appService.serviceNowService.sendMessage({
+        conversationId: conversationId,
+        skill: body.skill,
+        message: {
+          id: '123',
+          value: '123',
+          type: MessageType.Text,
+        },
+        sender: {
+          email: 'test@test.com',
+          username: body.userId,
+        },
+      });
     });
-    return {
-      agentId: '123',
-      escalationId: 'string',
-      /** Estimated wait time in seconds */
-      estimatedWaitTime: 30,
-      /** The user position in the chat queue. */
-      queuePosition: 1,
-      /** (accepted, queued) */
-      status: 'queued',
-    };
+    try {
+      await Promise.all(messages);
+      return {
+        agentId: '123',
+        escalationId: 'string',
+        /** Estimated wait time in seconds */
+        estimatedWaitTime: 30,
+        /** The user position in the chat queue. */
+        queuePosition: 1,
+        /** (accepted, queued) */
+        status: 'queued',
+      };
+    } catch (ex) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: ex.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @Post('/conversations/:conversationId/type')
@@ -117,7 +140,7 @@ export class MiddlewareApiController {
       },
       sender: {
         email: 'test@test.com',
-        username: 'username',
+        username: body.senderId,
       },
     });
 
