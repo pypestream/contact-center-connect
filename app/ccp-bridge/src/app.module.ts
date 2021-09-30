@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MiddlewareApiController } from './middleware-api.controller';
 import { AgentController } from './agent.controller';
+import { ServiceNowTestController } from './service-now-test.controller';
 import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
 
@@ -8,10 +9,10 @@ import { CcpModule } from '@ccp/nestjs-module';
   imports: [
     CcpModule.forRoot({
       ccp: {
-        instanceUrl: 'http://390c-176-33-109-197.ngrok.io',
+        instanceUrl: 'https://enhvq0q28akbhlm.m.pipedream.net',
       },
       serviceNow: {
-        instanceUrl: 'https://dev78406.service-now.com',
+        instanceUrl: 'https://dev50996.service-now.com',
       },
       middlewareApi: {
         instanceUrl: 'https://middleware.claybox.usa.pype.engineering',
@@ -21,6 +22,10 @@ import { CcpModule } from '@ccp/nestjs-module';
     }),
   ],
   providers: [AppService],
-  controllers: [AgentController, MiddlewareApiController],
+  controllers: [
+    AgentController,
+    MiddlewareApiController,
+    ServiceNowTestController,
+  ],
 })
 export class AppModule {}

@@ -11,10 +11,9 @@ import {
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import {
+  MessageType,
   middlewareApiComponents,
   middlewareApiOperations,
-  MessageType,
-  SendMessageResponse,
 } from '@ccp/sdk';
 import { AxiosResponse } from 'axios';
 
@@ -73,17 +72,21 @@ export class MiddlewareApiController {
     @Param('conversationId') conversationId,
     @Body() body: middlewareApiComponents['schemas']['Escalate'],
   ): Promise<middlewareApiComponents['schemas']['EscalateResponse']> {
-    const historyResponse = await this.appService.middlewareApiService.history(
-      conversationId,
-    );
+    // TODO: history middleware api is not implemented
+    // const historyResponse = await this.appService.middlewareApiService
+    //   .history(conversationId)
+    //   .catch(err => {
+    //     return err.response;
+    //   });
 
-    const messages = historyResponse.data.messages.map((item) => {
-      return this.appService.serviceNowService.sendMessage({
+    try {
+      await this.appService.serviceNowService.startConversation({
         conversationId: conversationId,
         skill: body.skill,
+
         message: {
-          id: '123',
-          value: '123',
+          id: '',
+          value: '',
           type: MessageType.Text,
         },
         sender: {
@@ -91,16 +94,13 @@ export class MiddlewareApiController {
           username: body.userId,
         },
       });
-    });
-    try {
-      await Promise.all(messages);
       return {
-        agentId: '123',
-        escalationId: 'string',
+        agentId: '',
+        escalationId: '',
         /** Estimated wait time in seconds */
-        estimatedWaitTime: 30,
+        estimatedWaitTime: 0,
         /** The user position in the chat queue. */
-        queuePosition: 1,
+        queuePosition: 0,
         /** (accepted, queued) */
         status: 'queued',
       };
@@ -119,9 +119,12 @@ export class MiddlewareApiController {
   async type(
     @Param('conversationId') conversationId,
     @Body() body: middlewareApiComponents['schemas']['Typing'],
-  ): Promise<boolean> {
-    const res = this.appService.serviceNowService.typing();
-    return res;
+  ): Promise<string> {
+    const res = await this.appService.serviceNowService.sendTyping(
+      conversationId,
+      body.typing,
+    );
+    return res.data.message;
   }
 
   @Put('/conversations/:conversationId/message/:messageId')
@@ -130,6 +133,11 @@ export class MiddlewareApiController {
     @Param('messageId') messageId,
     @Body() body: middlewareApiComponents['schemas']['Message'],
   ): Promise<AxiosResponse> {
+    this.appService.middlewareApiService.mapToCcpMessage(
+      body,
+      conversationId,
+      messageId,
+    );
     const sendMessageRes = await this.appService.serviceNowService.sendMessage({
       conversationId: conversationId,
       skill: 'english',
@@ -147,25 +155,14 @@ export class MiddlewareApiController {
     return sendMessageRes;
   }
 
-  // for testing, we should remove it later
-  @Get('/conversations/:conversationId/message/:messageId')
-  async getMessage(
+  @Post('/conversations/:conversationId/end')
+  async conversationEnd(
     @Param('conversationId') conversationId,
-    @Param('messageId') messageId,
-  ): Promise<SendMessageResponse> {
-    const sendMessageRes = await this.appService.serviceNowService.sendMessage({
-      conversationId: conversationId,
-      skill: 'english',
-      message: {
-        id: '123',
-        value: 'test message',
-        type: MessageType.Text,
-      },
-      sender: {
-        email: 'test@test.com',
-        username: 'username',
-      },
-    });
-    return sendMessageRes.data;
+    @Body() body: middlewareApiComponents['schemas']['End'],
+  ): Promise<AxiosResponse> {
+    const sendMessageRes =
+      await this.appService.serviceNowService.endConversation(conversationId);
+
+    return sendMessageRes;
   }
 }

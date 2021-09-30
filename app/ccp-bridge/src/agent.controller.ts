@@ -1,36 +1,51 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { MessageType, SendMessageResponse } from '@ccp/sdk';
+import { SendMessageResponse, ServiceNowWebhookBody } from '@ccp/sdk';
+import { AxiosResponse } from 'axios';
 
 @Controller('agent')
 export class AgentController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getHello(): any {
-    return 'Hello World!';
-  }
+  @Post('message')
+  async message(
+    @Body() body: ServiceNowWebhookBody,
+  ): Promise<SendMessageResponse> {
+    let res: AxiosResponse<any>;
+    const hasTypingIndicatorAction =
+      this.appService.serviceNowService.hasTypingIndicatorAction(body);
+    if (hasTypingIndicatorAction) {
+      const isTyping = this.appService.serviceNowService.isTyping(body);
+      res = await this.appService.middlewareApiService.sendTyping(
+        body.clientSessionId,
+        isTyping,
+      );
+    }
+    const hasChatEndedAction =
+      this.appService.serviceNowService.hasChatEndedAction(body);
+    if (hasChatEndedAction) {
+      res = await this.appService.middlewareApiService.sendEnd(
+        body.clientSessionId,
+      );
+    }
 
-  @Get('message')
-  async message(): Promise<SendMessageResponse> {
-    const sendMessageRes =
-      await this.appService.middlewareApiService.sendMessage({
-        conversationId: 'conversationId',
-        skill: 'english',
-        message: {
-          id: '123',
-          value: 'test message',
-          type: MessageType.Text,
-        },
-        sender: {
-          email: 'test@test.com',
-          username: 'username',
-        },
-      });
-    return {
-      message: sendMessageRes.data.content,
-      status: sendMessageRes.status,
-    };
+    const hasNewMessageAction =
+      this.appService.serviceNowService.hasNewMessageAction(body);
+    if (hasNewMessageAction) {
+      for (let i = 0; i < body.body.length; i++) {
+        const message = this.appService.serviceNowService.mapToCcpMessage(
+          body,
+          i,
+        );
+        if (message) {
+          res = await this.appService.middlewareApiService.sendMessage(message);
+        }
+      }
+      return {
+        message: res.data.content,
+        status: res.status,
+      };
+    }
   }
 }
 

@@ -23,12 +23,20 @@ export type SendMessageResponse = {
 
 export interface Service<T> {
   sendMessage(message: CcpMessage): Promise<AxiosResponse<SendMessageResponse>>;
-  mapToCcpMessage(message: T): CcpMessage;
-  isMessageSentByAgent(message: T): boolean;
-  isChatEnded(message: T): boolean;
+  startConversation(
+    message: CcpMessage
+  ): Promise<AxiosResponse<SendMessageResponse>>;
+  endConversation(conversationId: string): Promise<AxiosResponse<any>>;
+  mapToCcpMessage(message: T, index: number): CcpMessage;
+  hasChatEndedAction(message: T): boolean;
+  hasNewMessageAction(message: T): boolean;
+  hasTypingIndicatorAction(message: T): boolean;
   isAvailable(skill: string): boolean;
-  waitTime(skill: string): boolean;
-  typing(): boolean;
+  waitTime(message: T): string;
+  sendTyping(
+    conversationId: string,
+    isTyping: boolean
+  ): Promise<AxiosResponse<SendMessageResponse>>;
 }
 
 export enum ServiceEnum {
@@ -39,6 +47,12 @@ export enum ServiceEnum {
 export enum MessageType {
   Text,
   Image,
+}
+
+export enum MessageAction {
+  END_CONVERSATION = "END_CONVERSATION",
+  START_CONVERSATION = "START_CONVERSATION",
+  AGENT = "AGENT",
 }
 
 export type CcpConfig = {

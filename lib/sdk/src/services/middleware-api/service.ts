@@ -1,8 +1,9 @@
 import {
   CcpMessage,
+  ContactCenterProConfig,
+  MessageAction,
   MessageType,
   MiddlewareApiConfig,
-  ContactCenterProConfig,
 } from "../common/interfaces";
 import axis, { AxiosResponse } from "axios";
 import { ContactCenterProApiWebhookBody, SettingsObject } from "./types";
@@ -17,7 +18,7 @@ export class MiddlewareApiService {
     this.ccpConfig = ccpConfig;
   }
 
-  private sendMessageRequestBody(
+  private getMessageRequestBody(
     message: CcpMessage
   ): components["schemas"]["Message"] {
     return {
@@ -32,26 +33,27 @@ export class MiddlewareApiService {
   ): Promise<AxiosResponse<components["schemas"]["Message"]>> {
     const res = await axis.post(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${message.conversationId}/messages/${message.message.id}`,
-      this.sendMessageRequestBody(message)
+      this.getMessageRequestBody(message)
     );
     return res;
   }
 
-  mapToCcpMessage(body: ContactCenterProApiWebhookBody): CcpMessage {
+  mapToCcpMessage(
+    body: components["schemas"]["Message"],
+    conversationId: string,
+    messageId: string
+  ): CcpMessage {
     return {
       message: {
-        value: body.body[0].value,
+        id: messageId,
+        value: body.content,
         type: MessageType.Text,
       },
       sender: {
-        username: body.body[0].group,
+        username: body.senderId,
       },
-      conversationId: body.clientSessionId,
+      conversationId,
     };
-  }
-
-  isMessageSentByAgent(message: ContactCenterProApiWebhookBody): boolean {
-    return message.body[0].agentInfo.sentFromAgent;
   }
 
   isChatEnded(message: ContactCenterProApiWebhookBody): boolean {
@@ -87,6 +89,41 @@ export class MiddlewareApiService {
   ): Promise<AxiosResponse<components["schemas"]["History"]>> {
     const response = await axis.get(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/history`,
+      {
+        headers: {
+          "x-pypestream-token": this.config.token,
+        },
+      }
+    );
+
+    return response;
+  }
+
+  async sendEnd(
+    conversationId: string
+  ): Promise<AxiosResponse<components["schemas"]["History"]>> {
+    const response = await axis.post(
+      `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/end`,
+      {
+        senderId: "agent",
+      },
+      {
+        headers: {
+          "x-pypestream-token": this.config.token,
+        },
+      }
+    );
+    return response;
+  }
+  async sendTyping(
+    conversationId: string,
+    isTyping: boolean
+  ): Promise<AxiosResponse<components["schemas"]["History"]>> {
+    const response = await axis.post(
+      `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/type`,
+      {
+        type: isTyping,
+      },
       {
         headers: {
           "x-pypestream-token": this.config.token,

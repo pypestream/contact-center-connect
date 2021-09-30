@@ -3,7 +3,6 @@ import { AgentController } from './agent.controller';
 import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
 import {
-  ServiceNowConfig,
   MiddlewareApiConfig,
   MiddlewareApiService,
   ContactCenterProConfig,
@@ -12,10 +11,6 @@ import {
 const middlewareApiConfig: MiddlewareApiConfig = {
   instanceUrl: 'https://dev78406.service-now.com',
   token: 'fake token',
-};
-
-const serviceNowConfig: ServiceNowConfig = {
-  instanceUrl: 'https://dev78406.service-now.com',
 };
 
 const ccpConfig: ContactCenterProConfig = {
@@ -31,7 +26,6 @@ describe('AgentController', () => {
       controllers: [AgentController],
       imports: [
         CcpModule.forRoot({
-          serviceNow: serviceNowConfig,
           middlewareApi: middlewareApiConfig,
           ccp: ccpConfig,
         }),
@@ -43,19 +37,12 @@ describe('AgentController', () => {
     spyAppService = app.get<AppService>(AppService);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(agentController.getHello()).toBe('Hello World!');
-    });
-
+  describe('Send Message to Agent', () => {
     it('ApiService - should be defined', () => {
       expect(spyAppService).toBeDefined();
-      expect(spyAppService.serviceNowService).toBeDefined();
+      expect(spyAppService.middlewareApiService).toBeDefined();
     });
-  });
-
-  describe('Send Message to Agent', () => {
-    it('should call send message to agent', async () => {
+    it('should call message action', async () => {
       const result = new MiddlewareApiService(ccpConfig, middlewareApiConfig);
       const spy = jest
         .spyOn(spyAppService, 'middlewareApiService', 'get')

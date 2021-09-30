@@ -6,6 +6,7 @@ export {
   ServiceNowConfig,
   ServiceEnum,
   MessageType,
+  MessageAction,
   SendMessageResponse,
   MiddlewareApiConfig,
   ContactCenterProConfig,
@@ -14,3 +15,4 @@ export {
   components as middlewareApiComponents,
   operations as middlewareApiOperations,
 } from "./services/middleware-api/types/index";
+export { ServiceNowWebhookBody } from "./services/service-now/types";
