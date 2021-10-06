@@ -21,7 +21,27 @@ $ npm build
 $ npm run start:dev
 
 ```
+## Config Services
+To config end-user and agent services
 
+app/ccsp-bridge/src/app.module.js
+```ts
+    CcpModule.forRoot({
+      ccp: {
+        instanceUrl: 'https://enhvq0q28akbhlm.m.pipedream.net',
+      },
+      serviceNow: {
+        instanceUrl: 'https://dev50996.service-now.com',
+      },
+      middlewareApi: {
+        instanceUrl: 'https://middleware.claybox.usa.pype.engineering',
+        token:
+          'ydeHKGvMxhpMOeUqvgFG//jdsauXvpFqySTa740KsBdWMSc+3iNBdNRjGLHJ6frY',
+      },
+    }),
+````
+## Service Configuration
+  - [ServiceNow Configration](/docs/config-servicenow.md)
 ## Test
 
 ```bash
