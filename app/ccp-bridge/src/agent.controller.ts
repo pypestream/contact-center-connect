@@ -35,7 +35,7 @@ export class AgentController {
       for (let i = 0; i < body.body.length; i++) {
         const message = this.appService.serviceNowService.mapToCcpMessage(
           body,
-          i,
+          { index: i },
         );
         if (message) {
           res = await this.appService.middlewareApiService.sendMessage(message);

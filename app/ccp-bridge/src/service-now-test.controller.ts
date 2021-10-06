@@ -1,24 +1,6 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { AppService } from './app.service';
-import {
-  MessageAction,
-  MessageType,
-  middlewareApiComponents,
-  middlewareApiOperations,
-  SendMessageResponse,
-} from '@ccp/sdk';
-import { AxiosResponse } from 'axios';
-import { v4 as uuidv4 } from 'uuid';
+import { MessageType, SendMessageResponse } from '@ccp/sdk';
 
 @Controller('service-now-test')
 export class ServiceNowTestController {
@@ -30,7 +12,6 @@ export class ServiceNowTestController {
     @Param('conversationId') conversationId,
     @Param('messageId') messageId,
   ): Promise<any> {
-    console.log(conversationId, messageId);
     const sendMessageRes =
       await this.appService.serviceNowService.startConversation({
         conversationId: conversationId,

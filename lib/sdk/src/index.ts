@@ -6,11 +6,11 @@ export {
   ServiceNowConfig,
   ServiceEnum,
   MessageType,
-  MessageAction,
   SendMessageResponse,
   MiddlewareApiConfig,
   ContactCenterProConfig,
-} from "./services/common/interfaces";
+} from "./services/common/types";
+
 export {
   components as middlewareApiComponents,
   operations as middlewareApiOperations,

@@ -1,11 +1,10 @@
-import { CcpConfig } from './services/common/interfaces';
-import { ServiceNowService } from './services/service-now/service';
-import { MiddlewareApiService } from './services/middleware-api/service';
+import { CcpConfig } from "./services/common/types";
+import { ServiceNowService } from "./services/service-now/service";
+import { MiddlewareApiService } from "./services/middleware-api/service";
 
 export class Ccp {
-  private readonly _serviceNowService: InstanceType<
-    typeof ServiceNowService
-  > = null;
+  private readonly _serviceNowService: InstanceType<typeof ServiceNowService> =
+    null;
   private readonly _middlewareApiService: InstanceType<
     typeof MiddlewareApiService
   > = null;

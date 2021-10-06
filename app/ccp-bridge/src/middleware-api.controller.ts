@@ -133,11 +133,10 @@ export class MiddlewareApiController {
     @Param('messageId') messageId,
     @Body() body: middlewareApiComponents['schemas']['Message'],
   ): Promise<AxiosResponse> {
-    this.appService.middlewareApiService.mapToCcpMessage(
-      body,
+    this.appService.middlewareApiService.mapToCcpMessage(body, {
       conversationId,
       messageId,
-    );
+    });
     const sendMessageRes = await this.appService.serviceNowService.sendMessage({
       conversationId: conversationId,
       skill: 'english',

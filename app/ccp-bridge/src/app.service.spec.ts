@@ -14,7 +14,7 @@ describe('AppService', () => {
   let spyAppService: AppService;
   let appService = {
     middlewareApiService: {
-      sendMessage: () => ({
+      sendMessage: async () => ({
         status: 'success',
         data: {
           content: 'fake message',

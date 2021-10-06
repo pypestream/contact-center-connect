@@ -1,12 +1,11 @@
 import {
   CcpMessage,
   ContactCenterProConfig,
-  MessageAction,
   MessageType,
   SendMessageResponse,
-  Service,
   ServiceNowConfig,
-} from "../common/interfaces";
+} from "../common/types";
+import { Service, ServiceWebhookHasActions } from "../common/interfaces";
 import axis, { AxiosResponse } from "axios";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -16,7 +15,11 @@ import {
   StartWaitTimeSpinnerType,
 } from "./types";
 
-export class ServiceNowService implements Service<ServiceNowWebhookBody> {
+export class ServiceNowService
+  implements
+    Service<ServiceNowWebhookBody>,
+    ServiceWebhookHasActions<ServiceNowWebhookBody>
+{
   serviceNowConfig: ServiceNowConfig;
   contactCenterProConfig: ContactCenterProConfig;
 
@@ -135,13 +138,12 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
 
   private getTypingRequestBody(conversationId: string, isTyping: boolean) {
     const requestId = uuidv4();
-    const messageId = uuidv4();
 
     const res = {
       requestId,
       clientSessionId: conversationId,
       action: isTyping ? "TYPING" : "VIEWING",
-      userId: "agent1",
+      userId: conversationId,
     };
     return res;
   }
@@ -180,7 +182,11 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
     return res;
   }
 
-  mapToCcpMessage(body: ServiceNowWebhookBody, index: number): CcpMessage {
+  mapToCcpMessage(
+    body: ServiceNowWebhookBody,
+    params: { index: number }
+  ): CcpMessage {
+    const { index } = params;
     const item = body.body[index];
     if (item.uiType !== "OutputText") {
       return;
@@ -241,7 +247,15 @@ export class ServiceNowService implements Service<ServiceNowWebhookBody> {
     return !!skill;
   }
 
-  waitTime(message: ServiceNowWebhookBody): string {
+  hasWaitTime(message: ServiceNowWebhookBody): boolean {
+    const item: StartWaitTimeSpinnerType = message.body.find((item) => {
+      const spinner = item as StartWaitTimeSpinnerType;
+      return spinner.spinnerType === "wait_time";
+    }) as StartWaitTimeSpinnerType;
+    return !!item;
+  }
+
+  getWaitTime(message: ServiceNowWebhookBody): string {
     const item: StartWaitTimeSpinnerType = message.body.find((item) => {
       const spinner = item as StartWaitTimeSpinnerType;
       return spinner.spinnerType === "wait_time";

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MiddlewareApiController } from './middleware-api.controller';
 import { AgentController } from './agent.controller';
 import { ServiceNowTestController } from './service-now-test.controller';
+import { MiddlewareApiTestController } from './middleware-api-test.controller';
 import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
 
@@ -26,6 +27,7 @@ import { CcpModule } from '@ccp/nestjs-module';
     AgentController,
     MiddlewareApiController,
     ServiceNowTestController,
+    MiddlewareApiTestController,
   ],
 })
 export class AppModule {}

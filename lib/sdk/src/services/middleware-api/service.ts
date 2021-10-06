@@ -1,15 +1,18 @@
+import { Service } from "../common/interfaces";
 import {
   CcpMessage,
   ContactCenterProConfig,
-  MessageAction,
   MessageType,
   MiddlewareApiConfig,
-} from "../common/interfaces";
+  SendMessageResponse,
+} from "../common/types";
 import axis, { AxiosResponse } from "axios";
 import { ContactCenterProApiWebhookBody, SettingsObject } from "./types";
 import { components } from "./types/openapi-types";
 
-export class MiddlewareApiService {
+export class MiddlewareApiService
+  implements Service<components["schemas"]["Message"]>
+{
   config: MiddlewareApiConfig;
   ccpConfig: ContactCenterProConfig;
 
@@ -18,19 +21,51 @@ export class MiddlewareApiService {
     this.ccpConfig = ccpConfig;
   }
 
+  startConversation(
+    message: CcpMessage
+  ): Promise<AxiosResponse<SendMessageResponse>> {
+    throw new Error(
+      "Middleware API is end-user platform, agent can not start conversation with end-user"
+    );
+  }
+
+  async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
+    const res = await axis.post(
+      `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/end`,
+      { senderId: "agent" }
+    );
+    return res;
+  }
+
+  isTyping(message: components["schemas"]["Message"]): boolean {
+    return true;
+  }
+
+  isAvailable(skill: string): boolean {
+    return true;
+  }
+
+  getWaitTime(message: {
+    content: string;
+    senderId: string;
+    side: string;
+  }): string {
+    return "0";
+  }
+
   private getMessageRequestBody(
     message: CcpMessage
   ): components["schemas"]["Message"] {
     return {
       content: message.message.value,
       senderId: message.sender.username,
-      side: "ask Humberto",
+      side: "agent",
     };
   }
 
   async sendMessage(
     message: CcpMessage
-  ): Promise<AxiosResponse<components["schemas"]["Message"]>> {
+  ): Promise<AxiosResponse<SendMessageResponse>> {
     const res = await axis.post(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${message.conversationId}/messages/${message.message.id}`,
       this.getMessageRequestBody(message)
@@ -40,9 +75,9 @@ export class MiddlewareApiService {
 
   mapToCcpMessage(
     body: components["schemas"]["Message"],
-    conversationId: string,
-    messageId: string
+    params: { conversationId: string; messageId: string }
   ): CcpMessage {
+    const { conversationId, messageId } = params;
     return {
       message: {
         id: messageId,
@@ -115,10 +150,11 @@ export class MiddlewareApiService {
     );
     return response;
   }
+
   async sendTyping(
     conversationId: string,
     isTyping: boolean
-  ): Promise<AxiosResponse<components["schemas"]["History"]>> {
+  ): Promise<AxiosResponse<SendMessageResponse>> {
     const response = await axis.post(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/type`,
       {
