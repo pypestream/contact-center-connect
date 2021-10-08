@@ -1,3 +1,17 @@
+# Contact Center Pro
+- [Technology](#technology)
+- [Installation](#installation)
+- [Running the app](#running-the-app)
+- [Test](#test)
+- docs:
+    - [Add new service](/docs/add-new-service.md)
+    - [Configure serviceNow instance](/docs/configure-serviceNow-instance.md)
+### Technology
+
+- **NestJS**: A progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
+- **TypeScript**: TypeScript is JavaScript with syntax for types.
+- **NodeJS**: Node.js® is a JavaScript runtime built on Chrome's V8 JavaScript engine. `v16.6.1`
+- **NPM**: Node package manager `v7`
 
 
 ## Installation
@@ -24,13 +38,13 @@ $ npm run start:dev
 ## Config Services
 To config end-user and agent services
 
-app/ccsp-bridge/src/app.module.js
 ```ts
+    // app/ccsp-bridge/src/app.module.js
     CcpModule.forRoot({
       ccp: {
         instanceUrl: 'https://enhvq0q28akbhlm.m.pipedream.net',
       },
-      serviceNow: {
+      serviceNowCuso: {
         instanceUrl: 'https://dev50996.service-now.com',
       },
       middlewareApi: {
@@ -40,8 +54,7 @@ app/ccsp-bridge/src/app.module.js
       },
     }),
 ````
-## Service Configuration
-  - [ServiceNow Configration](/docs/config-servicenow.md)
+
 ## Test
 
 ```bash

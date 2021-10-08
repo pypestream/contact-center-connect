@@ -8,6 +8,7 @@
   ],
   "private": true,
   "dependencies": {
+    "@nsammour-pypestream/sdk-test": "^0.1.0",
     "@types/node": "^16.6.1",
     "lerna": "^4.0.0",
     "stripe": "^8.169.0"
@@ -28,9 +29,9 @@
   "devDependencies": {
     "@ccp/eslint-config": "^0.0.0",
     "@ccp/prettier-config": "^0.0.0",
-    "ts-jest": "^27.0.5",
     "husky": "^7.0.0",
     "lint-staged": "^11.1.2",
+    "ts-jest": "^27.0.5",
     "typescript": "^3.9.10"
   },
   "lint-staged": {

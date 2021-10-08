@@ -5,7 +5,7 @@ import {
   SendMessageResponse,
   ServiceNowConfig,
 } from "../common/types";
-import { Service, ServiceWebhookHasActions } from "../common/interfaces";
+import { Service, GenericWebhookInterpreter } from "../common/interfaces";
 import axis, { AxiosResponse } from "axios";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -17,8 +17,12 @@ import {
 
 export class ServiceNowService
   implements
-    Service<ServiceNowWebhookBody>,
-    ServiceWebhookHasActions<ServiceNowWebhookBody>
+    Service<
+      ServiceNowWebhookBody,
+      ServiceNowWebhookBody,
+      ServiceNowWebhookBody
+    >,
+    GenericWebhookInterpreter<ServiceNowWebhookBody>
 {
   serviceNowConfig: ServiceNowConfig;
   contactCenterProConfig: ContactCenterProConfig;
@@ -211,7 +215,7 @@ export class ServiceNowService
     return !!item;
   }
 
-  hasChatEndedAction(message: ServiceNowWebhookBody): boolean {
+  hasEndConversationAction(message: ServiceNowWebhookBody): boolean {
     const item = message.body.find(
       (item) => item.uiType === "ActionMsg" && item.actionType === "System"
     );

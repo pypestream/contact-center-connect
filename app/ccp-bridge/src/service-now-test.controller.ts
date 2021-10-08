@@ -2,11 +2,12 @@ import { Controller, Get, Param } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MessageType, SendMessageResponse } from '@ccp/sdk';
 
+// this controller for testing, we should remove it later
+
 @Controller('service-now-test')
 export class ServiceNowTestController {
   constructor(private readonly appService: AppService) {}
 
-  // for testing, we should remove it later
   @Get('/c/:conversationId/m/:messageId/start-conversation')
   async getStartConversation(
     @Param('conversationId') conversationId,
@@ -29,7 +30,6 @@ export class ServiceNowTestController {
     return sendMessageRes.data;
   }
 
-  // for testing, we should remove it later
   @Get('/c/:conversationId/m/:messageId/send-message')
   async getSendMessage(
     @Param('conversationId') conversationId,
@@ -51,7 +51,6 @@ export class ServiceNowTestController {
     return sendMessageRes.data;
   }
 
-  // for testing, we should remove it later
   @Get('/c/:conversationId/end-conversation')
   async getEndConversation(
     @Param('conversationId') conversationId,
@@ -61,7 +60,6 @@ export class ServiceNowTestController {
     return sendMessageRes.data;
   }
 
-  // for testing, we should remove it later
   @Get('/c/:conversationId/typing')
   async getTyping(
     @Param('conversationId') conversationId,
@@ -73,7 +71,6 @@ export class ServiceNowTestController {
     return sendMessageRes.data;
   }
 
-  // for testing, we should remove it later
   @Get('/c/:conversationId/viewing')
   async getViewing(
     @Param('conversationId') conversationId,

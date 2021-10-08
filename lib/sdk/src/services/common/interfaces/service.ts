@@ -2,19 +2,64 @@ import { AxiosResponse } from "axios";
 import { SendMessageResponse } from "./../types/send-message-response";
 import { CcpMessage } from "./../types/ccs-message";
 
-export interface Service<T> {
+/**
+ * Service should implement this interface for core features interface
+ *
+ */
+export interface Service<T, Y, Z> {
+  /**
+   * Send message to service
+   * @param message
+   */
   sendMessage(message: CcpMessage): Promise<AxiosResponse<SendMessageResponse>>;
+
+  /**
+   * Start new conversation with initial message
+   * @param message
+   */
   startConversation(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>>;
+
+  /**
+   * End conversation
+   * @param conversationId
+   */
   endConversation(conversationId: string): Promise<AxiosResponse<any>>;
+
+  /**
+   * Convert posted body to CCP message
+   * @param body
+   * @param params
+   */
   mapToCcpMessage(
-    message: T,
+    body: T,
     params: { conversationId: string; messageId: string; index: number }
   ): CcpMessage;
-  isTyping(message: T): boolean;
+
+  /**
+   * Determine if user/agent is typing or viewing based on request body
+   * @param message
+   */
+  isTyping(body: Y): boolean;
+
+  /**
+   * Determine if user/agent is availabe to receive new message
+   * @param message
+   */
   isAvailable(skill: string): boolean;
-  getWaitTime(message: T): string;
+
+  /**
+   * Return estmiated waittime in seconds
+   * @param message
+   */
+  getWaitTime(body: Z): string;
+
+  /**
+   * Send is typing indicator to service
+   * @param conversationId
+   * @param isTyping
+   */
   sendTyping(
     conversationId: string,
     isTyping: boolean

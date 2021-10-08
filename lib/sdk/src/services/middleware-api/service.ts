@@ -11,7 +11,12 @@ import { ContactCenterProApiWebhookBody, SettingsObject } from "./types";
 import { components } from "./types/openapi-types";
 
 export class MiddlewareApiService
-  implements Service<components["schemas"]["Message"]>
+  implements
+    Service<
+      components["schemas"]["Message"],
+      components["schemas"]["Message"],
+      components["schemas"]["Message"]
+    >
 {
   config: MiddlewareApiConfig;
   ccpConfig: ContactCenterProConfig;
