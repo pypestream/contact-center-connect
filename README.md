@@ -35,6 +35,10 @@ $ npm build
 # start with watch mode
 $ npm run start:dev
 
+
+# start with prod mode
+$ npm run start:prod
+
 ```
 ## Config Services
 To config end-user and agent services

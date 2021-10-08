@@ -24,7 +24,8 @@
     "postinstall": "husky install",
     "tsc": "tsc -v",
     "lint-staged": "lint-staged",
-    "start:dev": "lerna run start:dev --scope ccp-bridge --stream"
+    "start:dev": "lerna run start:dev --scope ccp-bridge --stream",
+    "start:prod": "lerna run start:prod --scope ccp-bridge --stream"
   },
   "devDependencies": {
     "@ccp/eslint-config": "^0.0.0",
