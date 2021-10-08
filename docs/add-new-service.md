@@ -1,10 +1,9 @@
-
 #Add new service
 
 Each new service should implement these interfaces based on external service design
 
 
-- ###Service - mandatory
+###Service - mandatory
 
 ````ts
 /**
