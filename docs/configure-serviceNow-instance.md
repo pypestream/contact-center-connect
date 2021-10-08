@@ -1,4 +1,4 @@
-# Config ServiceNow
+# Configure ServiceNow instance
 
 - Install `virtual agent api v2` plugin from servicenow store
   ![](img.png)
