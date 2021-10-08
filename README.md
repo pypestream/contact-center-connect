@@ -6,6 +6,7 @@
 - docs:
     - [Add new service](/docs/add-new-service.md)
     - [Configure serviceNow instance](/docs/configure-serviceNow-instance.md)
+    - [Publish SDK to NPM](/docs/publish-sdk.md)
 ### Technology
 
 - **NestJS**: A progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
