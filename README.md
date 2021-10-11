@@ -9,10 +9,10 @@
     - [Publish SDK to NPM](/docs/publish-sdk.md)
 ### Technology
 
-- **NestJS**: A progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
-- **TypeScript**: TypeScript is JavaScript with syntax for types.
+- **NestJS**: NestJS is a progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
+- **TypeScript**: TypeScript is a strongly typed programming language which builds on JavaScript.
 - **NodeJS**: Node.js® is a JavaScript runtime built on Chrome's V8 JavaScript engine. `v16.6.1`
-- **NPM**: Node package manager `v7`
+- **NPM**: NPMnpm is the package manager for Node.js. `v7`
 
 
 ## Installation
@@ -41,7 +41,7 @@ $ npm run start:prod
 
 ```
 ## Config Services
-To config end-user and agent services
+To config end-user and agent services, update the following lines
 
 ```ts
     // app/ccsp-bridge/src/app.module.js
