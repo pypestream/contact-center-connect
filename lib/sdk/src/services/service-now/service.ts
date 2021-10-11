@@ -6,7 +6,8 @@ import {
   ServiceNowConfig,
 } from "../common/types";
 import { Service, GenericWebhookInterpreter } from "../common/interfaces";
-import axis, { AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
+
 import { v4 as uuidv4 } from "uuid";
 import {
   ServiceNowWebhookBody,
@@ -14,6 +15,11 @@ import {
   EndTypingIndicatorType,
   StartWaitTimeSpinnerType,
 } from "./types";
+
+// eslint-disable-next-line
+const axiosRetry = require("axios-retry");
+
+axiosRetry(axios, { retries: 3 });
 
 export class ServiceNowService
   implements
@@ -27,9 +33,12 @@ export class ServiceNowService
   serviceNowConfig: ServiceNowConfig;
   contactCenterProConfig: ContactCenterProConfig;
 
+  url: string;
+
   constructor(ccpConfig: ContactCenterProConfig, config: ServiceNowConfig) {
     this.serviceNowConfig = config;
     this.contactCenterProConfig = ccpConfig;
+    this.url = `${config.instanceUrl}/api/sn_va_as_service/bot/integration`;
   }
 
   private getMessageRequestBody(message: CcpMessage) {
@@ -104,19 +113,14 @@ export class ServiceNowService
   async sendMessage(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    const res = await axis.post(
-      this.serviceNowConfig.instanceUrl +
-        "/api/sn_va_as_service/bot/integration",
-      this.getMessageRequestBody(message)
-    );
+    const res = await axios.post(this.url, this.getMessageRequestBody(message));
 
     return res;
   }
 
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
-    const res = await axis.post(
-      this.serviceNowConfig.instanceUrl +
-        "/api/sn_va_as_service/bot/integration",
+    const res = await axios.post(
+      this.url,
       this.getEndConversationRequestBody(conversationId)
     );
 
@@ -126,15 +130,10 @@ export class ServiceNowService
   async startConversation(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    await axis.post(
-      this.serviceNowConfig.instanceUrl +
-        "/api/sn_va_as_service/bot/integration",
-      this.startConversationRequestBody(message)
-    );
+    await axios.post(this.url, this.startConversationRequestBody(message));
 
-    const res = await axis.post(
-      this.serviceNowConfig.instanceUrl +
-        "/api/sn_va_as_service/bot/integration",
+    const res = await axios.post(
+      this.url,
       this.switchToAgentRequestBody(message)
     );
     return res;
@@ -167,9 +166,8 @@ export class ServiceNowService
     conversationId: string,
     isTyping: boolean
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    const res = await axis.post(
-      this.serviceNowConfig.instanceUrl +
-        "/api/sn_va_as_service/bot/integration",
+    const res = await axios.post(
+      this.url,
       this.getTypingRequestBody(conversationId, isTyping)
     );
     return res;
@@ -178,9 +176,8 @@ export class ServiceNowService
   async sendEnd(
     conversationId: string
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    const res = await axis.post(
-      this.serviceNowConfig.instanceUrl +
-        "/api/sn_va_as_service/bot/integration",
+    const res = await axios.post(
+      this.url,
       this.getEndRequestBody(conversationId)
     );
     return res;

@@ -22,7 +22,7 @@ export class AgentController {
       );
     }
     const hasChatEndedAction =
-      this.appService.serviceNowService.hasChatEndedAction(body);
+      this.appService.serviceNowService.hasEndConversationAction(body);
     if (hasChatEndedAction) {
       res = await this.appService.middlewareApiService.sendEnd(
         body.clientSessionId,
