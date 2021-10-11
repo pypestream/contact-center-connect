@@ -72,7 +72,7 @@ export interface Service<T,Y,Z> {
 
 ````
 
-- ###GenericWebhookInterpreter - optional
+### GenericWebhookInterpreter - optional
     
 ````ts
 /**
