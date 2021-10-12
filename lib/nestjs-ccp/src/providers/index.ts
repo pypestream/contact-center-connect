@@ -1,1 +1,1 @@
-export * from './createCcpProvider';
+export { createCcpProvider } from './createCCPProvider';
