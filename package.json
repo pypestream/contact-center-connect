@@ -1,5 +1,5 @@
 {
-  "name": "csp",
+  "name": "ccp",
   "version": "0.0.0",
   "workspaces": [
     "app/**/*",
@@ -8,22 +8,37 @@
   ],
   "private": true,
   "dependencies": {
+    "@nsammour-pypestream/sdk-test": "^0.1.0",
     "@types/node": "^16.6.1",
     "lerna": "^4.0.0",
-    "stripe": "^8.169.0"
+    "stripe": "^8.169.0",
+    "ts-jest": "^27.0.5"
   },
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "test:sdk": "lerna run test --scope @csp/sdk --stream",
+    "test:sdk": "lerna run test --scope @ccp/sdk --stream",
+    "test:app": "lerna run test --scope ccp-bridge --stream",
+    "build": "lerna run build --scope @ccp/sdk --scope @ccp/nestjs-module --stream",
+    "build:sdk": "lerna run build --scope @ccp/sdk",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prepare": "husky install",
     "postinstall": "husky install",
-    "tsc": "tsc -v"
+    "tsc": "tsc -v",
+    "lint-staged": "lint-staged",
+    "start:dev": "lerna run start:dev --scope ccp-bridge --stream",
+    "start:prod": "lerna run start:prod --scope ccp-bridge --stream"
   },
   "devDependencies": {
-    "@csp/eslint-config": "^0.0.0",
-    "@csp/prettier-config": "^0.0.0",
+    "@ccp/eslint-config": "^0.0.0",
+    "@ccp/prettier-config": "^0.0.0",
     "husky": "^7.0.0",
+    "lint-staged": "^11.1.2",
     "typescript": "^3.9.10"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --ext .js,.jsx,.ts,.tsx --fix"
+    ]
   }
 }
