@@ -1,6 +1,6 @@
 build:
-	DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker image build . --no-cache -t $(image):$(version)-build --target build-dev
-	DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker image build . -t $(image):$(version)
+	docker image build . --no-cache -t $(image):$(version)-build --target build-dev
+	docker image build . -t $(image):$(version)
 
 build-dev:
 	docker image build . --pull -t $(image):$(version)-build --target build-dev
