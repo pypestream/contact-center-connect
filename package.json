@@ -18,15 +18,17 @@
     "bootstrap": "lerna bootstrap",
     "test:sdk": "lerna run test --scope @ccp/sdk --stream",
     "test:app": "lerna run test --scope ccp-bridge --stream",
-    "build": "lerna run build --scope @ccp/sdk --scope @ccp/nestjs-module --stream",
+    "build": "lerna run build --scope @ccp/sdk --scope @ccp/nestjs-module --scope ccp-bridge --stream",
     "build:sdk": "lerna run build --scope @ccp/sdk",
+    "build:nestjs-module": "lerna run build --scope @ccp/nestjs-module",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prepare": "husky install",
     "postinstall": "husky install",
     "tsc": "tsc -v",
     "lint-staged": "lint-staged",
     "start:dev": "lerna run start:dev --scope ccp-bridge --stream",
-    "start:prod": "lerna run start:prod --scope ccp-bridge --stream"
+    "start:prod": "lerna run start:prod --scope ccp-bridge --stream",
+    "remove:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +"
   },
   "devDependencies": {
     "@ccp/eslint-config": "^0.0.0",

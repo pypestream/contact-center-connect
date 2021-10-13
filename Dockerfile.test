@@ -1,0 +1,6 @@
+ARG image=ccp
+ARG version=latest
+FROM $image:$version
+
+RUN npm config set unsafe-perm true && \
+    npm ci

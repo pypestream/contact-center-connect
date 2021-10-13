@@ -1,0 +1,21 @@
+.git
+.github
+.vscode
+coverage
+azure-pipelines.yml
+*.md
+.prettierrc
+nodemon*.json
+
+# Secrets
+.env
+
+# Node Files
+node_modules
+npm-debug.log
+npm-debug.log.*
+dist
+
+# Source files
+src
+test
