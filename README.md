@@ -36,11 +36,14 @@ to use ngrok as webhook endpint follow [docs](/docs/configure-serviceNow-instanc
 # bind ngrok to port
 ./ngrok http 3000
 
+
 # start with watch mode
+# in project root folder
 $ npm run start:dev
 
 
 # start with prod mode
+# in project root folder
 $ npm run start:prod
 
 
@@ -69,13 +72,8 @@ To config end-user and agent services, update the following lines
 
 ```bash
 # unit tests
+# in project root folder
 $ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
 ## License
