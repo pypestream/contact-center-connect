@@ -3,11 +3,18 @@ import { MiddlewareApiController } from './middleware-api.controller';
 import { AgentController } from './agent.controller';
 import { ServiceNowTestController } from './service-now-test.controller';
 import { MiddlewareApiTestController } from './middleware-api-test.controller';
-import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { AppService } from './app.service';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', '..', 'lib', 'sdk', 'docs'),
+      serveRoot: '/docs',
+      renderPath: '/index.html',
+    }),
     CcpModule.forRoot({
       ccp: {
         instanceUrl: 'https://enhvq0q28akbhlm.m.pipedream.net',
