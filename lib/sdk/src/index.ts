@@ -2,9 +2,8 @@ export { Ccp } from "./ccp";
 export { ServiceNowService } from "./services/service-now/service";
 export { MiddlewareApiService } from "./services/middleware-api/service";
 export {
-  CcpConfig,
+  SdkConfig,
   ServiceNowConfig,
-  ServiceEnum,
   MessageType,
   SendMessageResponse,
   MiddlewareApiConfig,

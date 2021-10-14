@@ -2,10 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MiddlewareApiController } from './middleware-api.controller';
 import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
-import { ServiceNowService } from '@ccp/sdk';
+import {
+  MiddlewareApiConfig,
+  ServiceNowConfig,
+  ServiceNowService,
+} from '@ccp/sdk';
 
-const serviceNowConfig = {
-  instanceUrl: 'https://dev78406.service-now.com',
+const serviceNowConfig: ServiceNowConfig = {
+  instanceUrl: 'https://mock-server.service-now.com',
+};
+
+const middlewareApiConfig: MiddlewareApiConfig = {
+  instanceUrl: 'https://mock-server.service-now.com',
+  token: 'fake-token',
 };
 
 const ccpConfig = {
@@ -22,6 +31,7 @@ describe('MiddlewareApiController', () => {
       imports: [
         CcpModule.forRoot({
           serviceNow: serviceNowConfig,
+          middlewareApi: middlewareApiConfig,
           ccp: ccpConfig,
         }),
       ],

@@ -8,7 +8,10 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  Res,
 } from '@nestjs/common';
+import { Response, Request } from 'express';
 import { AppService } from './app.service';
 import {
   MessageType,
@@ -16,6 +19,7 @@ import {
   middlewareApiOperations,
 } from '@ccp/sdk';
 import { AxiosResponse } from 'axios';
+import * as getRawBody from 'raw-body';
 
 @Controller('contactCenter/v1')
 export class MiddlewareApiController {
@@ -70,8 +74,9 @@ export class MiddlewareApiController {
   @Post('/conversations/:conversationId/escalate')
   async escalate(
     @Param('conversationId') conversationId,
-    @Body() body: middlewareApiComponents['schemas']['Escalate'],
-  ): Promise<middlewareApiComponents['schemas']['EscalateResponse']> {
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     // TODO: history middleware api is not implemented
     // const historyResponse = await this.appService.middlewareApiService
     //   .history(conversationId)
@@ -79,6 +84,10 @@ export class MiddlewareApiController {
     //     return err.response;
     //   });
 
+    const rawBody = await getRawBody(req);
+    const body: middlewareApiComponents['schemas']['Escalate'] = JSON.parse(
+      rawBody.toString(),
+    );
     try {
       await this.appService.serviceNowService.startConversation({
         conversationId: conversationId,
@@ -94,9 +103,9 @@ export class MiddlewareApiController {
           username: body.userId,
         },
       });
-      return {
-        agentId: '',
-        escalationId: '',
+      const json: middlewareApiComponents['schemas']['EscalateResponse'] = {
+        agentId: 'test-agent',
+        escalationId: conversationId,
         /** Estimated wait time in seconds */
         estimatedWaitTime: 0,
         /** The user position in the chat queue. */
@@ -104,6 +113,7 @@ export class MiddlewareApiController {
         /** (accepted, queued) */
         status: 'queued',
       };
+      return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
       throw new HttpException(
         {
@@ -127,12 +137,18 @@ export class MiddlewareApiController {
     return res.data.message;
   }
 
-  @Put('/conversations/:conversationId/message/:messageId')
+  @Put('/conversations/:conversationId/messages/:messageId')
   async message(
     @Param('conversationId') conversationId,
     @Param('messageId') messageId,
-    @Body() body: middlewareApiComponents['schemas']['Message'],
-  ): Promise<AxiosResponse> {
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    console.log('yyyyyy');
+    const rawBody = await getRawBody(req);
+    const body: middlewareApiComponents['schemas']['Message'] = JSON.parse(
+      rawBody.toString(),
+    );
     this.appService.middlewareApiService.mapToCcpMessage(body, {
       conversationId,
       messageId,
@@ -151,7 +167,7 @@ export class MiddlewareApiController {
       },
     });
 
-    return sendMessageRes;
+    return res.status(HttpStatus.NO_CONTENT);
   }
 
   @Post('/conversations/:conversationId/end')

@@ -1,5 +1,5 @@
-import { CcpConfig } from '@ccp/sdk';
+import { SdkConfig } from '@ccp/sdk';
 
 export interface CcpOptionsFactory {
-  createCcpOptions(): Promise<CcpConfig> | CcpConfig;
+  createCcpOptions(): Promise<SdkConfig> | SdkConfig;
 }

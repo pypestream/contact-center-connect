@@ -1,17 +1,14 @@
 import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
 import { CcpModuleOptions, ccpToken } from './constants';
-import {
-  CcpAsyncOptions,
-  CcpOptionsFactory,
-} from './interfaces';
-import {CcpConfig} from '@ccp/sdk'
+import { CcpAsyncOptions, CcpOptionsFactory } from './interfaces';
+import { SdkConfig } from '@ccp/sdk';
 import { createCcpProvider } from './providers';
 import { getCcpClient } from './util';
 
 @Global()
 @Module({})
 export class CcpCoreModule {
-  public static forRoot(options: CcpConfig): DynamicModule {
+  public static forRoot(options: SdkConfig): DynamicModule {
     const provider = createCcpProvider(options);
 
     return {
@@ -25,8 +22,7 @@ export class CcpCoreModule {
     const ccpProvider: Provider = {
       inject: [CcpModuleOptions],
       provide: ccpToken,
-      useFactory: (ccpOptions: CcpConfig) =>
-        getCcpClient(ccpOptions),
+      useFactory: (ccpOptions: SdkConfig) => getCcpClient(ccpOptions),
     };
 
     return {

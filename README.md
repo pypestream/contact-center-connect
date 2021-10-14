@@ -7,12 +7,13 @@
     - [Add new service](/docs/add-new-service.md)
     - [Configure serviceNow instance](/docs/configure-serviceNow-instance.md)
     - [Publish SDK to NPM](/docs/publish-sdk.md)
+    - [Modules structure](/docs/modules-structure.md)
 ### Technology
 
 - **NestJS**: NestJS is a progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
 - **TypeScript**: TypeScript is a strongly typed programming language which builds on JavaScript.
 - **NodeJS**: Node.js® is a JavaScript runtime built on Chrome's V8 JavaScript engine. `v16.6.1`
-- **NPM**: NPMnpm is the package manager for Node.js. `v7`
+- **NPM**: npm is the package manager for Node.js. `v7`
 
 
 ## Installation
@@ -21,12 +22,14 @@
 $ npm install
 $ npm build
 ```
-```
-./ngrok http 3000
-$ npm build
-```
 
 ## Running the app
+to receive webhook from your local env you will need to install [ngrok](https://ngrok.com/)
+
+ngrok exposes local servers behind NATs and firewalls to the public internet over secure tunnels.
+ 
+to use ngrok as webhook endpint follow [docs](/docs/configure-serviceNow-instance.md)
+
 
 ```bash
 # bind ngrok to port
@@ -38,6 +41,7 @@ $ npm run start:dev
 
 # start with prod mode
 $ npm run start:prod
+
 
 ```
 ## Config Services
@@ -72,3 +76,6 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+## License
+TBD

@@ -1,16 +1,35 @@
-import { CcpConfig } from "./services/common/types";
+import { SdkConfig } from "./services/common/types";
 import { ServiceNowService } from "./services/service-now/service";
 import { MiddlewareApiService } from "./services/middleware-api/service";
 
+/**
+ * SDK Main class
+ */
 export class Ccp {
+  /**
+   * @ignore
+   */
   private readonly _serviceNowService: InstanceType<typeof ServiceNowService> =
     null;
+  /**
+   * @ignore
+   */
   private readonly _middlewareApiService: InstanceType<
     typeof MiddlewareApiService
   > = null;
-  private readonly _config: CcpConfig = null;
+  /**
+   * @ignore
+   */
+  private readonly _config: SdkConfig = null;
 
-  constructor(config: CcpConfig) {
+  /**
+   * Constructor.
+   *
+   * @param config - services configurations
+   *
+   */
+
+  constructor(config: SdkConfig) {
     this._config = config;
     if (config.serviceNow) {
       this._serviceNowService = new ServiceNowService(
@@ -24,16 +43,27 @@ export class Ccp {
         config.middlewareApi
       );
     }
+    require("axios-debug-log/enable");
   }
 
+  /**
+   * Get ServiceNow service instance
+   */
   get serviceNowService() {
     return this._serviceNowService;
   }
 
+  /**
+   * Get MiddlewareApi service instance
+   */
   get middlewareApiService() {
     return this._middlewareApiService;
   }
 
+  //
+  /**
+   * Get current configurations
+   */
   get config() {
     return this._config;
   }

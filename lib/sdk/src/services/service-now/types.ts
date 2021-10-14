@@ -40,6 +40,7 @@ type ActionSystemType = {
 type OutputTextType = {
   uiType: "OutputText";
   actionType: "DefaultText";
+  group: "DefaultText";
   agentInfo: AgentInfo;
   value: string;
   maskType: string;

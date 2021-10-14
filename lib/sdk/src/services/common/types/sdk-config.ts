@@ -4,8 +4,20 @@ import {
   ServiceNowConfig,
 } from "./index";
 
-export type CcpConfig = {
+/**
+ * SDK configurations
+ */
+export type SdkConfig = {
+  /**
+   * CCP configurations
+   */
   ccp?: ContactCenterProConfig;
+  /**
+   * ServiceNow configurations
+   */
   serviceNow?: ServiceNowConfig;
+  /**
+   * MiddlewareApi configurations
+   */
   middlewareApi?: MiddlewareApiConfig;
 };

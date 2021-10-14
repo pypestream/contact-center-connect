@@ -18,7 +18,7 @@
     "bootstrap": "lerna bootstrap",
     "test:sdk": "lerna run test --scope @ccp/sdk --stream",
     "test:app": "lerna run test --scope ccp-bridge --stream",
-    "build": "lerna run build --scope @ccp/sdk --scope @ccp/nestjs-module --stream",
+    "build": "lerna run build --scope @ccp/sdk --scope @ccp/nestjs-module --scope ccp-bridge --stream",
     "build:sdk": "lerna run build --scope @ccp/sdk",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prepare": "husky install",

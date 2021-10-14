@@ -1,6 +1,6 @@
-import { Ccp, CcpConfig } from '@ccp/sdk';
+import { Ccp, SdkConfig } from '@ccp/sdk';
 
-export function getCcpClient(configs: CcpConfig): Ccp {
+export function getCcpClient(configs: SdkConfig): Ccp {
   const ccpClient = new Ccp(configs);
   return ccpClient;
 }

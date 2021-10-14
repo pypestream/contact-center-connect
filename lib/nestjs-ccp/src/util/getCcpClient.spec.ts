@@ -1,8 +1,8 @@
-import { Ccp, CcpConfig } from '@ccp/sdk';
+import { Ccp, SdkConfig } from '@ccp/sdk';
 import { getCcpClient } from './getCcpClient';
 
 describe('getCcpClient', () => {
-  const config: CcpConfig = {
+  const config: SdkConfig = {
     serviceNow: {
       instanceUrl: '',
     },
