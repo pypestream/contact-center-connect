@@ -30,7 +30,8 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "node-mocks-http": "^1.10.1",
-    "axios-mock-adapter": "^1.20.0"
+    "axios-mock-adapter": "^1.20.0",
+    "raw-body": "^2.4.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",

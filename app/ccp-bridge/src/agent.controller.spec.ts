@@ -6,10 +6,15 @@ import {
   MiddlewareApiConfig,
   MiddlewareApiService,
   ContactCenterProConfig,
+  ServiceNowConfig,
 } from '@ccp/sdk';
 
+const serviceNowConfig: ServiceNowConfig = {
+  instanceUrl: 'https://mock-server.service-now.com',
+};
+
 const middlewareApiConfig: MiddlewareApiConfig = {
-  instanceUrl: 'https://dev78406.service-now.com',
+  instanceUrl: 'https://mock-server.middleware.com',
   token: 'fake token',
 };
 
@@ -28,6 +33,7 @@ describe('AgentController', () => {
         CcpModule.forRoot({
           middlewareApi: middlewareApiConfig,
           ccp: ccpConfig,
+          serviceNow: serviceNowConfig,
         }),
       ],
       providers: [AppService],
@@ -47,7 +53,33 @@ describe('AgentController', () => {
       const spy = jest
         .spyOn(spyAppService, 'middlewareApiService', 'get')
         .mockImplementationOnce(() => result);
-      await agentController.message();
+      await agentController.message({
+        message: {
+          clientMessageId: 'abc-123',
+          text: 'message',
+          typed: true,
+        },
+        requestId: 'abc-123',
+        body: [
+          {
+            uiType: 'OutputText',
+            actionType: 'DefaultText',
+            agentInfo: {
+              agentAvatar: 'avatar',
+              agentName: 'agent',
+              sentFromAgent: true,
+            },
+            value: 'message',
+            maskType: 'abc-123',
+          },
+        ],
+        nowSessionId: 'abc-123',
+        clientSessionId: 'abc-123',
+        agentChat: true,
+        completed: true,
+        score: 1,
+        userId: 'abc-123',
+      });
       expect(spy).toHaveBeenCalled();
     });
   });

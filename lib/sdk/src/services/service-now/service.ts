@@ -33,14 +33,27 @@ export class ServiceNowService
   serviceNowConfig: ServiceNowConfig;
   contactCenterProConfig: ContactCenterProConfig;
 
+  /**
+   * @ignore
+   */
   url: string;
 
-  constructor(ccpConfig: ContactCenterProConfig, config: ServiceNowConfig) {
-    this.serviceNowConfig = config;
+  /**
+   *  Constructor
+   * @param ccpConfig
+   * @param serviceNowConfig
+   */
+  constructor(
+    ccpConfig: ContactCenterProConfig,
+    serviceNowConfig: ServiceNowConfig
+  ) {
+    this.serviceNowConfig = serviceNowConfig;
     this.contactCenterProConfig = ccpConfig;
-    this.url = `${config.instanceUrl}/api/sn_va_as_service/bot/integration`;
+    this.url = `${serviceNowConfig.instanceUrl}/api/sn_va_as_service/bot/integration`;
   }
-
+  /**
+   * @ignore
+   */
   private getMessageRequestBody(message: CcpMessage) {
     const requestId = uuidv4();
     return {
@@ -57,7 +70,9 @@ export class ServiceNowService
       userId: message.conversationId,
     };
   }
-
+  /**
+   * @ignore
+   */
   private getEndConversationRequestBody(conversationId: string) {
     const res = {
       clientSessionId: conversationId,
@@ -70,7 +85,9 @@ export class ServiceNowService
     };
     return res;
   }
-
+  /**
+   * @ignore
+   */
   private startConversationRequestBody(message: CcpMessage) {
     const requestId = uuidv4();
     const clientMessageId = uuidv4();
@@ -90,7 +107,9 @@ export class ServiceNowService
     };
     return res;
   }
-
+  /**
+   * @ignore
+   */
   private switchToAgentRequestBody(message: CcpMessage) {
     const requestId = uuidv4();
     const res = {
@@ -109,7 +128,10 @@ export class ServiceNowService
     };
     return res;
   }
-
+  /**
+   * Send message to ServiceNow
+   * @param message
+   */
   async sendMessage(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
@@ -117,7 +139,10 @@ export class ServiceNowService
 
     return res;
   }
-
+  /**
+   * End conversation
+   * @param conversationId
+   */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     const res = await axios.post(
       this.url,
@@ -126,7 +151,10 @@ export class ServiceNowService
 
     return res;
   }
-
+  /**
+   * Start new conversation with initial message
+   * @param message
+   */
   async startConversation(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
@@ -138,7 +166,9 @@ export class ServiceNowService
     );
     return res;
   }
-
+  /**
+   * @ignore
+   */
   private getTypingRequestBody(conversationId: string, isTyping: boolean) {
     const requestId = uuidv4();
 
@@ -150,7 +180,9 @@ export class ServiceNowService
     };
     return res;
   }
-
+  /**
+   * @ignore
+   */
   private getEndRequestBody(conversationId: string) {
     const requestId = uuidv4();
 
@@ -161,6 +193,11 @@ export class ServiceNowService
     };
     return res;
   }
+
+  /**
+   * Update Typing indicator in agent side
+   * @param message
+   */
 
   async sendTyping(
     conversationId: string,
@@ -173,20 +210,16 @@ export class ServiceNowService
     return res;
   }
 
-  async sendEnd(
-    conversationId: string
-  ): Promise<AxiosResponse<SendMessageResponse>> {
-    const res = await axios.post(
-      this.url,
-      this.getEndRequestBody(conversationId)
-    );
-    return res;
-  }
-
+  /**
+   * Convert posted body to CCP message
+   * @param body
+   * @param params
+   */
   mapToCcpMessage(
     body: ServiceNowWebhookBody,
     params: { index: number }
   ): CcpMessage {
+    const messageId = uuidv4();
     const { index } = params;
     const item = body.body[index];
     if (item.uiType !== "OutputText") {
@@ -196,29 +229,45 @@ export class ServiceNowService
       message: {
         value: item.value,
         type: MessageType.Text,
+        id: messageId,
       },
       sender: {
-        username: item.agentInfo.agentName,
+        username: "test-agent",
+        // username: item.agentInfo.agentName,
       },
       conversationId: body.clientSessionId,
     };
   }
 
+  /**
+   * Determine if request body has `new message` action
+   * @param message
+   */
   hasNewMessageAction(message: ServiceNowWebhookBody): boolean {
     const item = message.body.find(
-      (item) =>
-        item.uiType === "OutputText" && item.actionType === "DefaultText"
+      (item) => item.uiType === "OutputText" && item.group === "DefaultText"
     );
     return !!item;
   }
 
+  /**
+   * Determine if request body has `end conversation` action
+   * @param message
+   */
   hasEndConversationAction(message: ServiceNowWebhookBody): boolean {
     const item = message.body.find(
-      (item) => item.uiType === "ActionMsg" && item.actionType === "System"
+      (item) =>
+        item.uiType === "ActionMsg" &&
+        item.actionType === "System" &&
+        !item.message.includes("entered")
     );
     return !!item;
   }
 
+  /**
+   * Determine if request body has `typing indicator` action
+   * @param message
+   */
   hasTypingIndicatorAction(message: ServiceNowWebhookBody): boolean {
     const item = message.body.some(
       (item: EndTypingIndicatorType | StartTypingIndicatorType) => {
@@ -230,7 +279,10 @@ export class ServiceNowService
     );
     return !!item;
   }
-
+  /**
+   * Determine if agent is typing or viewing based on request body
+   * @param message
+   */
   isTyping(message: ServiceNowWebhookBody): boolean {
     type TypingIndicatorType =
       | EndTypingIndicatorType
@@ -243,11 +295,18 @@ export class ServiceNowService
     });
     return (item as TypingIndicatorType).actionType === "StartTypingIndicator";
   }
-
+  /**
+   * Determine if agent is available to receive new message
+   * @param message
+   */
   isAvailable(skill: string): boolean {
     return !!skill;
   }
 
+  /**
+   * Determine if request body has `wait time` info
+   * @param message
+   */
   hasWaitTime(message: ServiceNowWebhookBody): boolean {
     const item: StartWaitTimeSpinnerType = message.body.find((item) => {
       const spinner = item as StartWaitTimeSpinnerType;
@@ -256,6 +315,10 @@ export class ServiceNowService
     return !!item;
   }
 
+  /**
+   * Return estimated wait time in seconds
+   * @param message
+   */
   getWaitTime(message: ServiceNowWebhookBody): string {
     const item: StartWaitTimeSpinnerType = message.body.find((item) => {
       const spinner = item as StartWaitTimeSpinnerType;

@@ -17,6 +17,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "test:sdk": "lerna run test --scope @ccp/sdk --stream",
+    "docs:sdk": "lerna run docs --scope @ccp/sdk --stream",
     "test:app": "lerna run test --scope ccp-bridge --stream",
     "build": "lerna run build --scope @ccp/sdk --scope @ccp/nestjs-module --scope ccp-bridge --stream",
     "build:sdk": "lerna run build --scope @ccp/sdk",

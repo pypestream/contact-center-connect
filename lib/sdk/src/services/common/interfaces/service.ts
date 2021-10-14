@@ -44,13 +44,13 @@ export interface Service<T, Y, Z> {
   isTyping(body: Y): boolean;
 
   /**
-   * Determine if user/agent is availabe to receive new message
+   * Determine if user/agent is available to receive new message
    * @param message
    */
   isAvailable(skill: string): boolean;
 
   /**
-   * Return estmiated waittime in seconds
+   * Return estimated wait time in seconds
    * @param message
    */
   getWaitTime(body: Z): string;

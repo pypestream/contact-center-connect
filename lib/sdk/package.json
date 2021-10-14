@@ -5,17 +5,19 @@
     "@ccp/typescript-config": "^0.0.0",
     "axios": "^0.21.1",
     "uuid": "^8.3.2",
-    "axios-retry": "^3.2.0"
+    "axios-retry": "^3.2.0",
+    "axios-debug-log": "^0.8.4"
   },
   "devDependencies": {
     "@ccp/test-tools": "^0.0.0",
-    "typescript": "^3.9.10"
+    "typedoc": "^0.22.5"
   },
   "main": "dist/index.js",
   "name": "@ccp/sdk",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "docs": "npx typedoc --out docs src"
   },
   "version": "0.0.0",
   "files": ["/dist"]

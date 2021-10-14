@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Ccp, CcpConfig } from '@ccp/sdk';
+import { Ccp, SdkConfig } from '@ccp/sdk';
 import { ccpToken } from './constants';
 import { CcpOptionsFactory } from './interfaces';
 import { CcpModule } from './CcpModule';
 
 describe('CcpModule', () => {
-
   class TestService implements CcpOptionsFactory {
-    createCcpOptions(): CcpConfig {
+    createCcpOptions(): SdkConfig {
       return {
         serviceNow: {
           instanceUrl: '',

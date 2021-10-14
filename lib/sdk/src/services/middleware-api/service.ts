@@ -10,6 +10,9 @@ import axis, { AxiosResponse } from "axios";
 import { ContactCenterProApiWebhookBody, SettingsObject } from "./types";
 import { components } from "./types/openapi-types";
 
+/**
+ * MiddlewareApi service
+ */
 export class MiddlewareApiService
   implements
     Service<
@@ -25,7 +28,10 @@ export class MiddlewareApiService
     this.config = config;
     this.ccpConfig = ccpConfig;
   }
-
+  /**
+   * Start new conversation with initial message
+   * @param message
+   */
   startConversation(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
@@ -33,23 +39,43 @@ export class MiddlewareApiService
       "Middleware API is end-user platform, agent can not start conversation with end-user"
     );
   }
-
+  /**
+   * End conversation
+   * @param conversationId
+   */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     const res = await axis.post(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/end`,
-      { senderId: "agent" }
+      { senderId: "test-agent" },
+      {
+        headers: {
+          "x-pypestream-token": this.config.token,
+        },
+      }
     );
     return res;
   }
 
+  /**
+   * Determine if end-user is typing or viewing based on request body
+   * @param message
+   */
   isTyping(message: components["schemas"]["Message"]): boolean {
     return true;
   }
 
+  /**
+   * Determine if end-user is available to receive new message
+   * @param message
+   */
   isAvailable(skill: string): boolean {
     return true;
   }
 
+  /**
+   * Return estimated wait time in seconds
+   * @param message
+   */
   getWaitTime(message: {
     content: string;
     senderId: string;
@@ -57,6 +83,10 @@ export class MiddlewareApiService
   }): string {
     return "0";
   }
+
+  /**
+   * @ignore
+   */
 
   private getMessageRequestBody(
     message: CcpMessage
@@ -67,17 +97,29 @@ export class MiddlewareApiService
       side: "agent",
     };
   }
-
+  /**
+   * Send message to MiddlewareApi
+   * @param message
+   */
   async sendMessage(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    const res = await axis.post(
+    const res = await axis.put(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${message.conversationId}/messages/${message.message.id}`,
-      this.getMessageRequestBody(message)
+      this.getMessageRequestBody(message),
+      {
+        headers: {
+          "x-pypestream-token": this.config.token,
+        },
+      }
     );
     return res;
   }
-
+  /**
+   * Convert posted body to CCP message
+   * @param body
+   * @param params
+   */
   mapToCcpMessage(
     body: components["schemas"]["Message"],
     params: { conversationId: string; messageId: string }
@@ -138,24 +180,11 @@ export class MiddlewareApiService
 
     return response;
   }
-
-  async sendEnd(
-    conversationId: string
-  ): Promise<AxiosResponse<components["schemas"]["History"]>> {
-    const response = await axis.post(
-      `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/end`,
-      {
-        senderId: "agent",
-      },
-      {
-        headers: {
-          "x-pypestream-token": this.config.token,
-        },
-      }
-    );
-    return response;
-  }
-
+  /**
+   * Send is typing indicator to service
+   * @param conversationId
+   * @param isTyping
+   */
   async sendTyping(
     conversationId: string,
     isTyping: boolean
