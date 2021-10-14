@@ -8,6 +8,7 @@
     - [Configure serviceNow instance](/docs/configure-serviceNow-instance.md)
     - [Publish SDK to NPM](/docs/publish-sdk.md)
     - [Modules structure](/docs/modules-structure.md)
+    - [SDK documentation](https://ccp.claybox.usa.pype.engineering/docs/modules.html)
 ### Technology
 
 - **NestJS**: NestJS is a progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
