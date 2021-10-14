@@ -16,7 +16,8 @@
   "name": "@ccp/sdk",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "docs": "npx typedoc --out docs src"
   },
   "version": "0.0.0",
   "files": ["/dist"]
