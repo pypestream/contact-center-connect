@@ -17,6 +17,7 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
+    "docs:build": "npx typedoc --out ../../app/ccp-bridge/dist/sdk-docs src",
     "docs": "npx typedoc --out docs src"
   },
   "version": "0.0.0",

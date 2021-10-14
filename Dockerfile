@@ -10,7 +10,7 @@ COPY ./lib ./lib
 RUN npm install && \
     npm run bootstrap && \
     npm run build && \
-    npm run docs:sdk
+    npm run docs:build
 
 FROM node:16.6-alpine as production
 

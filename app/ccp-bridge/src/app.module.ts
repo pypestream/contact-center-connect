@@ -11,7 +11,7 @@ import { join } from 'path';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', '..', 'lib', 'sdk', 'docs'),
+      rootPath: join(__dirname, '..', 'sdk-docs'),
       serveRoot: '/docs',
       renderPath: '/index.html',
     }),
