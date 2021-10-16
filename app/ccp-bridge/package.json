@@ -30,6 +30,7 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
+    "morgan": "^1.10.0",
     "node-mocks-http": "^1.10.1",
     "axios-mock-adapter": "^1.20.0",
     "raw-body": "^2.4.1"

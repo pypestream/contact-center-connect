@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MiddlewareApiController } from './middleware-api.controller';
-import { AgentController } from './agent.controller';
+import { ServiceNowController } from './service-now.controller';
 import { ServiceNowTestController } from './service-now-test.controller';
 import { MiddlewareApiTestController } from './middleware-api-test.controller';
 import { CcpModule } from '@ccp/nestjs-module';
@@ -31,7 +31,7 @@ import { join } from 'path';
   ],
   providers: [AppService],
   controllers: [
-    AgentController,
+    ServiceNowController,
     MiddlewareApiController,
     ServiceNowTestController,
     MiddlewareApiTestController,
