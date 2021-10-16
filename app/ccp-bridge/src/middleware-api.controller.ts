@@ -171,13 +171,14 @@ export class MiddlewareApiController {
   async conversationEnd(
     @Param('conversationId') conversationId,
     @Req() req: Request,
-  ): Promise<AxiosResponse> {
+    @Res() res: Response,
+  ) {
     const rawBody = await getRawBody(req);
     const body: middlewareApiComponents['schemas']['End'] = JSON.parse(
       rawBody.toString(),
     );
-    const sendMessageRes =
-      await this.appService.serviceNowService.endConversation(conversationId);
+
+    await this.appService.serviceNowService.endConversation(conversationId);
 
     return res.status(HttpStatus.NO_CONTENT);
   }
