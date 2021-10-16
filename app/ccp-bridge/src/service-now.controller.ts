@@ -1,32 +1,23 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Controller, Post, Req, Res, HttpStatus } from '@nestjs/common';
 import { AppService } from './app.service';
 import { SendMessageResponse, ServiceNowWebhookBody } from '@ccp/sdk';
 import { AxiosResponse } from 'axios';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import * as getRawBody from 'raw-body';
 
 @Controller('agent')
-export class AgentController {
+export class ServiceNowController {
   constructor(private readonly appService: AppService) {}
 
   @Post('webhook')
-  async message(@Req() req: Request): Promise<SendMessageResponse> {
+  async message(@Req() req: Request, @Res() res: Response) {
     const rawBody = await getRawBody(req);
     const body: ServiceNowWebhookBody = JSON.parse(rawBody.toString());
 
-    let res: AxiosResponse<any>;
-    const hasTypingIndicatorAction =
-      this.appService.serviceNowService.hasTypingIndicatorAction(body);
-    if (hasTypingIndicatorAction) {
-      const isTyping = this.appService.serviceNowService.isTyping(body);
-      res = await this.appService.middlewareApiService
-        .sendTyping(body.clientSessionId, isTyping)
-        .catch((err) => err);
-    }
     const hasChatEndedAction =
       this.appService.serviceNowService.hasEndConversationAction(body);
     if (hasChatEndedAction) {
-      res = await this.appService.middlewareApiService.endConversation(
+      await this.appService.middlewareApiService.endConversation(
         body.clientSessionId,
       );
     }
@@ -40,14 +31,21 @@ export class AgentController {
           { index: i },
         );
         if (message) {
-          res = await this.appService.middlewareApiService.sendMessage(message);
+          await this.appService.middlewareApiService.sendMessage(message);
         }
       }
-      return {
-        message: res.data.content,
-        status: res.status,
-      };
     }
+    const hasTypingIndicatorAction =
+      this.appService.serviceNowService.hasTypingIndicatorAction(body);
+    if (hasTypingIndicatorAction) {
+      const isTyping = this.appService.serviceNowService.isTyping(body);
+      await this.appService.middlewareApiService.sendTyping(
+        body.clientSessionId,
+        isTyping,
+      );
+    }
+    console.log('4');
+    return res.status(HttpStatus.OK).end();
   }
 }
 

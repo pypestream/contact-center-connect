@@ -203,6 +203,12 @@ export class ServiceNowService
     conversationId: string,
     isTyping: boolean
   ): Promise<AxiosResponse<SendMessageResponse>> {
+    if (!conversationId) {
+      throw new Error(
+        "ServiceNow.sendTyping conversationId param is required parameter"
+      );
+      return null;
+    }
     const res = await axios.post(
       this.url,
       this.getTypingRequestBody(conversationId, isTyping)

@@ -189,6 +189,12 @@ export class MiddlewareApiService
     conversationId: string,
     isTyping: boolean
   ): Promise<AxiosResponse<SendMessageResponse>> {
+    if (!conversationId) {
+      throw new Error(
+        "MiddlewareApi.sendTyping conversationId param is required parameter"
+      );
+      return null;
+    }
     const response = await axis.post(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/type`,
       {

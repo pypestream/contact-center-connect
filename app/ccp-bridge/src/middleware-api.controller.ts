@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpException,
   HttpStatus,
   Param,
   Post,
@@ -115,13 +114,10 @@ export class MiddlewareApiController {
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: ex.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errors: [],
+        message: ex.message,
+      });
     }
   }
 
@@ -158,14 +154,12 @@ export class MiddlewareApiController {
     });
     const sendMessageRes = await this.appService.serviceNowService.sendMessage({
       conversationId: conversationId,
-      skill: 'english',
       message: {
         id: messageId,
         value: body.content,
         type: MessageType.Text,
       },
       sender: {
-        email: 'test@test.com',
         username: body.senderId,
       },
     });
@@ -177,14 +171,15 @@ export class MiddlewareApiController {
   async conversationEnd(
     @Param('conversationId') conversationId,
     @Req() req: Request,
-  ): Promise<AxiosResponse> {
+    @Res() res: Response,
+  ) {
     const rawBody = await getRawBody(req);
     const body: middlewareApiComponents['schemas']['End'] = JSON.parse(
       rawBody.toString(),
     );
-    const sendMessageRes =
-      await this.appService.serviceNowService.endConversation(conversationId);
 
-    return sendMessageRes;
+    await this.appService.serviceNowService.endConversation(conversationId);
+
+    return res.status(HttpStatus.NO_CONTENT);
   }
 }
