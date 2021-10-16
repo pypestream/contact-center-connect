@@ -123,9 +123,13 @@ export class MiddlewareApiController {
 
   @Post('/conversations/:conversationId/type')
   async type(
+    @Req() req: Request,
     @Param('conversationId') conversationId,
-    @Body() body: middlewareApiComponents['schemas']['Typing'],
   ): Promise<string> {
+    const rawBody = await getRawBody(req);
+    const body: middlewareApiComponents['schemas']['Typing'] = JSON.parse(
+      rawBody.toString(),
+    );
     const res = await this.appService.serviceNowService.sendTyping(
       conversationId,
       body.typing,
@@ -165,10 +169,13 @@ export class MiddlewareApiController {
 
   @Post('/conversations/:conversationId/end')
   async conversationEnd(
-    @Param('conversationId') conversationId: string,
-    @Body() body: middlewareApiComponents['schemas']['End'],
-    @Res() res: Response,
-  ) {
+    @Param('conversationId') conversationId,
+    @Req() req: Request,
+  ): Promise<AxiosResponse> {
+    const rawBody = await getRawBody(req);
+    const body: middlewareApiComponents['schemas']['End'] = JSON.parse(
+      rawBody.toString(),
+    );
     const sendMessageRes =
       await this.appService.serviceNowService.endConversation(conversationId);
 

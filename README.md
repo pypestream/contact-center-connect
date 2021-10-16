@@ -8,6 +8,7 @@
     - [Configure serviceNow instance](/docs/configure-serviceNow-instance.md)
     - [Publish SDK to NPM](/docs/publish-sdk.md)
     - [Modules structure](/docs/modules-structure.md)
+    - [SDK documentation](https://ccp.claybox.usa.pype.engineering/docs/modules.html)
 ### Technology
 
 - **NestJS**: NestJS is a progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
@@ -35,11 +36,14 @@ to use ngrok as webhook endpint follow [docs](/docs/configure-serviceNow-instanc
 # bind ngrok to port
 ./ngrok http 3000
 
+
 # start with watch mode
+# in project root folder
 $ npm run start:dev
 
 
 # start with prod mode
+# in project root folder
 $ npm run start:prod
 
 
@@ -68,13 +72,8 @@ To config end-user and agent services, update the following lines
 
 ```bash
 # unit tests
+# in project root folder
 $ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
 ## License

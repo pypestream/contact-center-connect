@@ -5,13 +5,13 @@ import { ServiceNowTestController } from './service-now-test.controller';
 import { MiddlewareApiTestController } from './middleware-api-test.controller';
 import { CcpModule } from '@ccp/nestjs-module';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { AppService } from './app.service';
 import { join } from 'path';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'sdk-docs'),
+      rootPath: join(__dirname, 'sdk-docs'),
       serveRoot: '/docs',
       renderPath: '/index.html',
     }),
