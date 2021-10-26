@@ -8,7 +8,4 @@ module.exports = {
     "eslint:recommended",
     "prettier",
   ],
-  rules: {
-    "no-console": "error",
-  },
 };
