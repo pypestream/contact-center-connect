@@ -17,7 +17,6 @@ import {
   middlewareApiComponents,
   middlewareApiOperations,
 } from '@ccp/sdk';
-import { AxiosResponse } from 'axios';
 import * as getRawBody from 'raw-body';
 
 @Controller('contactCenter/v1')
@@ -125,16 +124,17 @@ export class MiddlewareApiController {
   async type(
     @Req() req: Request,
     @Param('conversationId') conversationId,
-  ): Promise<string> {
-    const rawBody = await getRawBody(req);
+    @Res() res: Response,
+  ) {
+    const rawBody = await getRawBody(req, { encoding: true });
     const body: middlewareApiComponents['schemas']['Typing'] = JSON.parse(
       rawBody.toString(),
     );
-    const res = await this.appService.serviceNowService.sendTyping(
+    await this.appService.serviceNowService.sendTyping(
       conversationId,
       body.typing,
     );
-    return res.data.message;
+    res.status(HttpStatus.NO_CONTENT).end();
   }
 
   @Put('/conversations/:conversationId/messages/:messageId')
@@ -144,27 +144,20 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const rawBody = await getRawBody(req);
+    const rawBody = await getRawBody(req, { encoding: true });
     const body: middlewareApiComponents['schemas']['Message'] = JSON.parse(
       rawBody.toString(),
     );
-    this.appService.middlewareApiService.mapToCcpMessage(body, {
-      conversationId,
-      messageId,
-    });
-    const sendMessageRes = await this.appService.serviceNowService.sendMessage({
-      conversationId: conversationId,
-      message: {
-        id: messageId,
-        value: body.content,
-        type: MessageType.Text,
+    const ccpMessage = this.appService.middlewareApiService.mapToCcpMessage(
+      body,
+      {
+        conversationId,
+        messageId,
       },
-      sender: {
-        username: body.senderId,
-      },
-    });
+    );
+    await this.appService.serviceNowService.sendMessage(ccpMessage);
 
-    return res.status(HttpStatus.NO_CONTENT);
+    return res.status(HttpStatus.NO_CONTENT).end();
   }
 
   @Post('/conversations/:conversationId/end')
@@ -173,13 +166,7 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const rawBody = await getRawBody(req);
-    const body: middlewareApiComponents['schemas']['End'] = JSON.parse(
-      rawBody.toString(),
-    );
-
     await this.appService.serviceNowService.endConversation(conversationId);
-
-    return res.status(HttpStatus.NO_CONTENT);
+    return res.status(HttpStatus.NO_CONTENT).end();
   }
 }

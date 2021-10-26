@@ -1,11 +1,10 @@
 import { Controller, Post, Req, Res, HttpStatus } from '@nestjs/common';
 import { AppService } from './app.service';
-import { SendMessageResponse, ServiceNowWebhookBody } from '@ccp/sdk';
-import { AxiosResponse } from 'axios';
+import { ServiceNowWebhookBody } from '@ccp/sdk';
 import { Request, Response } from 'express';
 import * as getRawBody from 'raw-body';
 
-@Controller('agent')
+@Controller('service-now')
 export class ServiceNowController {
   constructor(private readonly appService: AppService) {}
 
@@ -14,12 +13,16 @@ export class ServiceNowController {
     const rawBody = await getRawBody(req);
     const body: ServiceNowWebhookBody = JSON.parse(rawBody.toString());
 
+    const requests = [];
+
     const hasChatEndedAction =
       this.appService.serviceNowService.hasEndConversationAction(body);
     if (hasChatEndedAction) {
-      await this.appService.middlewareApiService.endConversation(
-        body.clientSessionId,
-      );
+      const endConversationRequest =
+        await this.appService.middlewareApiService.endConversation(
+          body.clientSessionId,
+        );
+      requests.push(endConversationRequest);
     }
     const hasNewMessageAction =
       this.appService.serviceNowService.hasNewMessageAction(body);
@@ -31,7 +34,9 @@ export class ServiceNowController {
           { index: i },
         );
         if (message) {
-          await this.appService.middlewareApiService.sendMessage(message);
+          const sendMessageRequest =
+            this.appService.middlewareApiService.sendMessage(message);
+          requests.push(sendMessageRequest);
         }
       }
     }
@@ -39,13 +44,20 @@ export class ServiceNowController {
       this.appService.serviceNowService.hasTypingIndicatorAction(body);
     if (hasTypingIndicatorAction) {
       const isTyping = this.appService.serviceNowService.isTyping(body);
-      await this.appService.middlewareApiService.sendTyping(
+      const sendTypingRequest = this.appService.middlewareApiService.sendTyping(
         body.clientSessionId,
         isTyping,
       );
+      requests.push(sendTypingRequest);
     }
-    console.log('4');
-    return res.status(HttpStatus.OK).end();
+    Promise.all(requests)
+      .then((responses) => {
+        const data = responses.map((r) => r.data);
+        return res.status(HttpStatus.OK).send(data);
+      })
+      .catch((err) => {
+        return res.status(HttpStatus.BAD_REQUEST).send(err);
+      });
   }
 }
 
