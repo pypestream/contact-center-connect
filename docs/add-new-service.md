@@ -133,7 +133,7 @@ export interface GenericWebhookInterpreter<T> {
   }
 ```
 
-* then define getter to expose it to ccp app
+* then define getter to expose it from ccp sdk
 
 ```ts
 // lib/sdk/src/ccp.ts
