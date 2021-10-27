@@ -165,6 +165,7 @@ export interface GenericWebhookInterpreter<T> {
 
 ```ts
 // /app/ccp-bridge/src/app.service.ts
+
   get middlewareApiService() {
     return this.ccpClient.newService;
   }
