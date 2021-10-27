@@ -1,16 +1,25 @@
 # Add new service
 
+To add new service you need to follow these steps:
+
+* [Add new service to CCP sdk](#add-new-service-to-sdk)
+* [Expose service from ccp sdk](#expose-service-from-ccp-sdk)
+* [Use new service in CCP app](#use-new-service-in-ccp-app)
+
+
+## Add new service to SDK 
+
 Each new service should implement these interfaces based on external service design
 
+### Service interface - mandatory
+```ts
+// /lib/sdk/src/services/common/interfaces/service.ts
 
-### Service - mandatory
-
-````ts
 /**
  * Service should implement this interface for core features interface
  *
  */
-export interface Service<T,Y,Z> {
+export interface Service<T, Y, Z> {
   /**
    * Send message to service
    * @param message
@@ -22,7 +31,7 @@ export interface Service<T,Y,Z> {
    * @param message
    */
   startConversation(
-          message: CcpMessage
+    message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>>;
 
   /**
@@ -37,8 +46,8 @@ export interface Service<T,Y,Z> {
    * @param params
    */
   mapToCcpMessage(
-          body: T,
-          params: { conversationId: string; messageId: string; index: number }
+    body: T,
+    params: { conversationId: string; messageId: string; index: number }
   ): CcpMessage;
 
   /**
@@ -65,16 +74,17 @@ export interface Service<T,Y,Z> {
    * @param isTyping
    */
   sendTyping(
-          conversationId: string,
-          isTyping: boolean
+    conversationId: string,
+    isTyping: boolean
   ): Promise<AxiosResponse<SendMessageResponse>>;
 }
+```
 
-````
+### GenericWebhookInterpreter interface - optional
 
-### GenericWebhookInterpreter - optional
-    
-````ts
+```ts
+// /lib/sdk/src/services/common/interfaces/generic-webhook-interpreter.ts
+
 /**
  * Service should implement this interface when external service use 1 endpoint for all webhooks
  * we pass request body as parameter and return boolean for ConversationEnd, NewMessage, TypingIndicator, WaitTime
@@ -102,4 +112,76 @@ export interface GenericWebhookInterpreter<T> {
    */
   hasWaitTime(body: T): boolean;
 }
-````
+```
+
+## Expose service from ccp sdk
+
+* In `Ccp` class you should define service configurations and pass it service object
+
+```ts
+// lib/sdk/src/ccp.ts
+
+  constructor(config: SdkConfig) {
+    this._config = config;
+    if (config.newService) {
+      this._newService = new NewService(
+        config.ccp,
+        config.newService
+      );
+    }
+    require("axios-debug-log/enable");
+  }
+```
+
+* then define getter to expose it to ccp app
+
+```ts
+// lib/sdk/src/ccp.ts
+
+  get newServiceService() {
+    return this._newServiceService;
+  }
+```
+
+## Use new service in CCP app
+
+- In CCP app add new service configurations to CcpModule
+
+```ts
+// /app/ccp-bridge/src/app.module.ts
+
+    CcpModule.forRoot({
+      otherService: {
+        key1: 'value1',
+      },
+      newService: {
+          key1: 'value1',
+          key2: 'value2',
+      }
+    }),
+```
+
+- Expose sdk service as nestjs service
+
+```ts
+// /app/ccp-bridge/src/app.service.ts
+  get middlewareApiService() {
+    return this.ccpClient.newService;
+  }
+```
+
+- Now it's ready to use in nestjs controller
+
+```ts
+// /app/ccp-bridge/src/*.controller.ts
+
+  @Post('/conversations/:conversationId/end')
+  async conversationEnd(
+    @Param('conversationId') conversationId,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    await this.appService.serviceNowService.endConversation(conversationId);
+    return res.status(HttpStatus.NO_CONTENT).end();
+  }
+```
