@@ -4,8 +4,8 @@ import {
   MessageType,
   SendMessageResponse,
   ServiceNowConfig,
-} from "../common/types";
-import { Service, GenericWebhookInterpreter } from "../common/interfaces";
+} from "./../common/types";
+import { Service, GenericWebhookInterpreter } from "./../common/interfaces";
 import axios, { AxiosResponse } from "axios";
 
 import { v4 as uuidv4 } from "uuid";

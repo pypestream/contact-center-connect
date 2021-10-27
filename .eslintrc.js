@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-undef
 module.exports = {
+  extends: ["@ccp/eslint-config"],
   root: true,
-  extends: '@ccp/eslint-config',
 };

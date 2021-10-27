@@ -1,7 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MessageType } from '@ccp/sdk';
-import { components } from '@ccp/sdk/dist/services/middleware-api/types';
 
 @Controller('middleware-api-test')
 export class MiddlewareApiTestController {
