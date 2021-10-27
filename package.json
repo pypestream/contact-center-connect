@@ -22,7 +22,7 @@
     "build:sdk": "lerna run build --scope @ccp/sdk",
     "build:nestjs-module": "lerna run build --scope @ccp/nestjs-module",
     "docs:build": "lerna run docs:build --scope @ccp/sdk --stream",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "prepare": "husky install",
     "postinstall": "husky install",
     "tsc": "tsc -v",

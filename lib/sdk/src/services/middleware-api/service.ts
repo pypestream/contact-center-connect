@@ -5,7 +5,7 @@ import {
   MessageType,
   MiddlewareApiConfig,
   SendMessageResponse,
-} from "../common/types";
+} from "./../common/types";
 import axis, { AxiosResponse } from "axios";
 import { ContactCenterProApiWebhookBody, SettingsObject } from "./types";
 import { components } from "./types/openapi-types";
@@ -33,6 +33,7 @@ export class MiddlewareApiService
    * @param message
    */
   startConversation(
+    //eslint-disable-next-line @typescript-eslint/no-unused-vars
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
     throw new Error(
@@ -60,6 +61,7 @@ export class MiddlewareApiService
    * Determine if end-user is typing or viewing based on request body
    * @param message
    */
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
   isTyping(message: components["schemas"]["Message"]): boolean {
     return true;
   }
@@ -68,6 +70,7 @@ export class MiddlewareApiService
    * Determine if end-user is available to receive new message
    * @param message
    */
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
   isAvailable(skill: string): boolean {
     return true;
   }
@@ -76,6 +79,7 @@ export class MiddlewareApiService
    * Return estimated wait time in seconds
    * @param message
    */
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
   getWaitTime(message: {
     content: string;
     senderId: string;

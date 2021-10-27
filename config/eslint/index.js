@@ -1,11 +1,29 @@
-// eslint-disable-next-line no-undef
 module.exports = {
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint"],
-  ignorePatterns: ["**/dist/*"],
+  parserOptions: {
+    project: "tsconfig.json",
+    sourceType: "module",
+  },
+  plugins: ["@typescript-eslint/eslint-plugin"],
   extends: [
     "plugin:@typescript-eslint/recommended",
-    "eslint:recommended",
-    "prettier",
+    "plugin:prettier/recommended",
   ],
+  env: {
+    node: true,
+    jest: true,
+  },
+  ignorePatterns: [
+    ".eslintrc.js",
+    "**/dist/**",
+    "**/nestjs-ccp/lib/**",
+    "**/*.spec.ts",
+  ],
+  rules: {
+    "@typescript-eslint/interface-name-prefix": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-console": "error",
+  },
 };

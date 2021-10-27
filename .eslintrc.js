@@ -1,10 +1,4 @@
-// eslint-disable-next-line no-undef
 module.exports = {
+  extends: ["@ccp/eslint-config"],
   root: true,
-  extends: "@ccp/eslint-config",
-  rules: {
-    "no-console": "error",
-    "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": ["error"],
-  },
 };

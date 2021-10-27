@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   Get,
   HttpStatus,
@@ -10,6 +9,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+
 import { Response, Request } from 'express';
 import { AppService } from './app.service';
 import {
@@ -144,8 +144,6 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    console.log('123');
-    const x;
     const rawBody = await getRawBody(req, { encoding: true });
     const body: middlewareApiComponents['schemas']['Message'] = JSON.parse(
       rawBody.toString(),
