@@ -20,7 +20,7 @@ import { AppService } from './app.service';
         instanceUrl: 'https://enhvq0q28akbhlm.m.pipedream.net',
       },
       serviceNow: {
-        instanceUrl: 'https://dev50996.service-now.com',
+        instanceUrl: 'https://dev61135.service-now.com',
       },
       middlewareApi: {
         instanceUrl: 'https://middleware.claybox.usa.pype.engineering',

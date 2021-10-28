@@ -1,4 +1,4 @@
-import { Service } from "../common/interfaces";
+import { Service, EndUserService } from "../common/interfaces";
 import {
   CcpMessage,
   ContactCenterProConfig,
@@ -9,6 +9,7 @@ import {
 import axis, { AxiosResponse } from "axios";
 import { ContactCenterProApiWebhookBody, SettingsObject } from "./types";
 import { components } from "./types/openapi-types";
+import { ServiceNowService } from "../service-now/service";
 
 /**
  * MiddlewareApi service
@@ -19,7 +20,8 @@ export class MiddlewareApiService
       components["schemas"]["Message"],
       components["schemas"]["Message"],
       components["schemas"]["Message"]
-    >
+    >,
+    EndUserService
 {
   config: MiddlewareApiConfig;
   ccpConfig: ContactCenterProConfig;
@@ -28,6 +30,22 @@ export class MiddlewareApiService
     this.config = config;
     this.ccpConfig = ccpConfig;
   }
+
+  getAgentService(req): ServiceNowService {
+    const base64Customer = req.headers["x-pypestream-customer"];
+    const stringifyCustomer = Buffer.from(base64Customer, "base64").toString(
+      "ascii"
+    );
+    const configs = JSON.parse(stringifyCustomer);
+    const integrationName = req.headers["x-pypestream-integration"];
+    if (integrationName === "ServiceNow") {
+      return new ServiceNowService(this.ccpConfig, {
+        instanceUrl: configs.URL,
+      });
+    }
+    return null;
+  }
+
   /**
    * Start new conversation with initial message
    * @param message

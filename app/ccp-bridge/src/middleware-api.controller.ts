@@ -18,6 +18,7 @@ import {
   middlewareApiOperations,
 } from '@ccp/sdk';
 import * as getRawBody from 'raw-body';
+import { AgentServices } from '@ccp/sdk';
 
 @Controller('contactCenter/v1')
 export class MiddlewareApiController {
@@ -46,10 +47,11 @@ export class MiddlewareApiController {
   async availability(
     @Query()
     query: middlewareApiOperations['checkAgentAvailability']['parameters']['query'],
+    @Req() req: Request,
   ): Promise<middlewareApiComponents['schemas']['AgentAvailability']> {
-    const isAvailable = this.appService.serviceNowService.isAvailable(
-      query.skill,
-    );
+    const agentService: AgentServices =
+      this.appService.middlewareApiService.getAgentService(req);
+    const isAvailable = agentService.isAvailable(query.skill);
     return {
       available: isAvailable,
       estimatedWaitTime: 30,
@@ -87,7 +89,9 @@ export class MiddlewareApiController {
       rawBody.toString(),
     );
     try {
-      await this.appService.serviceNowService.startConversation({
+      const agentService: AgentServices =
+        this.appService.middlewareApiService.getAgentService(req);
+      await agentService.startConversation({
         conversationId: conversationId,
         skill: body.skill,
 
@@ -130,10 +134,9 @@ export class MiddlewareApiController {
     const body: middlewareApiComponents['schemas']['Typing'] = JSON.parse(
       rawBody.toString(),
     );
-    await this.appService.serviceNowService.sendTyping(
-      conversationId,
-      body.typing,
-    );
+    const agentService: AgentServices =
+      this.appService.middlewareApiService.getAgentService(req);
+    await agentService.sendTyping(conversationId, body.typing);
     res.status(HttpStatus.NO_CONTENT).end();
   }
 
@@ -155,7 +158,9 @@ export class MiddlewareApiController {
         messageId,
       },
     );
-    await this.appService.serviceNowService.sendMessage(ccpMessage);
+    const agentService: AgentServices =
+      this.appService.middlewareApiService.getAgentService(req);
+    await agentService.sendMessage(ccpMessage);
 
     return res.status(HttpStatus.NO_CONTENT).end();
   }
@@ -166,7 +171,9 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    await this.appService.serviceNowService.endConversation(conversationId);
+    const service: AgentServices =
+      this.appService.middlewareApiService.getAgentService(req);
+    await service.endConversation(conversationId);
     return res.status(HttpStatus.NO_CONTENT).end();
   }
 }

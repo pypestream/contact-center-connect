@@ -64,6 +64,11 @@ describe('MiddlewareApiController', () => {
       .get('/contactCenter/v1/agents/availability')
       .query({ skill: 'Test1' })
       .set('User-Agent', 'supertest')
+      .set(
+        'x-pypestream-customer',
+        'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+      )
+      .set('x-pypestream-integration', 'ServiceNow')
       .set('Content-Type', 'application/octet-stream');
 
     expect(response.statusCode).toEqual(200);
@@ -98,6 +103,12 @@ describe('MiddlewareApiController', () => {
       .set('Content-Type', 'application/json')
       .set('User-Agent', 'supertest')
       .set('Content-Type', 'application/octet-stream')
+      .set(
+        'x-pypestream-customer',
+        'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+      )
+      .set('x-pypestream-integration', 'ServiceNow')
+
       .send(JSON.stringify(body));
 
     expect(response.statusCode).toEqual(204);
@@ -111,6 +122,11 @@ describe('MiddlewareApiController', () => {
       .set('Content-Type', 'application/json')
       .set('User-Agent', 'supertest')
       .set('Content-Type', 'application/octet-stream')
+      .set(
+        'x-pypestream-customer',
+        'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+      )
+      .set('x-pypestream-integration', 'ServiceNow')
       .send(JSON.stringify(body));
 
     expect(response.statusCode).toEqual(204);
@@ -121,6 +137,11 @@ describe('MiddlewareApiController', () => {
       .set('Content-Type', 'application/json')
       .set('User-Agent', 'supertest')
       .set('Content-Type', 'application/octet-stream')
+      .set(
+        'x-pypestream-customer',
+        'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+      )
+      .set('x-pypestream-integration', 'ServiceNow')
       .send();
 
     expect(response.statusCode).toEqual(204);

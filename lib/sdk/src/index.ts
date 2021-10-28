@@ -1,3 +1,4 @@
+export { AgentServices } from "./services/common/types";
 export { Ccp } from "./ccp";
 export { ServiceNowService } from "./services/service-now/service";
 export { MiddlewareApiService } from "./services/middleware-api/service";
