@@ -1,3 +1,5 @@
 export type ServiceNowConfig = {
-  instanceUrl: string;
+  instanceUrl?: string;
+  token?: string;
+  middlewareApiUrl?: string;
 };

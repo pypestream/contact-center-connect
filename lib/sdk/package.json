@@ -10,7 +10,8 @@
   },
   "devDependencies": {
     "@ccp/test-tools": "^0.0.0",
-    "typedoc": "^0.22.5"
+    "typedoc": "^0.22.5",
+    "@types/express": "^4.17.13"
   },
   "main": "dist/index.js",
   "name": "@ccp/sdk",

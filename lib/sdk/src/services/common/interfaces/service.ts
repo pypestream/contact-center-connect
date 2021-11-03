@@ -14,14 +14,6 @@ export interface Service<T, Y, Z> {
   sendMessage(message: CcpMessage): Promise<AxiosResponse<SendMessageResponse>>;
 
   /**
-   * Start new conversation with initial message
-   * @param message
-   */
-  startConversation(
-    message: CcpMessage
-  ): Promise<AxiosResponse<SendMessageResponse>>;
-
-  /**
    * End conversation
    * @param conversationId
    */

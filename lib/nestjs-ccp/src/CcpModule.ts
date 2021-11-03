@@ -12,7 +12,7 @@ export class CcpModule {
     };
   }
 
-  public static forRootAsync(options: CcpAsyncOptions): DynamicModule {
+  public static forRootAsync(options?: CcpAsyncOptions): DynamicModule {
     return {
       module: CcpModule,
       imports: [CcpCoreModule.forRootAsync(options)],

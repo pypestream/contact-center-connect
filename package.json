@@ -15,10 +15,12 @@
     "ts-jest": "^27.0.5"
   },
   "scripts": {
+    "ts-version": "tsc -v",
     "bootstrap": "lerna bootstrap",
     "test:sdk": "lerna run test --scope @ccp/sdk --stream",
     "test:app": "lerna run test --scope ccp-bridge --stream",
     "build": "lerna run build --scope @ccp/sdk --scope @ccp/nestjs-module --scope ccp-bridge --stream",
+    "build:app": "lerna run build --scope ccp-bridge",
     "build:sdk": "lerna run build --scope @ccp/sdk",
     "build:nestjs-module": "lerna run build --scope @ccp/nestjs-module",
     "docs:build": "lerna run docs:build --scope @ccp/sdk --stream",
@@ -34,9 +36,9 @@
   "devDependencies": {
     "@ccp/eslint-config": "^0.0.0",
     "@ccp/prettier-config": "^0.0.0",
+    "@ccp/typescript-config": "^0.0.0",
     "husky": "^7.0.0",
-    "lint-staged": "^11.2.5",
-    "typescript": "^3.9.10"
+    "lint-staged": "^11.2.5"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

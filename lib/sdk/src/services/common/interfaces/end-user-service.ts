@@ -2,7 +2,7 @@ import { Request } from "express";
 import { AgentServices } from "../types";
 
 /**
- * Service should implement this interface for core features interface
+ * End User Service should implement this interface for core features interface
  *
  */
 export interface EndUserService {

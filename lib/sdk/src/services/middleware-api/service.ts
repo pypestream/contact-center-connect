@@ -1,7 +1,6 @@
 import { Service, EndUserService } from "../common/interfaces";
 import {
   CcpMessage,
-  ContactCenterProConfig,
   MessageType,
   MiddlewareApiConfig,
   SendMessageResponse,
@@ -24,45 +23,42 @@ export class MiddlewareApiService
     EndUserService
 {
   config: MiddlewareApiConfig;
-  ccpConfig: ContactCenterProConfig;
 
-  constructor(ccpConfig: ContactCenterProConfig, config: MiddlewareApiConfig) {
+  constructor(config?: MiddlewareApiConfig) {
     this.config = config;
-    this.ccpConfig = ccpConfig;
   }
 
-  getAgentService(req): ServiceNowService {
+  getCustomer(req) {
     const base64Customer = req.headers["x-pypestream-customer"];
     const stringifyCustomer = Buffer.from(base64Customer, "base64").toString(
       "ascii"
     );
-    const configs = JSON.parse(stringifyCustomer);
+    const customer = JSON.parse(stringifyCustomer);
+    return customer;
+  }
+
+  getAgentService(req): ServiceNowService {
+    const configs = this.getCustomer(req);
     const integrationName = req.headers["x-pypestream-integration"];
+
     if (integrationName === "ServiceNow") {
-      return new ServiceNowService(this.ccpConfig, {
-        instanceUrl: configs.URL,
+      return new ServiceNowService({
+        instanceUrl: configs.instanceUrl,
+        token: process.env.MIDDLEWARE_API_TOKEN,
+        middlewareApiUrl: process.env.MIDDLEWARE_API_URL,
       });
     }
     return null;
   }
 
   /**
-   * Start new conversation with initial message
-   * @param message
-   */
-  startConversation(
-    //eslint-disable-next-line @typescript-eslint/no-unused-vars
-    message: CcpMessage
-  ): Promise<AxiosResponse<SendMessageResponse>> {
-    throw new Error(
-      "Middleware API is end-user platform, agent can not start conversation with end-user"
-    );
-  }
-  /**
    * End conversation
    * @param conversationId
    */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
+    if (!this.config.instanceUrl) {
+      throw new Error("MiddlewareApi instance-url must has value");
+    }
     const res = await axis.post(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/end`,
       { senderId: "test-agent" },
@@ -167,6 +163,9 @@ export class MiddlewareApiService
   async getSettings(): Promise<
     AxiosResponse<components["schemas"]["Setting"]>
   > {
+    if (!this.config.instanceUrl) {
+      throw new Error("MiddlewareApi instance-url must has value");
+    }
     const result = await axis.get(
       `${this.config.instanceUrl}/contactCenter/v1/settings`
     );
@@ -176,6 +175,9 @@ export class MiddlewareApiService
   async putSettings(
     data: SettingsObject
   ): Promise<AxiosResponse<components["schemas"]["Setting"]>> {
+    if (!this.config.instanceUrl) {
+      throw new Error("MiddlewareApi instance-url must has value");
+    }
     const result = await axis.put(
       `${this.config.instanceUrl}/contactCenter/v1/settings`,
       data,
@@ -191,6 +193,9 @@ export class MiddlewareApiService
   async history(
     conversationId: string
   ): Promise<AxiosResponse<components["schemas"]["History"]>> {
+    if (!this.config.instanceUrl) {
+      throw new Error("MiddlewareApi instance-url must has value");
+    }
     const response = await axis.get(
       `${this.config.instanceUrl}/contactCenter/v1/conversations/${conversationId}/history`,
       {
@@ -211,6 +216,9 @@ export class MiddlewareApiService
     conversationId: string,
     isTyping: boolean
   ): Promise<AxiosResponse<SendMessageResponse>> {
+    if (!this.config.instanceUrl) {
+      throw new Error("MiddlewareApi instance-url must has value");
+    }
     if (!conversationId) {
       throw new Error(
         "MiddlewareApi.sendTyping conversationId param is required parameter"

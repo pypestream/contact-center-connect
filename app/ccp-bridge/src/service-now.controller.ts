@@ -1,50 +1,56 @@
 import { Controller, Post, Req, Res, HttpStatus } from '@nestjs/common';
-import { AppService } from './app.service';
-import { ServiceNowWebhookBody } from '@ccp/sdk';
+import { ServiceNowWebhookBody, ServiceNowService } from '@ccp/sdk';
 import { Request, Response } from 'express';
 import * as getRawBody from 'raw-body';
 
 @Controller('service-now')
 export class ServiceNowController {
-  constructor(private readonly appService: AppService) {}
+  private serviceNowService: ServiceNowService;
+
+  constructor() {
+    this.serviceNowService = new ServiceNowService();
+  }
 
   @Post('webhook')
   async message(@Req() req: Request, @Res() res: Response) {
     const rawBody = await getRawBody(req);
     const body: ServiceNowWebhookBody = JSON.parse(rawBody.toString());
 
+    const endUserService = this.serviceNowService.getEndUserService(body);
+    if (!endUserService) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .send({ message: 'not able to get endUserService' });
+    }
     const requests = [];
 
     const hasChatEndedAction =
-      this.appService.serviceNowService.hasEndConversationAction(body);
+      this.serviceNowService.hasEndConversationAction(body);
     if (hasChatEndedAction) {
-      const endConversationRequest =
-        await this.appService.middlewareApiService.endConversation(
-          body.clientSessionId,
-        );
+      const endConversationRequest = await endUserService.endConversation(
+        body.clientSessionId,
+      );
       requests.push(endConversationRequest);
     }
     const hasNewMessageAction =
-      this.appService.serviceNowService.hasNewMessageAction(body);
+      this.serviceNowService.hasNewMessageAction(body);
 
     if (hasNewMessageAction) {
       for (let i = 0; i < body.body.length; i++) {
-        const message = this.appService.serviceNowService.mapToCcpMessage(
-          body,
-          { index: i },
-        );
+        const message = this.serviceNowService.mapToCcpMessage(body, {
+          index: i,
+        });
         if (message) {
-          const sendMessageRequest =
-            this.appService.middlewareApiService.sendMessage(message);
+          const sendMessageRequest = endUserService.sendMessage(message);
           requests.push(sendMessageRequest);
         }
       }
     }
     const hasTypingIndicatorAction =
-      this.appService.serviceNowService.hasTypingIndicatorAction(body);
+      this.serviceNowService.hasTypingIndicatorAction(body);
     if (hasTypingIndicatorAction) {
-      const isTyping = this.appService.serviceNowService.isTyping(body);
-      const sendTypingRequest = this.appService.middlewareApiService.sendTyping(
+      const isTyping = this.serviceNowService.isTyping(body);
+      const sendTypingRequest = endUserService.sendTyping(
         body.clientSessionId,
         isTyping,
       );

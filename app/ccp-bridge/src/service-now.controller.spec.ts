@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServiceNowController } from './service-now.controller';
-import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
 import {
   MiddlewareApiConfig,
@@ -13,6 +12,8 @@ import * as request from 'supertest';
 
 const serviceNowConfig: ServiceNowConfig = {
   instanceUrl: 'https://mock-server.service-now.com',
+  token: 'abc-123-token',
+  middlewareApiUrl: 'https://mock-server.middleware.com',
 };
 
 const middlewareApiConfig: MiddlewareApiConfig = {
@@ -26,7 +27,6 @@ const ccpConfig: ContactCenterProConfig = {
 
 describe('ServiceNowController', () => {
   let app: INestApplication;
-  let appService: AppService;
   let body;
 
   beforeEach(async () => {
@@ -34,12 +34,10 @@ describe('ServiceNowController', () => {
       controllers: [ServiceNowController],
       imports: [
         CcpModule.forRoot({
-          middlewareApi: middlewareApiConfig,
-          ccp: ccpConfig,
-          serviceNow: serviceNowConfig,
+          enableLog: true,
         }),
       ],
-      providers: [AppService],
+      providers: [],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -57,6 +55,7 @@ describe('ServiceNowController', () => {
       agentChat: true,
       completed: true,
       score: 1,
+      clientVariables: serviceNowConfig,
     };
     await app.init();
   });
@@ -71,7 +70,12 @@ describe('ServiceNowController', () => {
       .post('/service-now/webhook')
       .set('User-Agent', 'supertest')
       .set('Content-Type', 'application/octet-stream')
-      .send(JSON.stringify({ ...body, body: [typingBody] }));
+      .send(
+        JSON.stringify({
+          ...body,
+          body: [typingBody],
+        }),
+      );
 
     expect(response.statusCode).toEqual(200);
     expect(response.body.length).toEqual(1);

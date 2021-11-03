@@ -18,7 +18,7 @@ export class CcpCoreModule {
     };
   }
 
-  static forRootAsync(options: CcpAsyncOptions): DynamicModule {
+  static forRootAsync(options?: CcpAsyncOptions): DynamicModule {
     const ccpProvider: Provider = {
       inject: [CcpModuleOptions],
       provide: ccpToken,

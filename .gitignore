@@ -1,3 +1,4 @@
 .idea
 node_modules
-**/dist/**
+**/dist/**!/app/ccp-bridge/.env
+!/app/ccp-bridge/.env

@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MiddlewareApiController } from './middleware-api.controller';
-import { AppService } from './app.service';
 import { CcpModule } from '@ccp/nestjs-module';
 import {
   MiddlewareApiConfig,
@@ -32,12 +31,10 @@ describe('MiddlewareApiController', () => {
       controllers: [MiddlewareApiController],
       imports: [
         CcpModule.forRoot({
-          middlewareApi: middlewareApiConfig,
-          ccp: ccpConfig,
-          serviceNow: serviceNowConfig,
+          enableLog: true,
         }),
       ],
-      providers: [AppService],
+      providers: [],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -55,6 +52,11 @@ describe('MiddlewareApiController', () => {
       agentChat: true,
       completed: true,
       score: 1,
+      clientVariables: {
+        instanceUrl: 'https://mock-server.service-now.com',
+        token: 'abc-123-token',
+        middlewareApiUrl: 'https://mock-server.middleware.com',
+      },
     };
     await app.init();
   });
@@ -105,7 +107,7 @@ describe('MiddlewareApiController', () => {
       .set('Content-Type', 'application/octet-stream')
       .set(
         'x-pypestream-customer',
-        'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
       )
       .set('x-pypestream-integration', 'ServiceNow')
 
@@ -124,7 +126,7 @@ describe('MiddlewareApiController', () => {
       .set('Content-Type', 'application/octet-stream')
       .set(
         'x-pypestream-customer',
-        'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
       )
       .set('x-pypestream-integration', 'ServiceNow')
       .send(JSON.stringify(body));
@@ -139,7 +141,7 @@ describe('MiddlewareApiController', () => {
       .set('Content-Type', 'application/octet-stream')
       .set(
         'x-pypestream-customer',
-        'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
       )
       .set('x-pypestream-integration', 'ServiceNow')
       .send();

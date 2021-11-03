@@ -1,11 +1,15 @@
 import {
   CcpMessage,
-  ContactCenterProConfig,
+  EndUserServices,
   MessageType,
   SendMessageResponse,
   ServiceNowConfig,
 } from "./../common/types";
-import { Service, GenericWebhookInterpreter } from "./../common/interfaces";
+import {
+  Service,
+  GenericWebhookInterpreter,
+  AgentService,
+} from "./../common/interfaces";
 import axios, { AxiosResponse } from "axios";
 
 import { v4 as uuidv4 } from "uuid";
@@ -15,6 +19,7 @@ import {
   EndTypingIndicatorType,
   StartWaitTimeSpinnerType,
 } from "./types";
+import { MiddlewareApiService } from "../middleware-api/service";
 
 // eslint-disable-next-line
 const axiosRetry = require("axios-retry");
@@ -28,10 +33,10 @@ export class ServiceNowService
       ServiceNowWebhookBody,
       ServiceNowWebhookBody
     >,
-    GenericWebhookInterpreter<ServiceNowWebhookBody>
+    GenericWebhookInterpreter<ServiceNowWebhookBody>,
+    AgentService
 {
   serviceNowConfig: ServiceNowConfig;
-  contactCenterProConfig: ContactCenterProConfig;
 
   /**
    * @ignore
@@ -43,13 +48,13 @@ export class ServiceNowService
    * @param ccpConfig
    * @param serviceNowConfig
    */
-  constructor(
-    ccpConfig: ContactCenterProConfig,
-    serviceNowConfig: ServiceNowConfig
-  ) {
+  constructor(serviceNowConfig: ServiceNowConfig = {}) {
     this.serviceNowConfig = serviceNowConfig;
-    this.contactCenterProConfig = ccpConfig;
-    this.url = `${serviceNowConfig.instanceUrl}/api/sn_va_as_service/bot/integration`;
+    if (serviceNowConfig.instanceUrl) {
+      this.url = `${serviceNowConfig.instanceUrl}/api/sn_va_as_service/bot/integration`;
+    } else {
+      this.url = "";
+    }
   }
   /**
    * @ignore
@@ -68,6 +73,7 @@ export class ServiceNowService
         clientMessageId: message.message.id,
       },
       userId: message.conversationId,
+      clientVariables: this.serviceNowConfig,
     };
   }
   /**
@@ -82,6 +88,7 @@ export class ServiceNowService
         typed: true,
       },
       userId: conversationId,
+      clientVariables: this.serviceNowConfig,
     };
     return res;
   }
@@ -104,6 +111,7 @@ export class ServiceNowService
         clientMessageId,
       },
       userId: message.conversationId,
+      clientVariables: this.serviceNowConfig,
     };
     return res;
   }
@@ -125,6 +133,7 @@ export class ServiceNowService
         clientMessageId: message.message.id,
       },
       userId: message.conversationId,
+      clientVariables: this.serviceNowConfig,
     };
     return res;
   }
@@ -135,6 +144,9 @@ export class ServiceNowService
   async sendMessage(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
+    if (!this.serviceNowConfig.instanceUrl) {
+      throw new Error("Servicenow.sendMessage instance-url must has value");
+    }
     const res = await axios.post(this.url, this.getMessageRequestBody(message));
 
     return res;
@@ -144,6 +156,10 @@ export class ServiceNowService
    * @param conversationId
    */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
+    if (!this.serviceNowConfig.instanceUrl) {
+      throw new Error("Servicenow.endConversation instance-url must has value");
+    }
+
     const res = await axios.post(
       this.url,
       this.getEndConversationRequestBody(conversationId)
@@ -158,6 +174,12 @@ export class ServiceNowService
   async startConversation(
     message: CcpMessage
   ): Promise<AxiosResponse<SendMessageResponse>> {
+    if (!this.serviceNowConfig.instanceUrl) {
+      throw new Error(
+        "Servicenow.startConversation instance-url must has value"
+      );
+    }
+
     await axios.post(this.url, this.startConversationRequestBody(message));
 
     const res = await axios.post(
@@ -203,17 +225,34 @@ export class ServiceNowService
     conversationId: string,
     isTyping: boolean
   ): Promise<AxiosResponse<SendMessageResponse>> {
+    if (!this.serviceNowConfig.instanceUrl) {
+      throw new Error("Servicenow.sendTyping instance-url must has value");
+    }
+
     if (!conversationId) {
       throw new Error(
         "ServiceNow.sendTyping conversationId param is required parameter"
       );
-      return null;
     }
+
     const res = await axios.post(
       this.url,
       this.getTypingRequestBody(conversationId, isTyping)
     );
+
     return res;
+  }
+
+  getEndUserService(body): EndUserServices {
+    const configs = body.clientVariables;
+    if (!configs) {
+      return null;
+    }
+    const service = new MiddlewareApiService({
+      instanceUrl: configs.middlewareApiUrl,
+      token: configs.token,
+    });
+    return service;
   }
 
   /**
@@ -242,6 +281,7 @@ export class ServiceNowService
         // username: item.agentInfo.agentName,
       },
       conversationId: body.clientSessionId,
+      clientVariables: this.serviceNowConfig,
     };
   }
 

@@ -14,4 +14,9 @@ export type CcpMessage = {
   };
   sender: User;
   conversationId: string;
+  clientVariables?: {
+    instanceUrl?: string;
+    token?: string;
+    middlewareApiUrl?: string;
+  };
 };
