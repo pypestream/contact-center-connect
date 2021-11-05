@@ -1,6 +1,6 @@
 import { Ccp } from '../ccp';
 import { ccpToken } from './../constants';
-import { createCcpProvider } from './createCcpProvider';
+import { createCcpProvider } from './createCCPProvider';
 
 describe('ccpProvider', () => {
   const apiKey = 'test';
