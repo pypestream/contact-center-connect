@@ -1,4 +1,5 @@
-import { Ccp, SdkConfig } from '@ccp/sdk';
+import { Ccp } from '../ccp';
+import { SdkConfig } from '../types';
 import { getCcpClient } from './getCcpClient';
 
 describe('getCcpClient', () => {

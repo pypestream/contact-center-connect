@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Ccp, SdkConfig } from '@ccp/sdk';
+import { Ccp } from './ccp';
+import { SdkConfig } from './types';
 import { ccpToken } from './constants';
 import { CcpOptionsFactory } from './interfaces';
 import { CcpModule } from './CcpModule';
