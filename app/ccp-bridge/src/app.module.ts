@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { MiddlewareApiController } from './middleware-api.controller';
-import { ServiceNowController } from './service-now.controller';
 import { CcpModule } from '@ccp/nestjs-module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
@@ -16,9 +14,13 @@ import { join } from 'path';
     }),
     CcpModule.forRoot({
       enableLog: true,
+      middlewareApiConfig: {
+        url: process.env.MIDDLEWARE_API_URL,
+        token: process.env.MIDDLEWARE_API_TOKEN,
+      },
     }),
   ],
   providers: [],
-  controllers: [ServiceNowController, MiddlewareApiController],
+  controllers: [],
 })
 export class AppModule {}

@@ -22,7 +22,9 @@
     "publish:npm": "yarn publish --access public",
     "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
-    "test": "jest"
+    "test": "jest",
+    "docs:build": "npx typedoc --out ../../app/ccp-bridge/dist/sdk-docs src",
+    "docs": "npx typedoc --out docs src"
   },
   "devDependencies": {
     "@ccp/typescript-config": "^0.0.0",
@@ -31,7 +33,6 @@
     "@nestjs/testing": "^7.4.4",
     "@nestjs/axios": "^0.0.1",
     "@types/jest": "25.2.1",
-    "@types/node": "13.11.0",
     "axios": "^0.21.1",
     "codecov": "3.7.1",
     "jest": "25.2.7",
@@ -39,35 +40,26 @@
     "reflect-metadata": "^0.1.12",
     "rimraf": "3.0.2",
     "rxjs": "^6.5.5",
-    "ts-jest": "25.2.1"
+    "ts-jest": "25.2.1",
+    "typedoc": "^0.22.5"
   },
   "peerDependencies": {
     "@nestjs/common": "^6.0.0 || ^7.0.0",
     "@nestjs/core": "^6.0.0 || ^7.0.0",
     "reflect-metadata": "^0.1.12",
-    "rxjs": "^6.0.0",
-    "@ccp/sdk": "^0.0.0"
+    "rxjs": "^6.0.0"
   },
   "keywords": [
     "nestjs",
     "ccp",
     "payment"
   ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".spec.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
-  },
   "dependencies": {
-    "@ccp/sdk": "^0.0.0"
+    "@types/uuid": "^8.3.1",
+    "@ccp/typescript-config": "^0.0.0",
+    "axios": "^0.21.1",
+    "uuid": "^8.3.2",
+    "axios-retry": "^3.2.0",
+    "axios-debug-log": "^0.8.4"
   }
 }

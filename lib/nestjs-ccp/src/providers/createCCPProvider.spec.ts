@@ -1,6 +1,6 @@
-import { Ccp } from '@ccp/sdk';
+import { Ccp } from '../ccp';
 import { ccpToken } from './../constants';
-import { createCcpProvider } from './createCcpProvider';
+import { createCcpProvider } from './createCCPProvider';
 
 describe('ccpProvider', () => {
   const apiKey = 'test';
@@ -8,18 +8,14 @@ describe('ccpProvider', () => {
   describe('when called', () => {
     it('should use the correct token', () => {
       const provider = createCcpProvider({
-        serviceNow: {
-          instanceUrl: '',
-        },
+        enableLog: true,
       });
       expect(provider).toHaveProperty('provide', ccpToken);
     });
 
     it('should provide a ccp client', () => {
       const provider = createCcpProvider({
-        serviceNow: {
-          instanceUrl: '',
-        },
+        enableLog: true,
       });
       expect(provider).toHaveProperty('useValue');
       expect((provider as any).useValue).toBeInstanceOf(Ccp);
