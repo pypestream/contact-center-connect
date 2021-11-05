@@ -1,4 +1,4 @@
-import { MiddlewareApiConfig, SdkConfig } from "./services/common/types";
+import { MiddlewareApiConfig, SdkConfig } from './common/types';
 
 /**
  * SDK Main class
@@ -16,14 +16,14 @@ export class Ccp {
   constructor(
     config: SdkConfig = {
       middlewareApiConfig: {
-        token: "",
-        url: "",
+        token: '',
+        url: '',
       },
       enableLog: true,
-    }
+    },
   ) {
     if (config.enableLog) {
-      require("axios-debug-log/enable");
+      require('axios-debug-log/enable');
     }
     this.middlewareApi = config.middlewareApiConfig;
   }

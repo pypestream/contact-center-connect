@@ -4,25 +4,25 @@ import {
   MessageType,
   SendMessageResponse,
   ServiceNowConfig,
-} from "./../common/types";
+} from './../common/types';
 import {
   Service,
   GenericWebhookInterpreter,
   AgentService,
-} from "./../common/interfaces";
-import axios, { AxiosResponse } from "axios";
+} from './../common/interfaces';
+import axios, { AxiosResponse } from 'axios';
 
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from 'uuid';
 import {
   ServiceNowWebhookBody,
   StartTypingIndicatorType,
   EndTypingIndicatorType,
   StartWaitTimeSpinnerType,
-} from "./types";
-import { MiddlewareApiService } from "../middleware-api/service";
+} from './types';
+import { MiddlewareApiService } from '../middleware-api/service';
 
 // eslint-disable-next-line
-const axiosRetry = require("axios-retry");
+const axiosRetry = require('axios-retry');
 
 axiosRetry(axios, { retries: 3 });
 
@@ -53,7 +53,7 @@ export class ServiceNowService
     if (serviceNowConfig.instanceUrl) {
       this.url = `${serviceNowConfig.instanceUrl}/api/sn_va_as_service/bot/integration`;
     } else {
-      this.url = "";
+      this.url = '';
     }
   }
   /**
@@ -82,9 +82,9 @@ export class ServiceNowService
   private getEndConversationRequestBody(conversationId: string) {
     const res = {
       clientSessionId: conversationId,
-      action: "END_CONVERSATION",
+      action: 'END_CONVERSATION',
       message: {
-        text: "",
+        text: '',
         typed: true,
       },
       userId: conversationId,
@@ -101,12 +101,12 @@ export class ServiceNowService
     const res = {
       requestId,
       clientSessionId: message.conversationId,
-      action: "AGENT",
+      action: 'AGENT',
       contextVariables: {
         LiveAgent_mandatory_skills: message.skill,
       },
       message: {
-        text: "",
+        text: '',
         typed: true,
         clientMessageId,
       },
@@ -123,7 +123,7 @@ export class ServiceNowService
     const res = {
       requestId,
       clientSessionId: message.conversationId,
-      action: "AGENT",
+      action: 'AGENT',
       contextVariables: {
         LiveAgent_mandatory_skills: message.skill,
       },
@@ -142,10 +142,10 @@ export class ServiceNowService
    * @param message
    */
   async sendMessage(
-    message: CcpMessage
+    message: CcpMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
     if (!this.serviceNowConfig.instanceUrl) {
-      throw new Error("Servicenow.sendMessage instance-url must has value");
+      throw new Error('Servicenow.sendMessage instance-url must has value');
     }
     const res = await axios.post(this.url, this.getMessageRequestBody(message));
 
@@ -157,12 +157,12 @@ export class ServiceNowService
    */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     if (!this.serviceNowConfig.instanceUrl) {
-      throw new Error("Servicenow.endConversation instance-url must has value");
+      throw new Error('Servicenow.endConversation instance-url must has value');
     }
 
     const res = await axios.post(
       this.url,
-      this.getEndConversationRequestBody(conversationId)
+      this.getEndConversationRequestBody(conversationId),
     );
 
     return res;
@@ -172,11 +172,11 @@ export class ServiceNowService
    * @param message
    */
   async startConversation(
-    message: CcpMessage
+    message: CcpMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
     if (!this.serviceNowConfig.instanceUrl) {
       throw new Error(
-        "Servicenow.startConversation instance-url must has value"
+        'Servicenow.startConversation instance-url must has value',
       );
     }
 
@@ -184,7 +184,7 @@ export class ServiceNowService
 
     const res = await axios.post(
       this.url,
-      this.switchToAgentRequestBody(message)
+      this.switchToAgentRequestBody(message),
     );
     return res;
   }
@@ -197,7 +197,7 @@ export class ServiceNowService
     const res = {
       requestId,
       clientSessionId: conversationId,
-      action: isTyping ? "TYPING" : "VIEWING",
+      action: isTyping ? 'TYPING' : 'VIEWING',
       userId: conversationId,
     };
     return res;
@@ -211,7 +211,7 @@ export class ServiceNowService
     const res = {
       requestId,
       clientSessionId: conversationId,
-      action: "END_CONVERSATION",
+      action: 'END_CONVERSATION',
     };
     return res;
   }
@@ -223,21 +223,21 @@ export class ServiceNowService
 
   async sendTyping(
     conversationId: string,
-    isTyping: boolean
+    isTyping: boolean,
   ): Promise<AxiosResponse<SendMessageResponse>> {
     if (!this.serviceNowConfig.instanceUrl) {
-      throw new Error("Servicenow.sendTyping instance-url must has value");
+      throw new Error('Servicenow.sendTyping instance-url must has value');
     }
 
     if (!conversationId) {
       throw new Error(
-        "ServiceNow.sendTyping conversationId param is required parameter"
+        'ServiceNow.sendTyping conversationId param is required parameter',
       );
     }
 
     const res = await axios.post(
       this.url,
-      this.getTypingRequestBody(conversationId, isTyping)
+      this.getTypingRequestBody(conversationId, isTyping),
     );
 
     return res;
@@ -262,12 +262,12 @@ export class ServiceNowService
    */
   mapToCcpMessage(
     body: ServiceNowWebhookBody,
-    params: { index: number }
+    params: { index: number },
   ): CcpMessage {
     const messageId = uuidv4();
     const { index } = params;
     const item = body.body[index];
-    if (item.uiType !== "OutputText") {
+    if (item.uiType !== 'OutputText') {
       return;
     }
     return {
@@ -277,7 +277,7 @@ export class ServiceNowService
         id: messageId,
       },
       sender: {
-        username: "test-agent",
+        username: 'test-agent',
         // username: item.agentInfo.agentName,
       },
       conversationId: body.clientSessionId,
@@ -291,7 +291,7 @@ export class ServiceNowService
    */
   hasNewMessageAction(message: ServiceNowWebhookBody): boolean {
     const item = message.body.find(
-      (item) => item.uiType === "OutputText" && item.group === "DefaultText"
+      (item) => item.uiType === 'OutputText' && item.group === 'DefaultText',
     );
     return !!item;
   }
@@ -303,9 +303,9 @@ export class ServiceNowService
   hasEndConversationAction(message: ServiceNowWebhookBody): boolean {
     const item = message.body.find(
       (item) =>
-        item.uiType === "ActionMsg" &&
-        item.actionType === "System" &&
-        !item.message.includes("entered")
+        item.uiType === 'ActionMsg' &&
+        item.actionType === 'System' &&
+        !item.message.includes('entered'),
     );
     return !!item;
   }
@@ -318,10 +318,10 @@ export class ServiceNowService
     const item = message.body.some(
       (item: EndTypingIndicatorType | StartTypingIndicatorType) => {
         const isTypingIndicator =
-          item.actionType === "EndTypingIndicator" ||
-          item.actionType === "StartTypingIndicator";
-        return item.uiType === "ActionMsg" && isTypingIndicator;
-      }
+          item.actionType === 'EndTypingIndicator' ||
+          item.actionType === 'StartTypingIndicator';
+        return item.uiType === 'ActionMsg' && isTypingIndicator;
+      },
     );
     return !!item;
   }
@@ -335,11 +335,11 @@ export class ServiceNowService
       | StartTypingIndicatorType;
     const item = message.body.find((item: TypingIndicatorType) => {
       const isTypingIndicator =
-        item.actionType === "EndTypingIndicator" ||
-        item.actionType === "StartTypingIndicator";
-      return item.uiType === "ActionMsg" && isTypingIndicator;
+        item.actionType === 'EndTypingIndicator' ||
+        item.actionType === 'StartTypingIndicator';
+      return item.uiType === 'ActionMsg' && isTypingIndicator;
     });
-    return (item as TypingIndicatorType).actionType === "StartTypingIndicator";
+    return (item as TypingIndicatorType).actionType === 'StartTypingIndicator';
   }
   /**
    * Determine if agent is available to receive new message
@@ -356,7 +356,7 @@ export class ServiceNowService
   hasWaitTime(message: ServiceNowWebhookBody): boolean {
     const item: StartWaitTimeSpinnerType = message.body.find((item) => {
       const spinner = item as StartWaitTimeSpinnerType;
-      return spinner.spinnerType === "wait_time";
+      return spinner.spinnerType === 'wait_time';
     }) as StartWaitTimeSpinnerType;
     return !!item;
   }
@@ -368,7 +368,7 @@ export class ServiceNowService
   getWaitTime(message: ServiceNowWebhookBody): string {
     const item: StartWaitTimeSpinnerType = message.body.find((item) => {
       const spinner = item as StartWaitTimeSpinnerType;
-      return spinner.spinnerType === "wait_time";
+      return spinner.spinnerType === 'wait_time';
     }) as StartWaitTimeSpinnerType;
     return item.waitTime;
   }

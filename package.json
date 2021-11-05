@@ -12,13 +12,14 @@
     "@types/node": "^16.6.1",
     "lerna": "^4.0.0",
     "stripe": "^8.169.0",
-    "ts-jest": "^27.0.5"
+    "ts-jest": "^27.0.7"
   },
   "scripts": {
-    "ts-version": "tsc -v",
+    "ts:version": "tsc -v",
     "bootstrap": "lerna bootstrap",
     "test:sdk": "lerna run test --scope @ccp/sdk --stream",
     "test:app": "lerna run test --scope ccp-bridge --stream",
+    "test:nestjs-module": "lerna run test --scope @ccp/nestjs-module --stream",
     "build": "lerna run build --scope @ccp/sdk --scope @ccp/nestjs-module --scope ccp-bridge --stream",
     "build:app": "lerna run build --scope ccp-bridge",
     "build:sdk": "lerna run build --scope @ccp/sdk",

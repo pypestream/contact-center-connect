@@ -1,4 +1,4 @@
-import { MiddlewareApiConfig } from "./middleware-api-config";
+import { MiddlewareApiConfig } from './middleware-api-config';
 /**
  * SDK configurations
  */

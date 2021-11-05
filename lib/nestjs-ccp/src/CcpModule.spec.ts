@@ -9,9 +9,7 @@ describe('CcpModule', () => {
   class TestService implements CcpOptionsFactory {
     createCcpOptions(): SdkConfig {
       return {
-        serviceNow: {
-          instanceUrl: '',
-        },
+        enableLog: true,
       };
     }
   }
@@ -27,9 +25,7 @@ describe('CcpModule', () => {
       const module = await Test.createTestingModule({
         imports: [
           CcpModule.forRoot({
-            serviceNow: {
-              instanceUrl: '',
-            },
+            enableLog: true,
           }),
         ],
       }).compile();
@@ -47,9 +43,7 @@ describe('CcpModule', () => {
           imports: [
             CcpModule.forRootAsync({
               useFactory: () => ({
-                serviceNow: {
-                  instanceUrl: '',
-                },
+                enableLog: true,
               }),
             }),
           ],

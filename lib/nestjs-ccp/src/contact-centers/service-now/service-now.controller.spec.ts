@@ -1,12 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServiceNowController } from './service-now.controller';
 import { CcpModule } from '@ccp/nestjs-module';
-import {
-  MiddlewareApiConfig,
-  MiddlewareApiService,
-  ContactCenterProConfig,
-  ServiceNowConfig,
-} from '@ccp/sdk';
+import { ServiceNowConfig } from '@ccp/sdk';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 
@@ -14,15 +9,6 @@ const serviceNowConfig: ServiceNowConfig = {
   instanceUrl: 'https://mock-server.service-now.com',
   token: 'abc-123-token',
   middlewareApiUrl: 'https://mock-server.middleware.com',
-};
-
-const middlewareApiConfig: MiddlewareApiConfig = {
-  instanceUrl: 'https://mock-server.middleware.com',
-  token: 'fake token',
-};
-
-const ccpConfig: ContactCenterProConfig = {
-  instanceUrl: 'https://localhost:3000',
 };
 
 describe('ServiceNowController', () => {

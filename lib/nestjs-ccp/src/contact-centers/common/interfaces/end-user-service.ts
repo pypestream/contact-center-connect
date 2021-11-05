@@ -1,5 +1,5 @@
-import { Request } from "express";
-import { AgentServices, EndUserServices } from "../types";
+import { Request } from 'express';
+import { AgentServices, EndUserServices } from '../types';
 
 /**
  * End User Service should implement this interface for core features interface
