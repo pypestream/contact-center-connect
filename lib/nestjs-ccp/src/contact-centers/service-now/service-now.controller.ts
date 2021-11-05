@@ -1,5 +1,6 @@
 import { Controller, Post, Req, Res, HttpStatus } from '@nestjs/common';
-import { ServiceNowWebhookBody, ServiceNowService } from '@ccp/sdk';
+import { ServiceNowService } from './service';
+import { ServiceNowWebhookBody } from './types';
 import { Request, Response } from 'express';
 import * as getRawBody from 'raw-body';
 

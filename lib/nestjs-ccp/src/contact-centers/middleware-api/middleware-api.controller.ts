@@ -12,15 +12,12 @@ import {
 } from '@nestjs/common';
 
 import { Response, Request } from 'express';
-import {
-  Ccp,
-  MessageType,
-  middlewareApiComponents,
-  middlewareApiOperations,
-  MiddlewareApiService,
-} from '@ccp/sdk';
+import { Ccp } from '../../ccp';
+import { MessageType, AgentServices } from '../../types';
+import { components, operations } from './types/openapi-types';
+import { MiddlewareApiService } from './service';
+
 import * as getRawBody from 'raw-body';
-import { AgentServices } from '@ccp/sdk';
 import { ccpToken } from '../../constants';
 
 @Controller('contactCenter/v1')
@@ -34,7 +31,7 @@ export class MiddlewareApiController {
   }
 
   @Put('settings')
-  async putSettings(): Promise<middlewareApiComponents['schemas']['Setting']> {
+  async putSettings(): Promise<components['schemas']['Setting']> {
     const sendMessageRes = await this.middlewareApiService.putSettings({
       callbackToken: 'abc',
       callbackURL: process.env.CCP_URL,
@@ -45,17 +42,16 @@ export class MiddlewareApiController {
   }
 
   @Get('settings')
-  async settings(): Promise<middlewareApiComponents['schemas']['Setting']> {
+  async settings(): Promise<components['schemas']['Setting']> {
     const sendMessageRes = await this.middlewareApiService.getSettings();
     return sendMessageRes.data;
   }
 
   @Get('/agents/availability')
   async availability(
-    @Query()
-    query: middlewareApiOperations['checkAgentAvailability']['parameters']['query'],
+    @Query() query: operations['checkAgentAvailability']['parameters']['query'],
     @Req() req: Request,
-  ): Promise<middlewareApiComponents['schemas']['AgentAvailability']> {
+  ): Promise<components['schemas']['AgentAvailability']> {
     const agentService: AgentServices =
       this.middlewareApiService.getAgentService(req, this.middlewareApiService);
     const isAvailable = agentService.isAvailable(query.skill);
@@ -70,9 +66,8 @@ export class MiddlewareApiController {
 
   @Get('/agents/waitTime')
   async waitTime(
-    @Query()
-    query: middlewareApiOperations['agentWaitTime']['parameters']['query'],
-  ): Promise<middlewareApiComponents['schemas']['WaitTime']> {
+    @Query() query: operations['agentWaitTime']['parameters']['query'],
+  ): Promise<components['schemas']['WaitTime']> {
     return {
       estimatedWaitTime: 60,
     };
@@ -92,7 +87,7 @@ export class MiddlewareApiController {
     //   });
 
     const rawBody = await getRawBody(req);
-    const body: middlewareApiComponents['schemas']['Escalate'] = JSON.parse(
+    const body: components['schemas']['Escalate'] = JSON.parse(
       rawBody.toString(),
     );
     try {
@@ -114,7 +109,7 @@ export class MiddlewareApiController {
           username: body.userId,
         },
       });
-      const json: middlewareApiComponents['schemas']['EscalateResponse'] = {
+      const json: components['schemas']['EscalateResponse'] = {
         agentId: 'test-agent',
         escalationId: conversationId,
         /** Estimated wait time in seconds */
@@ -140,7 +135,7 @@ export class MiddlewareApiController {
     @Res() res: Response,
   ) {
     const rawBody = await getRawBody(req, { encoding: true });
-    const body: middlewareApiComponents['schemas']['Typing'] = JSON.parse(
+    const body: components['schemas']['Typing'] = JSON.parse(
       rawBody.toString(),
     );
     const agentService: AgentServices =
@@ -157,7 +152,7 @@ export class MiddlewareApiController {
     @Res() res: Response,
   ) {
     const rawBody = await getRawBody(req, { encoding: true });
-    const body: middlewareApiComponents['schemas']['Message'] = JSON.parse(
+    const body: components['schemas']['Message'] = JSON.parse(
       rawBody.toString(),
     );
     const ccpMessage = this.middlewareApiService.mapToCcpMessage(body, {

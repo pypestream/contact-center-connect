@@ -1,4 +1,4 @@
-import { MiddlewareApiConfig, SdkConfig } from './common/types';
+import { MiddlewareApiConfig, SdkConfig } from './types';
 
 /**
  * SDK Main class

@@ -1,11 +1,11 @@
-import { Service, EndUserService } from '../common/interfaces';
+import { Service, EndUserService } from '../../interfaces';
 import {
   CcpMessage,
   EndUserServices,
   MessageType,
   MiddlewareApiConfig,
   SendMessageResponse,
-} from './../common/types';
+} from '../../types';
 import axis, { AxiosResponse } from 'axios';
 import { ContactCenterProApiWebhookBody, SettingsObject } from './types';
 import { components } from './types/openapi-types';

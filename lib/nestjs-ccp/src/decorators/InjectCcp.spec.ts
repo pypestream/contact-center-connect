@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import {Ccp} from '@ccp/sdk';
+import { Ccp } from '../ccp';
 import { CcpModule } from './../CcpModule';
 import { InjectCcp } from './InjectCcp';
 
@@ -14,7 +14,7 @@ describe('InjectCcp', () => {
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [CcpModule.forRoot({ })],
+      imports: [CcpModule.forRoot({})],
       providers: [TestService],
     }).compile();
   });

@@ -1,4 +1,4 @@
-import { Ccp } from '@ccp/sdk';
+import { Ccp } from '../ccp';
 import { ccpToken } from './../constants';
 import { createCcpProvider } from './createCcpProvider';
 

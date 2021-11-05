@@ -1,6 +1,6 @@
 import { DynamicModule, HttpModule, Module } from '@nestjs/common';
 import { CcpAsyncOptions } from './interfaces';
-import { SdkConfig } from '@ccp/sdk';
+import { SdkConfig } from './types';
 import { CcpCoreModule } from './CcpCoreModule';
 import { ServiceNowController } from './contact-centers/service-now/service-now.controller';
 import { MiddlewareApiController } from './contact-centers/middleware-api/middleware-api.controller';

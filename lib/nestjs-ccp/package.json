@@ -22,7 +22,9 @@
     "publish:npm": "yarn publish --access public",
     "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
-    "test": "jest"
+    "test": "jest",
+    "docs:build": "npx typedoc --out ../../app/ccp-bridge/dist/sdk-docs src",
+    "docs": "npx typedoc --out docs src"
   },
   "devDependencies": {
     "@ccp/typescript-config": "^0.0.0",
@@ -38,14 +40,14 @@
     "reflect-metadata": "^0.1.12",
     "rimraf": "3.0.2",
     "rxjs": "^6.5.5",
-    "ts-jest": "25.2.1"
+    "ts-jest": "25.2.1",
+    "typedoc": "^0.22.5"
   },
   "peerDependencies": {
     "@nestjs/common": "^6.0.0 || ^7.0.0",
     "@nestjs/core": "^6.0.0 || ^7.0.0",
     "reflect-metadata": "^0.1.12",
-    "rxjs": "^6.0.0",
-    "@ccp/sdk": "^0.0.0"
+    "rxjs": "^6.0.0"
   },
   "keywords": [
     "nestjs",
@@ -53,6 +55,5 @@
     "payment"
   ],
   "dependencies": {
-    "@ccp/sdk": "^0.0.0"
   }
 }
