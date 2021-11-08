@@ -1,6 +1,6 @@
 import { Ccc } from '../ccc';
 import { SdkConfig } from '../types';
-import { getCccClient } from './getCccClient';
+import { getCccClient } from './get-ccc-client';
 
 describe('getCccClient', () => {
   const config: SdkConfig = {

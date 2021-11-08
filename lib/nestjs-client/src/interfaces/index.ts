@@ -1,6 +1,6 @@
-export * from './CccAsyncOptions';
-export * from './CccOptions';
-export * from './CccOptionsFactory';
+export * from './ccc-async-options';
+export * from './ccc-options';
+export * from './ccc-options-factory';
 export { Service } from './service';
 export { GenericWebhookInterpreter } from './generic-webhook-interpreter';
 export { EndUserService } from './end-user-service';
