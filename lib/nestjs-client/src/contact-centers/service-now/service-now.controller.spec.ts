@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServiceNowController } from './service-now.controller';
-import { CccModule } from '../../CccModule';
+import { CccModule } from '../../ccc-module';
 import { ServiceNowConfig } from '../../types';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';

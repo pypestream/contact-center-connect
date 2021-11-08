@@ -16,7 +16,7 @@
     "ts:version": "tsc -v",
     "bootstrap": "lerna bootstrap",
     "test:app": "lerna run test --scope ccc-bridge --stream",
-    "test:nestjs-module": "lerna run test --scope @ccc/nestjs-client --stream",
+    "test:nestjs-client": "lerna run test --scope @ccc/nestjs-client --stream",
     "build": "lerna run build --scope @ccc/nestjs-client --scope ccc-bridge --stream",
     "build:app": "lerna run build --scope ccc-bridge",
     "build:nestjs-module": "lerna run build --scope @ccc/nestjs-client",

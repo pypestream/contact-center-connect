@@ -29,24 +29,25 @@
   "devDependencies": {
     "@ccc/typescript-config": "^0.0.0",
     "@ccc/test-tools": "^0.0.0",
-    "@nestjs/common": "^7.4.4",
-    "@nestjs/core": "^7.4.4",
-    "@nestjs/testing": "^7.4.4",
-    "@nestjs/axios": "^0.0.1",
+    "@nestjs/common": "^8.2.0",
+    "@nestjs/core": "^8.2.0",
+    "@nestjs/testing": "^8.2.0",
+    "@nestjs/axios": "^0.0.3",
+    "@nestjs/platform-express": "^8.2.0",
     "@types/jest": "25.2.1",
     "axios": "^0.21.1",
     "codecov": "3.7.1",
     "prettier": "2.0.2",
     "reflect-metadata": "^0.1.12",
     "rimraf": "3.0.2",
-    "rxjs": "^6.5.5",
+    "rxjs": "^7.4.0",
     "typedoc": "^0.22.5"
   },
   "peerDependencies": {
-    "@nestjs/common": "^6.0.0 || ^7.0.0",
-    "@nestjs/core": "^6.0.0 || ^7.0.0",
+    "@nestjs/common": "^8.2.0",
+    "@nestjs/core": "^8.2.0",
     "reflect-metadata": "^0.1.12",
-    "rxjs": "^6.0.0"
+    "rxjs": "^7.4.0"
   },
   "keywords": [
     "nestjs",

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MiddlewareApiController } from './middleware-api.controller';
-import { CccModule } from '@ccc/nestjs-client';
+import { CccModule } from '../../ccc-module';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 

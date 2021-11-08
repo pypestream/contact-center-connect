@@ -1,4 +1,4 @@
-export * from './constants/CccToken';
+export * from './constants/ccc-token';
 export * from './decorators';
 export * from './interfaces';
-export * from './CccModule';
+export * from './ccc-module';
