@@ -16,7 +16,7 @@ module.exports = {
   ignorePatterns: [
     ".eslintrc.js",
     "**/dist/**",
-    "**/nestjs-ccp/lib/**",
+    "**/nestjs-client/lib/**",
     "**/*.spec.ts",
   ],
   rules: {

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { CcpModule } from '@ccp/nestjs-module';
+import { CccModule } from '@ccc/nestjs-client';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
@@ -12,7 +12,7 @@ import { join } from 'path';
       serveRoot: '/docs',
       renderPath: '/index.html',
     }),
-    CcpModule.forRoot({
+    CccModule.forRoot({
       enableLog: true,
       middlewareApiConfig: {
         url: process.env.MIDDLEWARE_API_URL,

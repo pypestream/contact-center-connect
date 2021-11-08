@@ -1,5 +1,5 @@
 {
-  "name": "ccp-bridge",
+  "name": "ccc-bridge",
   "version": "0.0.0",
   "description": "",
   "author": "",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@nestjs/config": "^1.0.3",
-    "@ccp/nestjs-module": "^0.0.0",
+    "@ccc/nestjs-client": "^0.0.0",
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
     "@nestjs/serve-static": "^2.2.2",
@@ -49,9 +49,8 @@
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "^3.10.1",
-    "@ccp/test-tools": "^0.0.0",
-    "@ccp/typescript-config": "^0.0.0",
-    "ts-jest": "^27.0.4",
-    "@ccp/eslint-config": "^0.0.0"
+    "@ccc/test-tools": "^0.0.0",
+    "@ccc/typescript-config": "^0.0.0",
+    "@ccc/eslint-config": "^0.0.0"
   }
 }

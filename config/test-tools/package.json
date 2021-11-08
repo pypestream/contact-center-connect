@@ -15,6 +15,6 @@
   "peerDependencies": {
     "ts-jest": "^27.0.5"
   },
-  "name": "@ccp/test-tools",
+  "name": "@ccc/test-tools",
   "version": "0.0.0"
 }
