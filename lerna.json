@@ -1,4 +1,4 @@
-{
+ {
   "lerna": "4.0.0",
   "packages": ["app/*", "lib/*", "config/*"],
   "npmClient": "npm",

@@ -19,7 +19,7 @@
     "test:nestjs-client": "lerna run test --scope @ccc/nestjs-client --stream",
     "build": "lerna run build --scope @ccc/nestjs-client --scope ccc-bridge --stream",
     "build:app": "lerna run build --scope ccc-bridge",
-    "build:nestjs-module": "lerna run build --scope @ccc/nestjs-client",
+    "build:nestjs-client": "lerna run build --scope @ccc/nestjs-client",
     "docs:build": "lerna run docs:build --scope @ccc/nestjs-client --stream",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "prepare": "husky install",

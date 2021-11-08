@@ -1,6 +1,6 @@
 import { ModuleMetadata, Type } from '@nestjs/common/interfaces';
 import { SdkConfig } from '../types';
-import { CccOptionsFactory } from './CccOptionsFactory';
+import { CccOptionsFactory } from './ccc-options-factory';
 
 export interface CccAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
   inject?: any[];
