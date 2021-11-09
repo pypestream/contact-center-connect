@@ -1,40 +1,26 @@
 import { Module } from '@nestjs/common';
-import { MiddlewareApiController } from './middleware-api.controller';
-import { ServiceNowController } from './service-now.controller';
-import { ServiceNowTestController } from './service-now-test.controller';
-import { MiddlewareApiTestController } from './middleware-api-test.controller';
 import { CcpModule } from '@ccp/nestjs-module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
-import { AppService } from './app.service';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, 'sdk-docs'),
       serveRoot: '/docs',
       renderPath: '/index.html',
     }),
     CcpModule.forRoot({
-      ccp: {
-        instanceUrl: 'https://enhvq0q28akbhlm.m.pipedream.net',
-      },
-      serviceNow: {
-        instanceUrl: 'https://dev50996.service-now.com',
-      },
-      middlewareApi: {
-        instanceUrl: 'https://middleware.claybox.usa.pype.engineering',
-        token:
-          'ydeHKGvMxhpMOeUqvgFG//jdsauXvpFqySTa740KsBdWMSc+3iNBdNRjGLHJ6frY',
+      enableLog: true,
+      middlewareApiConfig: {
+        url: process.env.MIDDLEWARE_API_URL,
+        token: process.env.MIDDLEWARE_API_TOKEN,
       },
     }),
   ],
-  providers: [AppService],
-  controllers: [
-    ServiceNowController,
-    MiddlewareApiController,
-    ServiceNowTestController,
-    MiddlewareApiTestController,
-  ],
+  providers: [],
+  controllers: [],
 })
 export class AppModule {}

@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/config": "^1.0.3",
     "@ccp/nestjs-module": "^0.0.0",
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
@@ -52,22 +53,5 @@
     "@ccp/typescript-config": "^0.0.0",
     "ts-jest": "^27.0.4",
     "@ccp/eslint-config": "^0.0.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }

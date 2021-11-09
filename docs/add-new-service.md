@@ -4,8 +4,8 @@ To add new service you need to follow these steps:
 
 * [Add new service to CCP sdk](#add-new-service-to-sdk)
 * [Expose service from ccp sdk](#expose-service-from-ccp-sdk)
+* [Add new service to getAgentService](#add-new-service-to-getAgentService)
 * [Use new service in CCP app](#use-new-service-in-ccp-app)
-
 
 ## Add new service to SDK 
 
@@ -143,46 +143,26 @@ export interface GenericWebhookInterpreter<T> {
   }
 ```
 
-## Use new service in CCP app
+## Add new service to getAgentService
+based on request headers return service instance
 
-- In CCP app add new service configurations to CcpModule
-
-```ts
-// /app/ccp-bridge/src/app.module.ts
-
-    CcpModule.forRoot({
-      otherService: {
-        key1: 'value1',
-      },
-      newService: {
-          key1: 'value1',
-          key2: 'value2',
-      }
-    }),
-```
-
-- Expose sdk service as nestjs service
+e.g. ServiceNow
 
 ```ts
-// /app/ccp-bridge/src/app.service.ts
+// /Users/noursammour/WebstormProjects/contact-center-pro/lib/sdk/src/services/common/types/agent-services.ts
 
-  get middlewareApiService() {
-    return this.ccpClient.newService;
-  }
-```
-
-- Now it's ready to use in nestjs controller
-
-```ts
-// /app/ccp-bridge/src/*.controller.ts
-
-  @Post('/conversations/:conversationId/end')
-  async conversationEnd(
-    @Param('conversationId') conversationId,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    await this.appService.serviceNowService.endConversation(conversationId);
-    return res.status(HttpStatus.NO_CONTENT).end();
+  getAgentService(req): ServiceNowService {
+    const base64Customer = req.headers["x-pypestream-customer"];
+    const stringifyCustomer = Buffer.from(base64Customer, "base64").toString(
+      "ascii"
+    );
+    const configs = JSON.parse(stringifyCustomer);
+    const integrationName = req.headers["x-pypestream-integration"];
+    if (integrationName === "ServiceNow") {
+      return new ServiceNowService({
+        instanceUrl: configs.instanceUrl,
+      });
+    }
+    return null;
   }
 ```

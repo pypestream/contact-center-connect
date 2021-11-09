@@ -1,5 +1,6 @@
 import { Provider } from '@nestjs/common';
-import { Ccp, SdkConfig } from '@ccp/sdk';
+import { Ccp } from '../ccp';
+import { SdkConfig } from '../types';
 import { ccpToken } from './../constants';
 import { getCcpClient } from './../util';
 

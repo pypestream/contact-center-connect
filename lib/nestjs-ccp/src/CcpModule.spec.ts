@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Ccp, SdkConfig } from '@ccp/sdk';
+import { Ccp } from './ccp';
+import { SdkConfig } from './types';
 import { ccpToken } from './constants';
 import { CcpOptionsFactory } from './interfaces';
 import { CcpModule } from './CcpModule';
@@ -9,9 +10,7 @@ describe('CcpModule', () => {
   class TestService implements CcpOptionsFactory {
     createCcpOptions(): SdkConfig {
       return {
-        serviceNow: {
-          instanceUrl: '',
-        },
+        enableLog: true,
       };
     }
   }
@@ -27,9 +26,7 @@ describe('CcpModule', () => {
       const module = await Test.createTestingModule({
         imports: [
           CcpModule.forRoot({
-            serviceNow: {
-              instanceUrl: '',
-            },
+            enableLog: true,
           }),
         ],
       }).compile();
@@ -47,9 +44,7 @@ describe('CcpModule', () => {
           imports: [
             CcpModule.forRootAsync({
               useFactory: () => ({
-                serviceNow: {
-                  instanceUrl: '',
-                },
+                enableLog: true,
               }),
             }),
           ],
