@@ -9,8 +9,7 @@
   "private": true,
   "dependencies": {
     "@types/node": "^16.6.1",
-    "lerna": "^4.0.0",
-    "stripe": "^8.169.0"
+    "lerna": "^4.0.0"
   },
   "scripts": {
     "ts:version": "tsc -v",
