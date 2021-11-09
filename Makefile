@@ -12,6 +12,6 @@ build-test:
 	    --build-arg version=$(version)-build
 
 test:
-	docker run -e CI=true $(image):$(version)-test npm run test:nestjs-module
+	docker run -e CI=true $(image):$(version)-test npm run test:nestjs-client
 
 .PHONY: build build-dev build-test test
