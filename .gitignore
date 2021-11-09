@@ -2,3 +2,5 @@
 node_modules
 **/dist/**!/app/ccc-bridge/.env
 !/app/ccc-bridge/.env
+/app/ccc-bridge/.env
+/ngrok
