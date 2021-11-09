@@ -1,0 +1,65 @@
+{
+  "name": "@ccc/nestjs-client",
+  "version": "0.0.0",
+  "description": "Provides an injectable Ccc client to nestjs modules",
+  "repository": "https://github.com/dhaspden/nestjs-client",
+  "author": {
+    "name": "Dylan Aspden",
+    "url": "http://github.com/dhaspden"
+  },
+  "license": "MIT",
+  "main": "./lib/index.js",
+  "typings": "./lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "codecov": "codecov",
+    "format": "prettier --write '**/*.md' '**/*.json' '**/*.ts' '**/*.yml' .prettierrc",
+    "prebuild": "rimraf lib",
+    "prepublish:npm": "yarn build",
+    "publish:npm": "yarn publish --access public",
+    "test:cov": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test": "jest",
+    "docs:build": "npx typedoc --out ../../app/ccc-bridge/dist/sdk-docs src",
+    "docs": "npx typedoc --out docs src"
+  },
+  "devDependencies": {
+    "@ccc/typescript-config": "^0.0.0",
+    "@ccc/test-tools": "^0.0.0",
+    "@nestjs/common": "^8.2.0",
+    "@nestjs/core": "^8.2.0",
+    "@nestjs/testing": "^8.2.0",
+    "@nestjs/axios": "^0.0.3",
+    "@nestjs/platform-express": "^8.2.0",
+    "@types/jest": "25.2.1",
+    "axios": "^0.21.1",
+    "codecov": "3.7.1",
+    "prettier": "2.0.2",
+    "reflect-metadata": "^0.1.12",
+    "rimraf": "3.0.2",
+    "rxjs": "^7.4.0",
+    "typedoc": "^0.22.5"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^8.2.0",
+    "@nestjs/core": "^8.2.0",
+    "reflect-metadata": "^0.1.12",
+    "rxjs": "^7.4.0"
+  },
+  "keywords": [
+    "nestjs",
+    "ccc",
+    "payment"
+  ],
+  "dependencies": {
+    "@types/uuid": "^8.3.1",
+    "@ccc/typescript-config": "^0.0.0",
+    "axios": "^0.21.1",
+    "uuid": "^8.3.2",
+    "axios-retry": "^3.2.0",
+    "axios-debug-log": "^0.8.4"
+  }
+}

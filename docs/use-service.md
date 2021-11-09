@@ -4,7 +4,7 @@ To use service in app you should load it on app boot level and then use it any c
 
 ```ts
     // app/ccsp-bridge/src/app.module.js
-    CcpModule.forRoot({
+    CccModule.forRoot({
         serviceNowCuso: {
             instanceUrl: 'https://dev50996.service-now.com',
         },

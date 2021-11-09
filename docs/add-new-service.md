@@ -2,10 +2,10 @@
 
 To add new service you need to follow these steps:
 
-* [Add new service to CCP sdk](#add-new-service-to-sdk)
-* [Expose service from ccp sdk](#expose-service-from-ccp-sdk)
+* [Add new service to CCC sdk](#add-new-service-to-sdk)
+* [Expose service from ccc sdk](#expose-service-from-ccc-sdk)
 * [Add new service to getAgentService](#add-new-service-to-getAgentService)
-* [Use new service in CCP app](#use-new-service-in-ccp-app)
+* [Use new service in CCC app](#use-new-service-in-ccc-app)
 
 ## Add new service to SDK 
 
@@ -24,14 +24,14 @@ export interface Service<T, Y, Z> {
    * Send message to service
    * @param message
    */
-  sendMessage(message: CcpMessage): Promise<AxiosResponse<SendMessageResponse>>;
+  sendMessage(message: CccMessage): Promise<AxiosResponse<SendMessageResponse>>;
 
   /**
    * Start new conversation with initial message
    * @param message
    */
   startConversation(
-    message: CcpMessage
+    message: CccMessage
   ): Promise<AxiosResponse<SendMessageResponse>>;
 
   /**
@@ -41,14 +41,14 @@ export interface Service<T, Y, Z> {
   endConversation(conversationId: string): Promise<AxiosResponse<any>>;
 
   /**
-   * Convert posted body to CCP message
+   * Convert posted body to CCC message
    * @param body
    * @param params
    */
-  mapToCcpMessage(
+  mapToCccMessage(
     body: T,
     params: { conversationId: string; messageId: string; index: number }
-  ): CcpMessage;
+  ): CccMessage;
 
   /**
    * Determine if user/agent is typing or viewing based on request body
@@ -114,18 +114,18 @@ export interface GenericWebhookInterpreter<T> {
 }
 ```
 
-## Expose service from ccp sdk
+## Expose service from ccc sdk
 
-* In `Ccp` class you should define service configurations and pass it service object
+* In `Ccc` class you should define service configurations and pass it service object
 
 ```ts
-// lib/sdk/src/ccp.ts
+// lib/sdk/src/ccc.ts
 
   constructor(config: SdkConfig) {
     this._config = config;
     if (config.newService) {
       this._newService = new NewService(
-        config.ccp,
+        config.ccc,
         config.newService
       );
     }
@@ -133,10 +133,10 @@ export interface GenericWebhookInterpreter<T> {
   }
 ```
 
-* Then define getter to expose it from ccp sdk
+* Then define getter to expose it from ccc sdk
 
 ```ts
-// lib/sdk/src/ccp.ts
+// lib/sdk/src/ccc.ts
 
   get newServiceService() {
     return this._newServiceService;

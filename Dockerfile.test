@@ -1,4 +1,4 @@
-ARG image=ccp
+ARG image=ccc
 ARG version=latest
 FROM $image:$version
 

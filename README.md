@@ -8,7 +8,7 @@
     - [Configure serviceNow instance](/docs/configure-serviceNow-instance.md)
     - [Publish SDK to NPM](/docs/publish-sdk.md)
     - [Modules structure](/docs/modules-structure.md)
-    - [SDK documentation](https://ccp.claybox.usa.pype.engineering/docs/modules.html)
+    - [SDK documentation](https://ccc.claybox.usa.pype.engineering/docs/modules.html)
 ### Technology
 
 - **NestJS**: NestJS is a progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
@@ -53,8 +53,8 @@ To config end-user and agent services, update the following lines
 
 ```ts
     // app/ccsp-bridge/src/app.module.js
-    CcpModule.forRoot({
-      ccp: {
+    CccModule.forRoot({
+      ccc: {
         instanceUrl: 'https://enhvq0q28akbhlm.m.pipedream.net',
       },
       serviceNowCuso: {

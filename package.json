@@ -1,5 +1,5 @@
 {
-  "name": "ccp",
+  "name": "ccc",
   "version": "0.0.0",
   "workspaces": [
     "app/**/*",
@@ -10,31 +10,30 @@
   "dependencies": {
     "@types/node": "^16.6.1",
     "lerna": "^4.0.0",
-    "stripe": "^8.169.0",
-    "ts-jest": "^27.0.7"
+    "stripe": "^8.169.0"
   },
   "scripts": {
     "ts:version": "tsc -v",
     "bootstrap": "lerna bootstrap",
-    "test:app": "lerna run test --scope ccp-bridge --stream",
-    "test:nestjs-module": "lerna run test --scope @ccp/nestjs-module --stream",
-    "build": "lerna run build --scope @ccp/nestjs-module --scope ccp-bridge --stream",
-    "build:app": "lerna run build --scope ccp-bridge",
-    "build:nestjs-module": "lerna run build --scope @ccp/nestjs-module",
-    "docs:build": "lerna run docs:build --scope @ccp/nestjs-module --stream",
+    "test:app": "lerna run test --scope ccc-bridge --stream",
+    "test:nestjs-client": "lerna run test --scope @ccc/nestjs-client --stream",
+    "build": "lerna run build --scope @ccc/nestjs-client --scope ccc-bridge --stream",
+    "build:app": "lerna run build --scope ccc-bridge",
+    "build:nestjs-client": "lerna run build --scope @ccc/nestjs-client",
+    "docs:build": "lerna run docs:build --scope @ccc/nestjs-client --stream",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "prepare": "husky install",
     "postinstall": "husky install",
     "tsc": "tsc -v",
     "lint-staged": "lint-staged --debug",
-    "start:dev": "lerna run start:dev --scope ccp-bridge --stream",
-    "start:prod": "lerna run start:prod --scope ccp-bridge --stream",
+    "start:dev": "lerna run start:dev --scope ccc-bridge --stream",
+    "start:prod": "lerna run start:prod --scope ccc-bridge --stream",
     "remove:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +"
   },
   "devDependencies": {
-    "@ccp/eslint-config": "^0.0.0",
-    "@ccp/prettier-config": "^0.0.0",
-    "@ccp/typescript-config": "^0.0.0",
+    "@ccc/eslint-config": "^0.0.0",
+    "@ccc/prettier-config": "^0.0.0",
+    "@ccc/typescript-config": "^0.0.0",
     "husky": "^7.0.0",
     "lint-staged": "^11.2.5"
   },
