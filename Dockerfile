@@ -1,6 +1,6 @@
 FROM node:16.6-alpine As build-dev
 
-WORKDIR /ccp
+WORKDIR /ccc
 
 COPY package*.json lerna.json ./
 COPY ./app ./app
@@ -14,11 +14,11 @@ RUN npm install && \
 
 FROM node:16.6-alpine as production
 
-WORKDIR /ccp
+WORKDIR /ccc
 
-COPY --from=build-dev /ccp/node_modules ./node_modules
-COPY --from=build-dev /ccp/lib ./lib
-COPY --from=build-dev /ccp/app/ccp-bridge/dist ./dist
+COPY --from=build-dev /ccc/node_modules ./node_modules
+COPY --from=build-dev /ccc/lib ./lib
+COPY --from=build-dev /ccc/app/ccc-bridge/dist ./dist
 
 EXPOSE 3000
 CMD ["node", "dist/main"]
