@@ -3,9 +3,8 @@ FROM node:16.6-alpine As build-dev
 WORKDIR /ccc
 
 COPY package*.json lerna.json ./
-COPY ./app ./app
+COPY ./src ./src
 COPY ./config ./config
-COPY ./lib ./lib
 
 RUN npm install && \
     npm run bootstrap && \
