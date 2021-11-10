@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "main": "tsconfig.json",
   "dependencies": {
-    "@types/node": "^16.6.1"
+    "@types/node": "^16.6.1",
+    "ts-loader": "^9.2.3",
+    "ts-node": "^10.0.0",
+    "tsconfig-paths": "^3.10.1"
   },
   "devDependencies": {
     "typescript": "^4.4.4"

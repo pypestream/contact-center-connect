@@ -1,6 +1,6 @@
  {
   "lerna": "4.0.0",
-  "packages": ["app/*", "lib/*", "config/*"],
+  "packages": ["config/*"],
   "npmClient": "npm",
   "useWorkspaces": true,
   "version": "independent"
