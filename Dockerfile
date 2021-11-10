@@ -5,6 +5,7 @@ WORKDIR /ccc
 COPY package*.json lerna.json ./
 COPY ./src ./src
 COPY ./config ./config
+COPY ./test ./test
 
 RUN npm install && \
     npm run bootstrap && \

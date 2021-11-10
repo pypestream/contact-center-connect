@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "ts:version": "tsc -v",
+    "bootstrap": "lerna bootstrap",
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -24,7 +25,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "remove:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
-    "lint-staged": "lint-staged --debug"
+    "lint-staged": "lint-staged --debug",
+    "docs:build": "npx typedoc --out ./dist/sdk-docs src"
   },
   "dependencies": {
     "@nestjs/axios": "^0.0.3",
@@ -44,7 +46,8 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.4.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "typedoc": "^0.22.5"
   },
   "devDependencies": {
     "@ccc/eslint-config": "^0.0.0",
