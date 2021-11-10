@@ -15,7 +15,3 @@ node_modules
 npm-debug.log
 npm-debug.log.*
 dist
-
-# Source files
-src
-test
