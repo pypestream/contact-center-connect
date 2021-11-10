@@ -106,7 +106,7 @@ export class ServiceNowService
         LiveAgent_mandatory_skills: message.skill,
       },
       message: {
-        text: '',
+        text: message.message.value,
         typed: true,
         clientMessageId,
       },
@@ -128,7 +128,7 @@ export class ServiceNowService
         LiveAgent_mandatory_skills: message.skill,
       },
       message: {
-        text: message.message.value,
+        text: 'Switch to live agent',
         typed: true,
         clientMessageId: message.message.id,
       },
@@ -170,6 +170,7 @@ export class ServiceNowService
   /**
    * Start new conversation with initial message
    * @param message
+   * @param history pass history of end-user
    */
   async startConversation(
     message: CccMessage,
