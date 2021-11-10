@@ -10,6 +10,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 
 import { Response, Request } from 'express';
 import { Ccc } from '../../ccc';
@@ -79,12 +80,11 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    // TODO: history middleware api is not implemented
-    // const historyResponse = await this.middlewareApiService
-    //   .history(conversationId)
-    //   .catch(err => {
-    //     return err.response;
-    //   });
+    const historyResponse = await this.middlewareApiService
+      .history(conversationId)
+      .catch((err) => {
+        return err.response;
+      });
 
     const rawBody = await getRawBody(req);
     const body: components['schemas']['Escalate'] = JSON.parse(
@@ -96,19 +96,24 @@ export class MiddlewareApiController {
           req,
           this.middlewareApiService,
         );
-      await agentService.startConversation({
+      const history: string = historyResponse.data.messages
+        .map((m) => m.content)
+        .join('\r\n');
+      const messageId = uuidv4();
+      const message = {
         conversationId: conversationId,
         skill: body.skill,
         message: {
-          id: '',
-          value: '',
+          id: messageId,
+          value: history,
           type: MessageType.Text,
         },
         sender: {
           email: 'test@test.com',
           username: body.userId,
         },
-      });
+      };
+      await agentService.startConversation(message);
       const json: components['schemas']['EscalateResponse'] = {
         agentId: 'test-agent',
         escalationId: conversationId,
