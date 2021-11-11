@@ -19,8 +19,7 @@ FROM node:16.6-alpine as production
 WORKDIR /ccc
 
 COPY --from=build-dev /ccc/node_modules ./node_modules
-COPY --from=build-dev /ccc/lib ./lib
-COPY --from=build-dev /ccc/app/ccc-bridge/dist ./dist
+COPY --from=build-dev /ccc/dist ./dist
 
 EXPOSE 3000
 CMD ["node", "dist/main"]
