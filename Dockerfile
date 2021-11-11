@@ -8,6 +8,7 @@ COPY ./config ./config
 COPY ./test ./test
 COPY ./tsconfig.build.json ./tsconfig.build.json
 COPY ./tsconfig.json ./tsconfig.json
+COPY ./jest.config.js ./jest.config.js
 
 RUN npm install && \
     npm run bootstrap && \
