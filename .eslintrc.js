@@ -1,4 +1,4 @@
 module.exports = {
-  extends: ["@ccc/eslint-config"],
+  extends: ['@ccc/eslint-config'],
   root: true,
 };

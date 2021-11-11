@@ -1,4 +1,4 @@
-ARG image=ccc
+ARG image=contact-center-pro
 ARG version=latest
 FROM $image:$version
 

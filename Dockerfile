@@ -3,9 +3,12 @@ FROM node:16.6-alpine As build-dev
 WORKDIR /ccc
 
 COPY package*.json lerna.json ./
-COPY ./app ./app
+COPY ./src ./src
 COPY ./config ./config
-COPY ./lib ./lib
+COPY ./test ./test
+COPY ./tsconfig.build.json ./tsconfig.build.json
+COPY ./tsconfig.json ./tsconfig.json
+COPY ./jest.config.js ./jest.config.js
 
 RUN npm install && \
     npm run bootstrap && \
@@ -17,8 +20,7 @@ FROM node:16.6-alpine as production
 WORKDIR /ccc
 
 COPY --from=build-dev /ccc/node_modules ./node_modules
-COPY --from=build-dev /ccc/lib ./lib
-COPY --from=build-dev /ccc/app/ccc-bridge/dist ./dist
+COPY --from=build-dev /ccc/dist ./dist
 
 EXPOSE 3000
 CMD ["node", "dist/main"]
