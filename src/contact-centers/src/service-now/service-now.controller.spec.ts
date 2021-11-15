@@ -107,7 +107,7 @@ describe('ServiceNowController', () => {
 
     it('Bad body', async () => {
       const response = await postAction().send(
-        JSON.stringify({ ...body, clientSessionId: null }),
+        JSON.stringify({ ...body, score: null }),
       );
 
       expect(response.statusCode).toEqual(400);
