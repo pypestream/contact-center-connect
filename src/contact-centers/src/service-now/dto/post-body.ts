@@ -2,14 +2,14 @@ import { IsArray, IsNotEmpty, IsObject } from 'class-validator';
 import { ServiceNowWebhookBodyItem, Message } from '../types';
 
 export class PostBody {
-  @IsNotEmpty() requestId: string;
-  @IsNotEmpty() clientSessionId: string;
-  @IsNotEmpty() nowSessionId: string;
-  @IsObject() message: Message;
-  @IsNotEmpty() userId: string;
+  requestId: string;
+  clientSessionId: string;
+  nowSessionId: string;
+  message: Message;
+  userId: string;
   @IsArray() body: Array<ServiceNowWebhookBodyItem>;
-  @IsNotEmpty() agentChat: boolean;
-  @IsNotEmpty() completed: boolean;
+  agentChat: boolean;
+  completed: boolean;
   @IsNotEmpty() score: number;
 
   clientVariables?: any;

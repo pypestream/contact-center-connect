@@ -138,7 +138,7 @@ export class MiddlewareApiController {
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
       return res.status(HttpStatus.BAD_REQUEST).json({
-        errors: [],
+        errors: [ex.response.data],
         message: ex.message,
       });
     }

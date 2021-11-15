@@ -80,5 +80,3 @@ export class ServiceNowController {
       });
   }
 }
-
-// node app => module => sdk
