@@ -46,65 +46,83 @@ describe('ServiceNowController', () => {
     await app.init();
   });
 
-  it('/service-now/webhook (POST) with typing-indicator body', async () => {
-    const typingBody = {
-      actionType: 'StartTypingIndicator',
-      uiType: 'ActionMsg',
-    };
+  describe('/service-now/webhook (POST)', () => {
+    let postAction = () =>
+      request(app.getHttpServer())
+        .post('/service-now/webhook')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream');
 
-    const response = await request(app.getHttpServer())
-      .post('/service-now/webhook')
-      .set('User-Agent', 'supertest')
-      .set('Content-Type', 'application/octet-stream')
-      .send(
+    it('typing-indicator body', async () => {
+      const typingBody = {
+        actionType: 'StartTypingIndicator',
+        uiType: 'ActionMsg',
+      };
+
+      const response = await postAction().send(
         JSON.stringify({
           ...body,
           body: [typingBody],
         }),
       );
 
-    expect(response.statusCode).toEqual(200);
-    expect(response.body.length).toEqual(1);
-  });
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.length).toEqual(1);
+    });
 
-  it('/service-now/webhook (POST) with typing-indicator and end-conversation body', async () => {
-    const typingBody = {
-      actionType: 'StartTypingIndicator',
-      uiType: 'ActionMsg',
-    };
+    it('typing-indicator and end-conversation body', async () => {
+      const typingBody = {
+        actionType: 'StartTypingIndicator',
+        uiType: 'ActionMsg',
+      };
 
-    const endConversationBody = {
-      uiType: 'ActionMsg',
-      actionType: 'System',
-      message: 'ended',
-    };
+      const endConversationBody = {
+        uiType: 'ActionMsg',
+        actionType: 'System',
+        message: 'ended',
+      };
 
-    const response = await request(app.getHttpServer())
-      .post('/service-now/webhook')
-      .set('User-Agent', 'supertest')
-      .set('Content-Type', 'application/octet-stream')
-      .send(
+      const response = await postAction().send(
         JSON.stringify({ ...body, body: [typingBody, endConversationBody] }),
       );
 
-    expect(response.statusCode).toEqual(200);
-    expect(response.body.length).toEqual(2);
-  });
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.length).toEqual(2);
+    });
 
-  it('/service-now/webhook (POST) with send-message body', async () => {
-    const newMessageBody = {
-      uiType: 'OutputText',
-      group: 'DefaultText',
-      value: 'I am new message',
-    };
+    it('with send-message body', async () => {
+      const newMessageBody = {
+        uiType: 'OutputText',
+        group: 'DefaultText',
+        value: 'I am new message',
+      };
 
-    const response = await request(app.getHttpServer())
-      .post('/service-now/webhook')
-      .set('User-Agent', 'supertest')
-      .set('Content-Type', 'application/octet-stream')
-      .send(JSON.stringify({ ...body, body: [newMessageBody] }));
+      const response = await postAction().send(
+        JSON.stringify({ ...body, body: [newMessageBody] }),
+      );
 
-    expect(response.statusCode).toEqual(200);
-    expect(response.body.length).toEqual(1);
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.length).toEqual(1);
+    });
+
+    it('Bad body', async () => {
+      const response = await postAction().send(
+        JSON.stringify({ ...body, score: null }),
+      );
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Empty body', async () => {
+      const response = await postAction().send(JSON.stringify({}));
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('No body', async () => {
+      const response = await postAction();
+
+      expect(response.statusCode).toEqual(400);
+    });
   });
 });

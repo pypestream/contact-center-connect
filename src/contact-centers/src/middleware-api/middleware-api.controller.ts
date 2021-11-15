@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  HttpException,
   HttpStatus,
   Inject,
   Param,
@@ -11,6 +12,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import { PostEscalateBody, PostTypingBody, PutMessageBody } from './dto';
 
 import { Response, Request } from 'express';
 import { Ccc } from '../../ccc';
@@ -18,8 +20,8 @@ import { MessageType, AgentServices } from '../common/types';
 import { components, operations } from './types/openapi-types';
 import { MiddlewareApiService } from './service';
 
-import * as getRawBody from 'raw-body';
 import { cccToken } from '../common/constants';
+import { Body } from '@nestjs/common';
 
 @Controller('contactCenter/v1')
 export class MiddlewareApiController {
@@ -53,6 +55,12 @@ export class MiddlewareApiController {
     @Query() query: operations['checkAgentAvailability']['parameters']['query'],
     @Req() req: Request,
   ): Promise<components['schemas']['AgentAvailability']> {
+    if (!query.skill) {
+      throw new HttpException(
+        'Skill param is required parameter',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const agentService: AgentServices =
       this.middlewareApiService.getAgentService(req, this.middlewareApiService);
     const isAvailable = agentService.isAvailable(query.skill);
@@ -69,6 +77,12 @@ export class MiddlewareApiController {
   async waitTime(
     @Query() query: operations['agentWaitTime']['parameters']['query'],
   ): Promise<components['schemas']['WaitTime']> {
+    if (!query.skill) {
+      throw new HttpException(
+        'Skill param is required parameter',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return {
       estimatedWaitTime: 60,
     };
@@ -79,6 +93,7 @@ export class MiddlewareApiController {
     @Param('conversationId') conversationId,
     @Req() req: Request,
     @Res() res: Response,
+    @Body() body: PostEscalateBody,
   ) {
     const historyResponse = await this.middlewareApiService
       .history(conversationId)
@@ -86,10 +101,6 @@ export class MiddlewareApiController {
         return err.response;
       });
 
-    const rawBody = await getRawBody(req);
-    const body: components['schemas']['Escalate'] = JSON.parse(
-      rawBody.toString(),
-    );
     try {
       const agentService: AgentServices =
         this.middlewareApiService.getAgentService(
@@ -127,7 +138,7 @@ export class MiddlewareApiController {
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
       return res.status(HttpStatus.BAD_REQUEST).json({
-        errors: [],
+        errors: [ex.response.data],
         message: ex.message,
       });
     }
@@ -138,11 +149,8 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Param('conversationId') conversationId,
     @Res() res: Response,
+    @Body() body: PostTypingBody,
   ) {
-    const rawBody = await getRawBody(req, { encoding: true });
-    const body: components['schemas']['Typing'] = JSON.parse(
-      rawBody.toString(),
-    );
     const agentService: AgentServices =
       this.middlewareApiService.getAgentService(req, this.middlewareApiService);
     await agentService.sendTyping(conversationId, body.typing);
@@ -155,11 +163,8 @@ export class MiddlewareApiController {
     @Param('messageId') messageId,
     @Req() req: Request,
     @Res() res: Response,
+    @Body() body: PutMessageBody,
   ) {
-    const rawBody = await getRawBody(req, { encoding: true });
-    const body: components['schemas']['Message'] = JSON.parse(
-      rawBody.toString(),
-    );
     const cccMessage = this.middlewareApiService.mapToCccMessage(body, {
       conversationId,
       messageId,

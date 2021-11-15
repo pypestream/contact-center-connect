@@ -3,10 +3,10 @@ import { MiddlewareApiController } from './middleware-api.controller';
 import { CccModule } from '../../ccc-module';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { components } from './types';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
-  let body;
 
   beforeEach(async () => {
     let moduleFixture: TestingModule = await Test.createTestingModule({
@@ -24,83 +24,121 @@ describe('MiddlewareApiController', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    body = {
-      requestId: 'req-123',
-      clientSessionId: 'client-session-id-123',
-      nowSessionId: 'now-session-id-123',
-      message: {
-        text: 'Test Message',
-        typed: true,
-        clientMessageId: 'client-message-id-123',
-      },
-      userId: 'user-123',
-      body: [],
-      agentChat: true,
-      completed: true,
-      score: 1,
-      clientVariables: {
-        instanceUrl: 'https://mock-server.service-now.com',
-        token: 'abc-123-token',
-        middlewareApiUrl: 'https://mock-server.middleware.com',
-      },
-    };
+
     await app.init();
   });
 
-  it('/contactCenter/v1/agents/availability (GET)', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/contactCenter/v1/agents/availability')
-      .query({ skill: 'Test1' })
-      .set('User-Agent', 'supertest')
-      .set(
-        'x-pypestream-customer',
-        'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
-      )
-      .set('x-pypestream-integration', 'ServiceNow')
-      .set('Content-Type', 'application/octet-stream');
+  describe('/contactCenter/v1/agents/availability (GET)', () => {
+    let getAgentAvailability = () =>
+      request(app.getHttpServer())
+        .get('/contactCenter/v1/agents/availability')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream');
 
-    expect(response.statusCode).toEqual(200);
-    expect(response.body.available).toBeDefined();
-    expect(response.body.estimatedWaitTime).toBeDefined();
-    expect(response.body.status).toBeDefined();
-    expect(response.body.hoursOfOperation).toBeDefined();
-    expect(response.body.queueDepth).toBeDefined();
+    it('OK', async () => {
+      const response = await getAgentAvailability()
+        .query({ skill: 'Test1' })
+        .set(
+          'x-pypestream-customer',
+          'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+        )
+        .set('x-pypestream-integration', 'ServiceNow');
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.available).toBeDefined();
+      expect(response.body.estimatedWaitTime).toBeDefined();
+      expect(response.body.status).toBeDefined();
+      expect(response.body.hoursOfOperation).toBeDefined();
+      expect(response.body.queueDepth).toBeDefined();
+    });
+
+    it('Bad Request no headers', async () => {
+      const response = await getAgentAvailability().query({ skill: 'Test1' });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Bad request: skill param is required', async () => {
+      const response = await getAgentAvailability()
+        .set(
+          'x-pypestream-customer',
+          'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
+        )
+        .set('x-pypestream-integration', 'ServiceNow');
+
+      expect(response.statusCode).toEqual(400);
+    });
   });
 
-  it('/contactCenter/v1/agents/waitTime (GET)', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/contactCenter/v1/agents/waitTime')
-      .query({ skill: 'Test1' })
-      .set('User-Agent', 'supertest')
-      .set('Content-Type', 'application/octet-stream');
+  describe('/contactCenter/v1/agents/waitTime (GET)', () => {
+    const getWaitTime = () =>
+      request(app.getHttpServer())
+        .get('/contactCenter/v1/agents/waitTime')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream');
 
-    expect(response.statusCode).toEqual(200);
-    expect(response.body.estimatedWaitTime).toBeDefined();
+    it('OK', async () => {
+      const response = await getWaitTime().query({ skill: 'Test1' });
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.estimatedWaitTime).toBeDefined();
+    });
+
+    it('Bad request: skill param is required', async () => {
+      const response = await getWaitTime();
+      expect(response.statusCode).toEqual(400);
+    });
   });
 
-  it('/contactCenter/v1/conversations/:conversationId/messages/:messageId (PUT)', async () => {
-    const body = {
-      content: 'I am new message',
-      senderId: 'user-123',
-      side: 'user',
-    };
-    const response = await request(app.getHttpServer())
-      .put(
-        '/contactCenter/v1/conversations/:conversationId/messages/:messageId',
-      )
-      .set('Content-Type', 'application/json')
-      .set('User-Agent', 'supertest')
-      .set('Content-Type', 'application/octet-stream')
-      .set(
-        'x-pypestream-customer',
-        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
-      )
-      .set('x-pypestream-integration', 'ServiceNow')
+  describe('/contactCenter/v1/conversations/:conversationId/messages/:messageId (PUT)', () => {
+    const putMessage = () =>
+      request(app.getHttpServer())
+        .put(
+          '/contactCenter/v1/conversations/:conversationId/messages/:messageId',
+        )
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream');
 
-      .send(JSON.stringify(body));
+    it('OK', async () => {
+      const body: components['schemas']['Message'] = {
+        content: 'I am new message',
+        senderId: 'user-123',
+        side: 'user',
+      };
+      const response = await putMessage()
+        .set(
+          'x-pypestream-customer',
+          'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
+        )
+        .set('x-pypestream-integration', 'ServiceNow')
+        .send(JSON.stringify(body));
 
-    expect(response.statusCode).toEqual(204);
+      expect(response.statusCode).toEqual(204);
+    });
+
+    it('Bad Request: No customer headers', async () => {
+      const body: components['schemas']['Message'] = {
+        content: 'I am new message',
+        senderId: 'user-123',
+        side: 'user',
+      };
+      const response = await putMessage().send(JSON.stringify(body));
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Bad Request: No Body', async () => {
+      const response = await putMessage()
+        .set(
+          'x-pypestream-customer',
+          'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
+        )
+        .set('x-pypestream-integration', 'ServiceNow')
+        .send();
+
+      expect(response.statusCode).toEqual(400);
+    });
   });
+
   it('/conversations/:conversationId/type (POST)', async () => {
     const body = {
       typing: true,
@@ -118,6 +156,26 @@ describe('MiddlewareApiController', () => {
       .send(JSON.stringify(body));
 
     expect(response.statusCode).toEqual(204);
+  });
+
+  it('/conversations/:conversationId/escalate (POST)', async () => {
+    const body: components['schemas']['Escalate'] = {
+      skill: 'general',
+      userId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    };
+    const response = await request(app.getHttpServer())
+      .post('/contactCenter/v1/conversations/conversation-123/escalate')
+      .set('Content-Type', 'application/json')
+      .set('User-Agent', 'supertest')
+      .set('Content-Type', 'application/octet-stream')
+      .set(
+        'x-pypestream-customer',
+        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
+      )
+      .set('x-pypestream-integration', 'ServiceNow')
+      .send(JSON.stringify(body));
+
+    expect(response.statusCode).toEqual(201);
   });
   it('/conversations/:conversationId/end (POST)', async () => {
     const response = await request(app.getHttpServer())

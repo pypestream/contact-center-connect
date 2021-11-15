@@ -84,7 +84,7 @@ type AgentInfo = {
   agentAvatar: string;
 };
 
-type Message = {
+export type Message = {
   text: string;
   typed: boolean;
   clientMessageId: string;
