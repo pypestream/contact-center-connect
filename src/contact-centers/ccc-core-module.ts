@@ -4,10 +4,15 @@ import { CccAsyncOptions, CccOptionsFactory } from './src/common/interfaces';
 import { SdkConfig } from './src/common/types';
 import { createCccProvider } from './src/common/providers';
 import { getCccClient } from './src/common/util';
+import { MiddlewareConsumer } from '@nestjs/common';
+import { BodyMiddleware } from './src/common/middlewares/body-middleware';
 
 @Global()
 @Module({})
 export class CccCoreModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(BodyMiddleware).forRoutes('*');
+  }
   public static forRoot(options: SdkConfig): DynamicModule {
     const provider = createCccProvider(options);
 

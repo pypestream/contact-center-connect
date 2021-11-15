@@ -61,6 +61,29 @@ const handlers = [
       );
     },
   ),
+  rest.get(
+    'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/history',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          messages: [
+            {
+              content: 'string',
+              id: 'string',
+              senderId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+              sentDate: '2021-11-12T10:11:33.194Z',
+              side: 'string',
+            },
+          ],
+          pagination: {
+            page: 0,
+            totalPages: 0,
+          },
+        }),
+      );
+    },
+  ),
 ];
 
 export { handlers };

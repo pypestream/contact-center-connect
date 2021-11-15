@@ -10,6 +10,7 @@ import axis, { AxiosResponse } from 'axios';
 import { ContactCenterProApiWebhookBody, SettingsObject } from './types';
 import { components } from './types/openapi-types';
 import { ServiceNowService } from '../service-now/service';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 /**
  * MiddlewareApi service
@@ -31,6 +32,9 @@ export class MiddlewareApiService
 
   getCustomer(req) {
     const base64Customer = req.headers['x-pypestream-customer'];
+    if (!base64Customer) {
+      throw new Error('x-pypestream-customer header is null');
+    }
     const stringifyCustomer = Buffer.from(base64Customer, 'base64').toString(
       'ascii',
     );
@@ -39,8 +43,15 @@ export class MiddlewareApiService
   }
 
   getAgentService(req, endUserService: EndUserServices): ServiceNowService {
-    const configs = this.getCustomer(req);
     const integrationName = req.headers['x-pypestream-integration'];
+    if (!integrationName) {
+      throw new HttpException(
+        'x-pypestream-integration header is null',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const configs = this.getCustomer(req);
 
     if (integrationName === 'ServiceNow') {
       return new ServiceNowService({
@@ -190,7 +201,10 @@ export class MiddlewareApiService
     );
     return result;
   }
-
+  /**
+   * Get history of conversation
+   * @param conversationId
+   */
   async history(
     conversationId: string,
   ): Promise<AxiosResponse<components['schemas']['History']>> {
@@ -208,6 +222,26 @@ export class MiddlewareApiService
 
     return response;
   }
+
+  /**
+   * Get history of conversation
+   */
+  async waitTime(): Promise<AxiosResponse<components['schemas']['WaitTime']>> {
+    if (!this.config.url) {
+      throw new Error('MiddlewareApi instance-url must has value');
+    }
+    const response = await axis.get(
+      `${this.config.url}/contactCenter/v1/agents/waitTime`,
+      {
+        headers: {
+          'x-pypestream-token': this.config.token,
+        },
+      },
+    );
+
+    return response;
+  }
+
   /**
    * Send is typing indicator to service
    * @param conversationId

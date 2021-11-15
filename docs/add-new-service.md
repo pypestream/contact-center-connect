@@ -2,18 +2,22 @@
 
 To add new service you need to follow these steps:
 
-* [Add new service to CCC sdk](#add-new-service-to-sdk)
-* [Expose service from ccc sdk](#expose-service-from-ccc-sdk)
-* [Add new service to getAgentService](#add-new-service-to-getAgentService)
-* [Use new service in CCC app](#use-new-service-in-ccc-app)
+* [Add new service to CCC](#add-new-service-to-ccc)
+* [Implement Interfaces](#implement-interfaces)
+* [Add new service to AgentServices type](#add-new-service-to-Agentservices-type)
+* [Use new service in CCC app](#add-new-service-to-getagentservice)
+  
 
-## Add new service to SDK 
+## Add new service to CCC 
+In `/src/contact-centers/src` add new folder for your new service
+
+## Implement Interfaces
 
 Each new service should implement these interfaces based on external service design
 
-### Service interface - mandatory
+#### Service interface - mandatory
 ```ts
-// /lib/sdk/src/services/common/interfaces/service.ts
+// /src/contact-centers/src/common/interfaces/service.ts
 
 /**
  * Service should implement this interface for core features interface
@@ -80,10 +84,10 @@ export interface Service<T, Y, Z> {
 }
 ```
 
-### GenericWebhookInterpreter interface - optional
+#### GenericWebhookInterpreter interface - optional
 
 ```ts
-// /lib/sdk/src/services/common/interfaces/generic-webhook-interpreter.ts
+// /src/contact-centers/src/common/interfaces/generic-webhook-interpreter.ts
 
 /**
  * Service should implement this interface when external service use 1 endpoint for all webhooks
@@ -114,44 +118,26 @@ export interface GenericWebhookInterpreter<T> {
 }
 ```
 
-## Expose service from ccc sdk
+## Add new service to AgentServices type
 
-* In `Ccc` class you should define service configurations and pass it service object
-
-```ts
-// lib/sdk/src/ccc.ts
-
-  constructor(config: SdkConfig) {
-    this._config = config;
-    if (config.newService) {
-      this._newService = new NewService(
-        config.ccc,
-        config.newService
-      );
-    }
-    require("axios-debug-log/enable");
-  }
+in `/src/contact-centers/src/common/types/agent-services.ts` add your new service
+e.g.
 ```
+import { NewService } from '../../new-service/service';
 
-* Then define getter to expose it from ccc sdk
-
-```ts
-// lib/sdk/src/ccc.ts
-
-  get newServiceService() {
-    return this._newServiceService;
-  }
+export type AgentServices = OldService | NewService;
 ```
 
 ## Add new service to getAgentService
-based on request headers return service instance
+in `/src/contact-centers/src/middleware-api/service.ts`
+based on request return service instance
 
 e.g. ServiceNow
 
 ```ts
 // /Users/noursammour/WebstormProjects/contact-center-pro/lib/sdk/src/services/common/types/agent-services.ts
 
-  getAgentService(req): ServiceNowService {
+  getAgentService(req): AgentServices {
     const base64Customer = req.headers["x-pypestream-customer"];
     const stringifyCustomer = Buffer.from(base64Customer, "base64").toString(
       "ascii"
