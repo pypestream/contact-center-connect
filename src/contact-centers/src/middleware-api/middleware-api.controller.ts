@@ -171,6 +171,7 @@ export class MiddlewareApiController {
     });
     const agentService: AgentServices =
       this.middlewareApiService.getAgentService(req, this.middlewareApiService);
+    await agentService.sendTyping(cccMessage.conversationId, false);
     await agentService.sendMessage(cccMessage);
 
     return res.status(HttpStatus.NO_CONTENT).end();
@@ -186,6 +187,7 @@ export class MiddlewareApiController {
       req,
       this.middlewareApiService,
     );
+    await service.sendTyping(conversationId, false);
     await service.endConversation(conversationId);
     return res.status(HttpStatus.NO_CONTENT).end();
   }
