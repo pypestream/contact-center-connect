@@ -2,6 +2,7 @@ import { Service, EndUserService } from '../common/interfaces';
 import {
   CccMessage,
   EndUserServices,
+  AgentServices,
   MessageType,
   MiddlewareApiConfig,
   SendMessageResponse,
@@ -10,6 +11,7 @@ import axis, { AxiosResponse } from 'axios';
 import { ContactCenterProApiWebhookBody, SettingsObject } from './types';
 import { components } from './types/openapi-types';
 import { ServiceNowService } from '../service-now/service';
+import { GenesysService } from '../genesys/service';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 /**
@@ -42,8 +44,9 @@ export class MiddlewareApiService
     return customer;
   }
 
-  getAgentService(req, endUserService: EndUserServices): ServiceNowService {
+  getAgentService(req, endUserService: EndUserServices): AgentServices {
     const integrationName = req.headers['x-pypestream-integration'];
+    // console.log(integrationName)
     if (!integrationName) {
       throw new HttpException(
         'x-pypestream-integration header is null',
@@ -52,7 +55,7 @@ export class MiddlewareApiService
     }
 
     const configs = this.getCustomer(req);
-
+    // console.log(configs)
     if (integrationName === 'ServiceNow') {
       return new ServiceNowService({
         instanceUrl: configs.instanceUrl,
@@ -60,6 +63,20 @@ export class MiddlewareApiService
         middlewareApiUrl: endUserService.config.url,
       });
     }
+
+    if (integrationName === 'Genesys') {
+      return new GenesysService({
+        instanceUrl: configs.instanceUrl,
+        token: endUserService.config.token,
+        middlewareApiUrl: endUserService.config.url,
+        oAuthUrl: configs.oAuthUrl,
+        clientId: configs.clientId,
+        clientSecret: configs.clientSecret,
+        grantType: configs.grantType,
+        OMIntegrationId: configs.OMIntegrationId,
+      });
+    }
+
     return null;
   }
 

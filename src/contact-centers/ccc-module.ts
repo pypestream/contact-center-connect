@@ -3,6 +3,7 @@ import { CccAsyncOptions } from './src/common/interfaces';
 import { SdkConfig } from './src/common/types';
 import { CccCoreModule } from './ccc-core-module';
 import { ServiceNowController } from './src/service-now/service-now.controller';
+import { GenesysController } from './src/genesys/genesys.controller';
 import { MiddlewareApiController } from './src/middleware-api/middleware-api.controller';
 import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
@@ -12,7 +13,11 @@ export class CccModule {
   public static forRoot(options: SdkConfig): DynamicModule {
     return {
       module: CccModule,
-      controllers: [ServiceNowController, MiddlewareApiController],
+      controllers: [
+        ServiceNowController,
+        GenesysController,
+        MiddlewareApiController,
+      ],
       imports: [HttpModule, CccCoreModule.forRoot(options)],
       providers: [
         {
@@ -26,7 +31,11 @@ export class CccModule {
   public static forRootAsync(options?: CccAsyncOptions): DynamicModule {
     return {
       module: CccModule,
-      controllers: [ServiceNowController, MiddlewareApiController],
+      controllers: [
+        ServiceNowController,
+        GenesysController,
+        MiddlewareApiController,
+      ],
       imports: [CccCoreModule.forRootAsync(options)],
       providers: [
         {
