@@ -1,15 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GenesysController } from './genesys.controller';
 import { CccModule } from '../../ccc-module';
-import { GenesysConfig } from '../common/types';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-
-const genesysConfig: GenesysConfig = {
-  instanceUrl: 'https://mock-server.service-now.com',
-  token: 'abc-123-token',
-  middlewareApiUrl: 'https://mock-server.middleware.com',
-};
 
 describe('GenesysController', () => {
   let app: INestApplication;
@@ -28,89 +21,40 @@ describe('GenesysController', () => {
 
     app = moduleFixture.createNestApplication();
     body = {
-      requestId: 'req-123',
-      clientSessionId: 'client-session-id-123',
-      nowSessionId: 'now-session-id-123',
-      message: {
-        text: 'Test Message',
-        typed: true,
-        clientMessageId: 'client-message-id-123',
+      id: '36e4d8d92b071f15116d01d111bb8802',
+      channel: {
+        id: 'a2171742-7359-41cf-aa68-ad5049250806',
+        platform: 'Open',
+        type: 'Private',
+        to: { id: '5608add1-7b77-460b-a7f0-97a8d8f2b6db' },
+        from: {
+          nickname: 'PS testing OM Integration',
+          id: 'a2171742-7359-41cf-aa68-ad5049250806',
+          idType: 'Opaque',
+        },
+        time: '2021-11-25T09:42:16.302Z',
+        messageId: '36e4d8d92b071f15116d01d111bb8802',
       },
-      userId: 'user-123',
-      body: [],
-      agentChat: true,
-      completed: true,
-      score: 1,
-      clientVariables: genesysConfig,
+      type: 'Text',
+      text: 'Hello there!',
+      originatingEntity: 'Human',
+      direction: 'Outbound',
     };
     await app.init();
   });
 
-  describe('/service-now/webhook (POST)', () => {
+  describe('/genesys/webhook (POST)', () => {
     let postAction = () =>
       request(app.getHttpServer())
-        .post('/service-now/webhook')
+        .post('/genesys/webhook')
         .set('User-Agent', 'supertest')
         .set('Content-Type', 'application/octet-stream');
 
-    it('typing-indicator body', async () => {
-      const typingBody = {
-        actionType: 'StartTypingIndicator',
-        uiType: 'ActionMsg',
-      };
-
-      const response = await postAction().send(
-        JSON.stringify({
-          ...body,
-          body: [typingBody],
-        }),
-      );
+    it('with send-message', async () => {
+      const response = await postAction().send(JSON.stringify(body));
 
       expect(response.statusCode).toEqual(200);
       expect(response.body.length).toEqual(1);
-    });
-
-    it('typing-indicator and end-conversation body', async () => {
-      const typingBody = {
-        actionType: 'StartTypingIndicator',
-        uiType: 'ActionMsg',
-      };
-
-      const endConversationBody = {
-        uiType: 'ActionMsg',
-        actionType: 'System',
-        message: 'ended',
-      };
-
-      const response = await postAction().send(
-        JSON.stringify({ ...body, body: [typingBody, endConversationBody] }),
-      );
-
-      expect(response.statusCode).toEqual(200);
-      expect(response.body.length).toEqual(2);
-    });
-
-    it('with send-message body', async () => {
-      const newMessageBody = {
-        uiType: 'OutputText',
-        group: 'DefaultText',
-        value: 'I am new message',
-      };
-
-      const response = await postAction().send(
-        JSON.stringify({ ...body, body: [newMessageBody] }),
-      );
-
-      expect(response.statusCode).toEqual(200);
-      expect(response.body.length).toEqual(1);
-    });
-
-    it('Bad body', async () => {
-      const response = await postAction().send(
-        JSON.stringify({ ...body, score: null }),
-      );
-
-      expect(response.statusCode).toEqual(400);
     });
 
     it('Empty body', async () => {
@@ -121,6 +65,14 @@ describe('GenesysController', () => {
 
     it('No body', async () => {
       const response = await postAction();
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Bad body', async () => {
+      const response = await postAction().send(
+        JSON.stringify({ ...body, id: null }),
+      );
 
       expect(response.statusCode).toEqual(400);
     });

@@ -13,12 +13,7 @@ import {
 import axios, { AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
-import {
-  GenesysWebhookBody,
-  StartTypingIndicatorType,
-  EndTypingIndicatorType,
-  StartWaitTimeSpinnerType,
-} from './types';
+import { GenesysWebhookBody } from './types';
 import { MiddlewareApiService } from '../middleware-api/service';
 
 // eslint-disable-next-line
@@ -91,12 +86,12 @@ export class GenesysService
    * @ignore
    */
   private getMessageRequestBody(message: CccMessage) {
-    const requestId = uuidv4();
+    const clientMessageId = uuidv4();
     const res = {
       channel: {
         platform: 'Open',
         type: 'Private',
-        messageId: requestId,
+        messageId: clientMessageId,
         to: {
           id: this._OMIntegrationId,
         },
@@ -118,15 +113,26 @@ export class GenesysService
    * @ignore
    */
   private getEndConversationRequestBody(conversationId: string) {
+    const clientMessageId = uuidv4();
     const res = {
-      clientSessionId: conversationId,
-      action: 'END_CONVERSATION',
-      message: {
-        text: '',
-        typed: true,
+      channel: {
+        platform: 'Open',
+        type: 'Private',
+        messageId: clientMessageId,
+        to: {
+          id: this._OMIntegrationId,
+        },
+        from: {
+          id: conversationId,
+          idType: 'Opaque',
+          firstName: 'PS',
+          lastName: 'User',
+        },
+        time: new Date().toISOString(),
       },
-      userId: conversationId,
-      clientVariables: this.GenesysConfig,
+      type: 'Text',
+      text: 'USER ENDED CHAT.',
+      direction: 'Inbound',
     };
     return res;
   }
@@ -134,13 +140,12 @@ export class GenesysService
    * @ignore
    */
   private startConversationRequestBody(message: CccMessage) {
-    const requestId = uuidv4();
     const clientMessageId = uuidv4();
     const res = {
       channel: {
         platform: 'Open',
         type: 'Private',
-        messageId: requestId,
+        messageId: clientMessageId,
         to: {
           id: this._OMIntegrationId,
         },
@@ -153,33 +158,12 @@ export class GenesysService
         time: new Date().toISOString(),
       },
       type: 'Text',
-      text: message.message.value + message.conversationId,
+      text: message.message.value,
       direction: 'Inbound',
     };
     return res;
   }
-  /**
-   * @ignore
-   */
-  private switchToAgentRequestBody(message: CccMessage) {
-    const requestId = uuidv4();
-    const res = {
-      requestId,
-      clientSessionId: message.conversationId,
-      action: 'AGENT',
-      contextVariables: {
-        LiveAgent_mandatory_skills: message.skill,
-      },
-      message: {
-        text: 'Switch to live agent',
-        typed: true,
-        clientMessageId: message.message.id,
-      },
-      userId: message.conversationId,
-      clientVariables: this.GenesysConfig,
-    };
-    return res;
-  }
+
   /**
    * Send message to Genesys
    * @param message
@@ -211,10 +195,14 @@ export class GenesysService
     if (!this.GenesysConfig.instanceUrl) {
       throw new Error('Genesys.endConversation instance-url must has value');
     }
-
+    const token = await this.getAccessToken();
+    const headers = {
+      Authorization: 'Bearer ' + token,
+    };
     const res = await axios.post(
       this.url,
       this.getEndConversationRequestBody(conversationId),
+      { headers: headers },
     );
 
     return res;
@@ -288,22 +276,13 @@ export class GenesysService
       );
     }
 
-    const res = await axios.post(
-      this.url,
-      this.getTypingRequestBody(conversationId, isTyping),
-    );
-
-    return res;
+    throw new Error('Genesys.sendTyping is not available yet.');
   }
 
-  getEndUserService(body): EndUserServices {
-    const configs = body.clientVariables;
-    if (!configs) {
-      return null;
-    }
+  getEndUserService(): EndUserServices {
     const service = new MiddlewareApiService({
-      url: configs.middlewareApiUrl,
-      token: configs.token,
+      url: process.env.MIDDLEWARE_API_URL,
+      token: process.env.MIDDLEWARE_API_TOKEN,
     });
     return service;
   }
@@ -313,19 +292,12 @@ export class GenesysService
    * @param body
    * @param params
    */
-  mapToCccMessage(
-    body: GenesysWebhookBody,
-    params: { index: number },
-  ): CccMessage {
+  mapToCccMessage(body: GenesysWebhookBody): CccMessage {
     const messageId = uuidv4();
-    const { index } = params;
-    const item = body.body[index];
-    if (item.uiType !== 'OutputText') {
-      return;
-    }
+
     return {
       message: {
-        value: item.value,
+        value: body.text,
         type: MessageType.Text,
         id: messageId,
       },
@@ -333,20 +305,17 @@ export class GenesysService
         username: 'test-agent',
         // username: item.agentInfo.agentName,
       },
-      conversationId: body.clientSessionId,
+      conversationId: body.channel.to.id,
       clientVariables: this.GenesysConfig,
     };
   }
 
   /**
-   * Determine if request body has `new message` action
+   * Determine if request body is new message from Agent
    * @param message
    */
   hasNewMessageAction(message: GenesysWebhookBody): boolean {
-    const item = message.body.find(
-      (item) => item.uiType === 'OutputText' && item.group === 'DefaultText',
-    );
-    return !!item;
+    return !!message.text;
   }
 
   /**
@@ -354,13 +323,7 @@ export class GenesysService
    * @param message
    */
   hasEndConversationAction(message: GenesysWebhookBody): boolean {
-    const item = message.body.find(
-      (item) =>
-        item.uiType === 'ActionMsg' &&
-        item.actionType === 'System' &&
-        !item.message.includes('entered'),
-    );
-    return !!item;
+    throw new Error('Not implemented');
   }
 
   /**
@@ -368,31 +331,14 @@ export class GenesysService
    * @param message
    */
   hasTypingIndicatorAction(message: GenesysWebhookBody): boolean {
-    const item = message.body.some(
-      (item: EndTypingIndicatorType | StartTypingIndicatorType) => {
-        const isTypingIndicator =
-          item.actionType === 'EndTypingIndicator' ||
-          item.actionType === 'StartTypingIndicator';
-        return item.uiType === 'ActionMsg' && isTypingIndicator;
-      },
-    );
-    return !!item;
+    throw new Error('Not implemented');
   }
   /**
    * Determine if agent is typing or viewing based on request body
    * @param message
    */
   isTyping(message: GenesysWebhookBody): boolean {
-    type TypingIndicatorType =
-      | EndTypingIndicatorType
-      | StartTypingIndicatorType;
-    const item = message.body.find((item: TypingIndicatorType) => {
-      const isTypingIndicator =
-        item.actionType === 'EndTypingIndicator' ||
-        item.actionType === 'StartTypingIndicator';
-      return item.uiType === 'ActionMsg' && isTypingIndicator;
-    });
-    return (item as TypingIndicatorType).actionType === 'StartTypingIndicator';
+    throw new Error('Not implemented');
   }
   /**
    * Determine if agent is available to receive new message
@@ -407,11 +353,7 @@ export class GenesysService
    * @param message
    */
   hasWaitTime(message: GenesysWebhookBody): boolean {
-    const item: StartWaitTimeSpinnerType = message.body.find((item) => {
-      const spinner = item as StartWaitTimeSpinnerType;
-      return spinner.spinnerType === 'wait_time';
-    }) as StartWaitTimeSpinnerType;
-    return !!item;
+    throw new Error('Not implemented');
   }
 
   /**
@@ -419,11 +361,7 @@ export class GenesysService
    * @param message
    */
   getWaitTime(message: GenesysWebhookBody): string {
-    const item: StartWaitTimeSpinnerType = message.body.find((item) => {
-      const spinner = item as StartWaitTimeSpinnerType;
-      return spinner.spinnerType === 'wait_time';
-    }) as StartWaitTimeSpinnerType;
-    return item.waitTime;
+    throw new Error('Not implemented');
   }
 
   escalate(): boolean {

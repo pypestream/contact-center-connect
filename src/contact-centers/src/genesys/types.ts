@@ -1,91 +1,30 @@
 export type GenesysWebhookBody = {
-  requestId: string;
-  clientSessionId: string;
-  genesysSessionId: string;
-  message: Message;
-  userId: string;
-  body: Array<GenesysWebhookBodyItem>;
-  agentChat: boolean;
-  completed: boolean;
-  score: number;
+  id: string;
+  channel: GenesysChannel;
+  type: string;
+  text?: string;
+  originatingEntity?: string;
+  direction: string;
+  status?: string;
   clientVariables?: any;
 };
-
-export type GenesysWebhookBodyItem =
-  | StartTypingIndicatorType
-  | EndTypingIndicatorType
-  | StartProcessingSpinnerType
-  | ActionSystemType
-  | OutputTextType
-  | EndWaitTimeSpinnerType
-  | StartWaitTimeSpinnerType
-  | EndProcessingSpinnerType
-  | TopicPickerControlType;
-
-export type EndTypingIndicatorType = {
-  uiType: 'ActionMsg';
-  actionType: 'EndTypingIndicator';
+export type GenesysChannel = {
+  id: string;
+  platform: 'Open';
+  type: 'Private';
+  to: GenesysReceiver;
+  from: GenesysSender;
+  time: string;
+  messageId: string;
 };
-
-export type StartTypingIndicatorType = {
-  uiType: 'ActionMsg';
-  actionType: 'StartTypingIndicator';
+type GenesysReceiver = {
+  nickname?: string;
+  id: string;
 };
-
-type ActionSystemType = {
-  uiType: 'ActionMsg';
-  actionType: 'System';
-  message: string;
-};
-
-type OutputTextType = {
-  uiType: 'OutputText';
-  actionType: 'DefaultText';
-  group: 'DefaultText';
-  agentInfo: AgentInfo;
-  value: string;
-  maskType: string;
-};
-
-type EndWaitTimeSpinnerType = {
-  uiType: 'ActionMsg';
-  actionType: 'EndSpinner';
-  spinnerType: 'wait_time';
-};
-
-export type StartWaitTimeSpinnerType = {
-  uiType: 'ActionMsg';
-  actionType: 'StartSpinner';
-  spinnerType: 'wait_time';
-  message: string;
-  waitTime: string;
-};
-
-type StartProcessingSpinnerType = {
-  uiType: 'ActionMsg';
-  actionType: 'StartSpinner';
-  spinnerType: 'processing';
-};
-
-type EndProcessingSpinnerType = {
-  uiType: 'ActionMsg';
-  actionType: 'EndSpinner';
-  spinnerType: 'processing';
-};
-
-type TopicPickerControlType = {
-  uiType: 'TopicPickerControl';
-  group: 'DefaultPicker';
-};
-
-type AgentInfo = {
-  sentFromAgent: boolean;
-  agentName: string;
-  agentAvatar: string;
-};
-
-export type Message = {
-  text: string;
-  typed: boolean;
-  clientMessageId: string;
+type GenesysSender = {
+  nickname?: string;
+  id: string;
+  idType: 'Opaque';
+  firstName?: string;
+  lastName?: string;
 };

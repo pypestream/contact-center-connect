@@ -1,16 +1,13 @@
-import { IsArray, IsNotEmpty, IsObject } from 'class-validator';
-import { GenesysWebhookBodyItem, Message } from '../types';
+import { IsNotEmpty } from 'class-validator';
+import { GenesysChannel } from '../types';
 
 export class PostBody {
-  requestId: string;
-  clientSessionId: string;
-  genesysSessionId: string;
-  message: Message;
-  userId: string;
-  @IsArray() body: Array<GenesysWebhookBodyItem>;
-  agentChat: boolean;
-  completed: boolean;
-  @IsNotEmpty() score: number;
-
+  @IsNotEmpty() id: string;
+  channel: GenesysChannel;
+  type: string;
+  text?: string;
+  originatingEntity?: string;
+  direction: string;
+  status?: string;
   clientVariables?: any;
 }
