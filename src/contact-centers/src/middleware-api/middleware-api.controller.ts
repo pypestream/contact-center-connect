@@ -8,11 +8,17 @@ import {
   Post,
   Put,
   Query,
+  Render,
   Req,
   Res,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import { PostEscalateBody, PostTypingBody, PutMessageBody } from './dto';
+import {
+  PostEscalateBody,
+  PostTypingBody,
+  PutMessageBody,
+  PutSettingsBody,
+} from './dto';
 
 import { Response, Request } from 'express';
 import { Ccc } from '../../ccc';
@@ -34,20 +40,23 @@ export class MiddlewareApiController {
   }
 
   @Put('settings')
-  async putSettings(): Promise<components['schemas']['Setting']> {
+  async putSettings(
+    @Body() body: PutSettingsBody,
+  ): Promise<components['schemas']['Setting']> {
     const sendMessageRes = await this.middlewareApiService.putSettings({
-      callbackToken: 'abc',
-      callbackURL: process.env.CCC_URL,
-      integrationName: 'ServiceNow',
-      integrationFields: {},
+      callbackToken: body.callbackToken,
+      callbackURL: body.callbackURL,
+      integrationName: body.integrationName,
+      integrationFields: body.integrationFields,
     });
     return sendMessageRes.data;
   }
 
   @Get('settings')
-  async settings(): Promise<components['schemas']['Setting']> {
+  @Render('get-settings')
+  async settings() {
     const sendMessageRes = await this.middlewareApiService.getSettings();
-    return sendMessageRes.data;
+    return { message: JSON.stringify(sendMessageRes.data) };
   }
 
   @Get('/agents/availability')
