@@ -180,6 +180,11 @@ export class MiddlewareApiService
     }
     const result = await axis.get(
       `${this.config.url}/contactCenter/v1/settings`,
+      {
+        headers: {
+          'x-pypestream-token': this.config.token,
+        },
+      },
     );
     return result;
   }
@@ -263,7 +268,7 @@ export class MiddlewareApiService
     const response = await axis.post(
       `${this.config.url}/contactCenter/v1/conversations/${conversationId}/type`,
       {
-        type: isTyping,
+        typing: isTyping,
       },
       {
         headers: {

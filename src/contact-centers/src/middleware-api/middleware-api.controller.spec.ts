@@ -4,6 +4,7 @@ import { CccModule } from '../../ccc-module';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { components } from './types';
+import { PutSettingsBody } from './dto';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
@@ -26,6 +27,62 @@ describe('MiddlewareApiController', () => {
     app = moduleFixture.createNestApplication();
 
     await app.init();
+  });
+
+  describe('/contactCenter/v1/settings (PUT)', () => {
+    let putSettings = () =>
+      request(app.getHttpServer())
+        .put('/contactCenter/v1/settings')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream');
+
+    it('OK', async () => {
+      const body: PutSettingsBody = {
+        callbackToken: 'abc',
+        callbackURL: 'http://my-computer.ngrok.com',
+        integrationName: 'ServiceNow',
+        integrationFields: {},
+      };
+      const response = await putSettings().send(JSON.stringify(body));
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.callbackToken).toEqual(body.callbackToken);
+      expect(response.body.callbackURL).toEqual(body.callbackURL);
+      expect(response.body.integrationName).toEqual(body.integrationName);
+      expect(response.body.integrationFields).toBeDefined();
+    });
+
+    it('Empty body', async () => {
+      const body = {
+        integrationName: 'Empty integration',
+      } as PutSettingsBody;
+      const response = await putSettings().send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(400);
+    });
+  });
+
+  describe('/contactCenter/v1/settings (GET)', () => {
+    let getSettings = () =>
+      request(app.getHttpServer())
+        .get('/contactCenter/v1/settings')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream');
+
+    it('OK', async () => {
+      const body: PutSettingsBody = {
+        callbackToken: 'abc',
+        callbackURL: 'http://my-computer.ngrok.com',
+        integrationName: 'ServiceNow',
+        integrationFields: {},
+      };
+      const response = await getSettings();
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.callbackToken).toEqual(body.callbackToken);
+      expect(response.body.callbackURL).toEqual(body.callbackURL);
+      expect(response.body.integrationName).toEqual(body.integrationName);
+      expect(response.body.integrationFields).toBeDefined();
+    });
   });
 
   describe('/contactCenter/v1/agents/availability (GET)', () => {
@@ -145,7 +202,6 @@ describe('MiddlewareApiController', () => {
     };
     const response = await request(app.getHttpServer())
       .post('/contactCenter/v1/conversations/conversation-123/type')
-      .set('Content-Type', 'application/json')
       .set('User-Agent', 'supertest')
       .set('Content-Type', 'application/octet-stream')
       .set(
