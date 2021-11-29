@@ -16,8 +16,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { GenesysWebhookBody } from './types';
 import { MiddlewareApiService } from '../middleware-api/service';
 
-// eslint-disable-next-line
+/* eslint-disable */
 const axiosRetry = require('axios-retry');
+const qs = require('qs');
+/* eslint-disable */
 
 axiosRetry(axios, { retries: 3 });
 
@@ -27,12 +29,12 @@ export class GenesysService
     GenericWebhookInterpreter<GenesysWebhookBody>,
     AgentService
 {
-  GenesysConfig: GenesysConfig;
+  genesysConfig: GenesysConfig;
 
   /**
    * @ignore
    */
-  url: string;
+  private _url: string;
   private _accessToken: string;
   private _oAuthUrl: string;
   private _clientId: string;
@@ -42,26 +44,33 @@ export class GenesysService
 
   /**
    *  Constructor
-   * @param cccConfig
-   * @param GenesysConfig
+   * @param genesysConfig
    */
-  constructor(GenesysConfig: GenesysConfig = {}) {
-    this.GenesysConfig = GenesysConfig;
-    if (GenesysConfig.instanceUrl) {
-      this.url = `${GenesysConfig.instanceUrl}/api/v2/conversations/messages/inbound/open`;
+  constructor(
+    genesysConfig: GenesysConfig = {
+      instanceUrl: '',
+      oAuthUrl: '',
+      clientId: '',
+      clientSecret: '',
+      grantType: '',
+      OMIntegrationId: '',
+    },
+  ) {
+    if (genesysConfig.instanceUrl) {
+      this._url = `${genesysConfig.instanceUrl}/api/v2/conversations/messages/inbound/open`;
     } else {
-      this.url = '';
+      this._url = '';
     }
-    this._oAuthUrl = GenesysConfig.oAuthUrl
-      ? `${GenesysConfig.oAuthUrl}/oauth/token`
+    this._oAuthUrl = genesysConfig.oAuthUrl
+      ? `${genesysConfig.oAuthUrl}/oauth/token`
       : '';
-    this._clientId = GenesysConfig.clientId ? GenesysConfig.clientId : '';
-    this._clientSecret = GenesysConfig.clientSecret
-      ? GenesysConfig.clientSecret
+    this._clientId = genesysConfig.clientId ? genesysConfig.clientId : '';
+    this._clientSecret = genesysConfig.clientSecret
+      ? genesysConfig.clientSecret
       : '';
-    this._grantType = GenesysConfig.grantType ? GenesysConfig.grantType : '';
-    this._OMIntegrationId = GenesysConfig.OMIntegrationId
-      ? GenesysConfig.OMIntegrationId
+    this._grantType = genesysConfig.grantType ? genesysConfig.grantType : '';
+    this._OMIntegrationId = genesysConfig.OMIntegrationId
+      ? genesysConfig.OMIntegrationId
       : '';
   }
 
@@ -71,8 +80,6 @@ export class GenesysService
   private async getAccessToken() {
     if (this._accessToken) return this._accessToken;
 
-    // eslint-disable-next-line
-    const qs = require('qs');
     const reqBody = {
       grant_type: this._grantType,
       client_id: this._clientId,
@@ -131,7 +138,7 @@ export class GenesysService
         time: new Date().toISOString(),
       },
       type: 'Text',
-      text: 'USER ENDED CHAT.',
+      text: 'Automated message: USER ENDED CHAT.',
       direction: 'Inbound',
     };
     return res;
@@ -171,7 +178,7 @@ export class GenesysService
   async sendMessage(
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    if (!this.GenesysConfig.instanceUrl) {
+    if (!this._url) {
       throw new Error('Genesys.sendMessage instance-url must has value');
     }
     const token = await this.getAccessToken();
@@ -180,7 +187,7 @@ export class GenesysService
     };
     // console.log('MEssage: ', message)
     const res = await axios.post(
-      this.url,
+      this._url,
       this.getMessageRequestBody(message),
       { headers: headers },
     );
@@ -192,7 +199,7 @@ export class GenesysService
    * @param conversationId
    */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
-    if (!this.GenesysConfig.instanceUrl) {
+    if (!this._url) {
       throw new Error('Genesys.endConversation instance-url must has value');
     }
     const token = await this.getAccessToken();
@@ -200,7 +207,7 @@ export class GenesysService
       Authorization: 'Bearer ' + token,
     };
     const res = await axios.post(
-      this.url,
+      this._url,
       this.getEndConversationRequestBody(conversationId),
       { headers: headers },
     );
@@ -215,7 +222,7 @@ export class GenesysService
   async startConversation(
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    if (!this.GenesysConfig.instanceUrl) {
+    if (!this._url) {
       throw new Error('Genesys.startConversation instance-url must has value');
     }
     const token = await this.getAccessToken();
@@ -224,39 +231,11 @@ export class GenesysService
     };
     // console.log('Message: ', message)
     return await axios.post(
-      this.url,
+      this._url,
       this.startConversationRequestBody(message),
       { headers: headers },
     );
   }
-  /**
-   * @ignore
-   */
-  private getTypingRequestBody(conversationId: string, isTyping: boolean) {
-    const requestId = uuidv4();
-
-    const res = {
-      requestId,
-      clientSessionId: conversationId,
-      action: isTyping ? 'TYPING' : 'VIEWING',
-      userId: conversationId,
-    };
-    return res;
-  }
-  /**
-   * @ignore
-   */
-  private getEndRequestBody(conversationId: string) {
-    const requestId = uuidv4();
-
-    const res = {
-      requestId,
-      clientSessionId: conversationId,
-      action: 'END_CONVERSATION',
-    };
-    return res;
-  }
-
   /**
    * Update Typing indicator in agent side
    * @param message
@@ -266,7 +245,7 @@ export class GenesysService
     conversationId: string,
     isTyping: boolean,
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    if (!this.GenesysConfig.instanceUrl) {
+    if (!this._url) {
       throw new Error('Genesys.sendTyping instance-url must has value');
     }
 
@@ -276,7 +255,7 @@ export class GenesysService
       );
     }
 
-    throw new Error('Genesys.sendTyping is not available yet.');
+    throw 'Genesys.sendTyping is not available yet.';
   }
 
   getEndUserService(): EndUserServices {
@@ -306,7 +285,6 @@ export class GenesysService
         // username: item.agentInfo.agentName,
       },
       conversationId: body.channel.to.id,
-      clientVariables: this.GenesysConfig,
     };
   }
 
