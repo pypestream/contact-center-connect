@@ -53,10 +53,9 @@ export class MiddlewareApiController {
   }
 
   @Get('settings')
-  @Render('get-settings')
-  async settings() {
+  async settings(): Promise<components['schemas']['Setting']> {
     const sendMessageRes = await this.middlewareApiService.getSettings();
-    return { message: JSON.stringify(sendMessageRes.data) };
+    return sendMessageRes.data;
   }
 
   @Get('/agents/availability')
