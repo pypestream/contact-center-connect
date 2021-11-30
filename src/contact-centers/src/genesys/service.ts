@@ -29,7 +29,7 @@ export class GenesysService
     GenericWebhookInterpreter<GenesysWebhookBody>,
     AgentService
 {
-  genesysConfig: GenesysConfig;
+  _genesysConfig: GenesysConfig;
 
   /**
    * @ignore
@@ -56,6 +56,7 @@ export class GenesysService
       OMIntegrationId: '',
     },
   ) {
+    this._genesysConfig = genesysConfig;
     if (genesysConfig.instanceUrl) {
       this._url = `${genesysConfig.instanceUrl}/api/v2/conversations/messages/inbound/open`;
     } else {
@@ -88,6 +89,26 @@ export class GenesysService
     const res = await axios.post(this._oAuthUrl, qs.stringify(reqBody));
     this._accessToken = res.data.access_token;
     return this._accessToken;
+  }
+
+  /**
+   * @ignore
+   */
+  private async getGenesysConversationId(messageId: string) {
+    const token = await this.getAccessToken();
+    const headers = {
+      Authorization: 'Bearer ' + token,
+    };
+    try {
+      const res = await axios.get(
+        `${this._genesysConfig.instanceUrl}/api/v2/conversations/messages/${messageId}/details`,
+        { headers: headers },
+      );
+      return res.data.conversationId;
+    } catch (error) {
+      //console.log(error.response.status)
+      return '';
+    }
   }
   /**
    * @ignore
@@ -212,7 +233,17 @@ export class GenesysService
       { headers: headers },
     );
 
-    return res;
+    const messageId = res.data.id;
+    const genesysConversationId = await this.getGenesysConversationId(
+      messageId,
+    );
+    if (!genesysConversationId) return res;
+
+    return await axios.patch(
+      `${this._genesysConfig.instanceUrl}/api/v2/conversations/chats/${genesysConversationId}`,
+      { state: 'disconnected' },
+      { headers: headers },
+    );
   }
   /**
    * Start new conversation with initial message
@@ -254,7 +285,6 @@ export class GenesysService
         'Genesys.sendTyping conversationId param is required parameter',
       );
     }
-
     throw 'Genesys.sendTyping is not available yet.';
   }
 

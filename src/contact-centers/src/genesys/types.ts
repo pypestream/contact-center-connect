@@ -6,7 +6,6 @@ export type GenesysWebhookBody = {
   originatingEntity?: string;
   direction: string;
   status?: string;
-  clientVariables?: any;
 };
 export type GenesysChannel = {
   id: string;
