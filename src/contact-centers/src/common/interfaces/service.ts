@@ -6,18 +6,24 @@ import { CccMessage } from './../types/ccs-message';
  * Service should implement this interface for core features interface
  *
  */
-export interface Service<T, Y, Z> {
+export interface Service<T, Y, Z, Config> {
   /**
    * Send message to service
    * @param message
    */
-  sendMessage(message: CccMessage): Promise<AxiosResponse<SendMessageResponse>>;
+  sendMessage(
+    config: Config,
+    message: CccMessage,
+  ): Promise<AxiosResponse<SendMessageResponse>>;
 
   /**
    * End conversation
    * @param conversationId
    */
-  endConversation(conversationId: string): Promise<AxiosResponse<any>>;
+  endConversation(
+    config: Config,
+    conversationId: string,
+  ): Promise<AxiosResponse<any>>;
 
   /**
    * Convert posted body to CCC message
@@ -53,6 +59,7 @@ export interface Service<T, Y, Z> {
    * @param isTyping
    */
   sendTyping(
+    config: Config,
     conversationId: string,
     isTyping: boolean,
   ): Promise<AxiosResponse<SendMessageResponse>>;

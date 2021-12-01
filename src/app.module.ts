@@ -3,7 +3,6 @@ import { CccModule } from './contact-centers/ccc-module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
-import { HomepageController } from './homepage.controller';
 
 @Module({
   imports: [
@@ -22,6 +21,6 @@ import { HomepageController } from './homepage.controller';
     }),
   ],
   providers: [],
-  controllers: [HomepageController],
+  controllers: [],
 })
 export class AppModule {}

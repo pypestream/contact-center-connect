@@ -6,7 +6,7 @@ import { CccMessage, EndUserServices, SendMessageResponse } from '../types';
  * Service should implement this interface for core features interface
  *
  */
-export interface AgentService {
+export interface AgentService<Config> {
   /**
    * Send message to service
    * @param message
@@ -18,6 +18,7 @@ export interface AgentService {
    * @param message
    */
   startConversation(
+    config: Config,
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>>;
 }

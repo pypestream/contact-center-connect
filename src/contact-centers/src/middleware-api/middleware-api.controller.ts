@@ -21,23 +21,16 @@ import {
 } from './dto';
 
 import { Response, Request } from 'express';
-import { Ccc } from '../../ccc';
 import { MessageType, AgentServices } from '../common/types';
 import { components, operations } from './types/openapi-types';
-import { MiddlewareApiService } from './service';
+import { MiddlewareApiService } from './middleware-api.service';
 
 import { cccToken } from '../common/constants';
 import { Body } from '@nestjs/common';
 
 @Controller('contactCenter/v1')
 export class MiddlewareApiController {
-  private readonly ccc: Ccc;
-
-  private readonly middlewareApiService: MiddlewareApiService;
-  constructor(@Inject(cccToken) ccc: Ccc) {
-    this.ccc = ccc;
-    this.middlewareApiService = new MiddlewareApiService(ccc.middlewareApi);
-  }
+  constructor(private readonly middlewareApiService: MiddlewareApiService) {}
 
   @Put('settings')
   async putSettings(

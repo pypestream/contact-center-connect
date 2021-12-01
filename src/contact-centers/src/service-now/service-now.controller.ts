@@ -1,5 +1,5 @@
 import { Controller, Post, Req, Res, HttpStatus } from '@nestjs/common';
-import { ServiceNowService } from './service';
+import { ServiceNowService } from './service-now.service';
 import { ServiceNowWebhookBody } from './types';
 import { Request, Response } from 'express';
 import { PostBody } from './dto';
@@ -7,11 +7,7 @@ import { Body } from '@nestjs/common';
 
 @Controller('service-now')
 export class ServiceNowController {
-  private serviceNowService: ServiceNowService;
-
-  constructor() {
-    this.serviceNowService = new ServiceNowService();
-  }
+  constructor(private readonly serviceNowService: ServiceNowService) {}
 
   @Post('webhook')
   async message(
