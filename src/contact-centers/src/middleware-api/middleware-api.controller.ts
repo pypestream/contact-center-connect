@@ -147,8 +147,8 @@ export class MiddlewareApiController {
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        errors: [ex.response.data],
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        errors: [ex.message],
         message: ex.message,
       });
     }
