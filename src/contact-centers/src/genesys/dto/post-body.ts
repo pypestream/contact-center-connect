@@ -9,5 +9,4 @@ export class PostBody {
   originatingEntity?: string;
   direction: string;
   status?: string;
-  clientVariables?: any;
 }
