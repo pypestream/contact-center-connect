@@ -106,7 +106,9 @@ export class MiddlewareApiController {
     const historyResponse = await this.middlewareApiService
       .history(conversationId)
       .catch((err) => {
-        return err.response;
+        return {
+          data: { messages: [] },
+        };
       });
 
     try {
