@@ -8,6 +8,10 @@ import { PutSettingsBody } from './dto';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
+  const serviceNowCustomerHeader =
+    'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=';
+  const genesysCustomerHeader =
+    'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vYXBpLnVzdzIucHVyZS5jbG91ZCIsIm9BdXRoVXJsIjoiaHR0cHM6Ly9sb2dpbi51c3cyLnB1cmUuY2xvdWQiLCJjbGllbnRJZCI6ImNlZTIwYjBmLTE4ODEtNGI4ZS1iZWExLTRmYTYyNWVjMGM3MiIsImNsaWVudFNlY3JldCI6Il9wbmdwUXk4Q0dwRjY5ZFZnT2xuV1p1Q3dSakdOMUVqS3Fwdi1HcEFjWVEiLCJncmFudFR5cGUiOiJjbGllbnRfY3JlZGVudGlhbHMiLCJPTUludGVncmF0aW9uSWQiOiJhMjE3MTc0Mi03MzU5LTQxY2YtYWE2OC1hZDUwNDkyNTA4MDYifQ==';
 
   beforeEach(async () => {
     let moduleFixture: TestingModule = await Test.createTestingModule({
@@ -162,10 +166,7 @@ describe('MiddlewareApiController', () => {
         side: 'user',
       };
       const response = await putMessage()
-        .set(
-          'x-pypestream-customer',
-          'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
-        )
+        .set('x-pypestream-customer', serviceNowCustomerHeader)
         .set('x-pypestream-integration', 'ServiceNow')
         .send(JSON.stringify(body));
 
@@ -185,10 +186,7 @@ describe('MiddlewareApiController', () => {
 
     it('Bad Request: No Body', async () => {
       const response = await putMessage()
-        .set(
-          'x-pypestream-customer',
-          'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
-        )
+        .set('x-pypestream-customer', serviceNowCustomerHeader)
         .set('x-pypestream-integration', 'ServiceNow')
         .send();
 
@@ -204,106 +202,80 @@ describe('MiddlewareApiController', () => {
       .post('/contactCenter/v1/conversations/conversation-123/type')
       .set('User-Agent', 'supertest')
       .set('Content-Type', 'application/octet-stream')
-      .set(
-        'x-pypestream-customer',
-        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
-      )
+      .set('x-pypestream-customer', serviceNowCustomerHeader)
       .set('x-pypestream-integration', 'ServiceNow')
       .send(JSON.stringify(body));
 
     expect(response.statusCode).toEqual(204);
   });
 
-  it('/conversations/:conversationId/escalate (POST)', async () => {
+  describe('/conversations/:conversationId/escalate (POST)', () => {
+    const postEscalate = () =>
+      request(app.getHttpServer())
+        .post('/contactCenter/v1/conversations/conversation-123/escalate')
+        .set('Content-Type', 'application/json')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream');
+
     const body: components['schemas']['Escalate'] = {
       skill: 'general',
       userId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     };
-    const response = await request(app.getHttpServer())
-      .post('/contactCenter/v1/conversations/conversation-123/escalate')
-      .set('Content-Type', 'application/json')
-      .set('User-Agent', 'supertest')
-      .set('Content-Type', 'application/octet-stream')
-      .set(
-        'x-pypestream-customer',
-        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
-      )
-      .set('x-pypestream-integration', 'ServiceNow')
-      .send(JSON.stringify(body));
 
-    expect(response.statusCode).toEqual(201);
+    it('Escalate to ServiceNow agent', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', serviceNowCustomerHeader)
+        .set('x-pypestream-integration', 'ServiceNow')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(201);
+    });
+
+    it('Escalate to Genesys agent', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', genesysCustomerHeader)
+        .set('x-pypestream-integration', 'Genesys')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(201);
+    });
+
+    it('Escalate to Genesys agent with bad body', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', genesysCustomerHeader)
+        .set('x-pypestream-integration', 'Genesys')
+        .send(
+          JSON.stringify({
+            foo: 'bar',
+          }),
+        );
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Escalate to Genesys agent without x-pypestream-customer header', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-integration', 'Genesys')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(500);
+    });
+
+    it('Escalate to Unknown agent', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', genesysCustomerHeader)
+        .set('x-pypestream-integration', 'Unknown')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(500);
+    });
   });
+
   it('/conversations/:conversationId/end (POST)', async () => {
     const response = await request(app.getHttpServer())
       .post('/contactCenter/v1/conversations/conversation-123/end')
       .set('Content-Type', 'application/json')
       .set('User-Agent', 'supertest')
       .set('Content-Type', 'application/octet-stream')
-      .set(
-        'x-pypestream-customer',
-        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=',
-      )
+      .set('x-pypestream-customer', serviceNowCustomerHeader)
       .set('x-pypestream-integration', 'ServiceNow')
       .send();
 
     expect(response.statusCode).toEqual(204);
-  });
-
-  describe('/contactCenter/v1/conversations/:conversationId/messages/:messageId (PUT) Genesys', () => {
-    const putMessage = () =>
-      request(app.getHttpServer())
-        .put(
-          '/contactCenter/v1/conversations/:conversationId/messages/:messageId',
-        )
-        .set('User-Agent', 'supertest')
-        .set('Content-Type', 'application/octet-stream');
-
-    it('OK', async () => {
-      const body: components['schemas']['Message'] = {
-        content: 'I am new message',
-        senderId: 'user-123',
-        side: 'user',
-      };
-      const response = await putMessage()
-        .set(
-          'x-pypestream-customer',
-          'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vYXBpLnVzdzIucHVyZS5jbG91ZCIsIm9BdXRoVXJsIjoiaHR0cHM6Ly9sb2dpbi51c3cyLnB1cmUuY2xvdWQiLCJjbGllbnRJZCI6ImNlZTIwYjBmLTE4ODEtNGI4ZS1iZWExLTRmYTYyNWVjMGM3MiIsImNsaWVudFNlY3JldCI6Il9wbmdwUXk4Q0dwRjY5ZFZnT2xuV1p1Q3dSakdOMUVqS3Fwdi1HcEFjWVEiLCJncmFudFR5cGUiOiJjbGllbnRfY3JlZGVudGlhbHMiLCJPTUludGVncmF0aW9uSWQiOiJhMjE3MTc0Mi03MzU5LTQxY2YtYWE2OC1hZDUwNDkyNTA4MDYifQ==',
-        )
-        .set('x-pypestream-integration', 'Genesys')
-        .send(JSON.stringify(body));
-      console.log(response.text);
-      expect(response.statusCode).toEqual(204);
-    });
-
-    it('Bad Request: No Body', async () => {
-      const response = await putMessage()
-        .set(
-          'x-pypestream-customer',
-          'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vYXBpLnVzdzIucHVyZS5jbG91ZCIsIm9BdXRoVXJsIjoiaHR0cHM6Ly9sb2dpbi51c3cyLnB1cmUuY2xvdWQiLCJjbGllbnRJZCI6ImNlZTIwYjBmLTE4ODEtNGI4ZS1iZWExLTRmYTYyNWVjMGM3MiIsImNsaWVudFNlY3JldCI6Il9wbmdwUXk4Q0dwRjY5ZFZnT2xuV1p1Q3dSakdOMUVqS3Fwdi1HcEFjWVEiLCJncmFudFR5cGUiOiJjbGllbnRfY3JlZGVudGlhbHMiLCJPTUludGVncmF0aW9uSWQiOiJhMjE3MTc0Mi03MzU5LTQxY2YtYWE2OC1hZDUwNDkyNTA4MDYifQ==',
-        )
-        .set('x-pypestream-integration', 'Genesys')
-        .send();
-
-      expect(response.statusCode).toEqual(400);
-    });
-  });
-  it('/conversations/:conversationId/escalate (POST) Genesys', async () => {
-    const body: components['schemas']['Escalate'] = {
-      skill: 'general',
-      userId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-    };
-    const response = await request(app.getHttpServer())
-      .post('/contactCenter/v1/conversations/conversation-123/escalate')
-      .set('Content-Type', 'application/json')
-      .set('User-Agent', 'supertest')
-      .set('Content-Type', 'application/octet-stream')
-      .set(
-        'x-pypestream-customer',
-        'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vYXBpLnVzdzIucHVyZS5jbG91ZCIsIm9BdXRoVXJsIjoiaHR0cHM6Ly9sb2dpbi51c3cyLnB1cmUuY2xvdWQiLCJjbGllbnRJZCI6ImNlZTIwYjBmLTE4ODEtNGI4ZS1iZWExLTRmYTYyNWVjMGM3MiIsImNsaWVudFNlY3JldCI6Il9wbmdwUXk4Q0dwRjY5ZFZnT2xuV1p1Q3dSakdOMUVqS3Fwdi1HcEFjWVEiLCJncmFudFR5cGUiOiJjbGllbnRfY3JlZGVudGlhbHMiLCJPTUludGVncmF0aW9uSWQiOiJhMjE3MTc0Mi03MzU5LTQxY2YtYWE2OC1hZDUwNDkyNTA4MDYifQ==',
-      )
-      .set('x-pypestream-integration', 'Genesys')
-      .send(JSON.stringify(body));
-
-    expect(response.statusCode).toEqual(201);
   });
 });
