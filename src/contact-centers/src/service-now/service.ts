@@ -3,7 +3,6 @@ import {
   EndUserServices,
   MessageType,
   SendMessageResponse,
-  ServiceNowConfig,
 } from './../common/types';
 import {
   Service,
@@ -18,6 +17,7 @@ import {
   StartTypingIndicatorType,
   EndTypingIndicatorType,
   StartWaitTimeSpinnerType,
+  ServiceNowConfig,
 } from './types';
 import { MiddlewareApiService } from '../middleware-api/service';
 

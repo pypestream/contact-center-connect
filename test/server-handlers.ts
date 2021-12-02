@@ -140,6 +140,34 @@ const handlers = [
       );
     },
   ),
+  rest.post(
+    'https://api.usw2.pure.cloud/api/v2/notifications/channels',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          connectUri:
+            'wss://streaming.usw2.pure.cloud/channels/streaming-4-ukr8up4nma82lhpci5kd2mi86t',
+          id: 'streaming-4-ukr8up4nma82lhpci5kd2mi86t',
+          expires: '2021-12-02T13:20:18.968Z',
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://login.usw2.pure.cloud/oauth/token',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          access_token:
+            'RxmaDSoqnKwh3q-kPJ3bAeciqqBIQmDecFyJ5ls34PQ9-lu3k6kK7Dzv33f3_2xeTvGo45uu8TZqFRsbK5tz1g',
+          token_type: 'bearer',
+          expires_in: 86399,
+        }),
+      );
+    },
+  ),
 ];
 
 export { handlers };

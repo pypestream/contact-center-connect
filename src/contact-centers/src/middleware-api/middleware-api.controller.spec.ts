@@ -5,6 +5,10 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { components } from './types';
 import { PutSettingsBody } from './dto';
+import { APP_PIPE } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { MiddlewareApiCoreModule } from './middleware-api-core.module';
+import { MiddlewareApiModule } from './middleware-api.module';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
@@ -17,15 +21,17 @@ describe('MiddlewareApiController', () => {
     let moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [MiddlewareApiController],
       imports: [
-        CccModule.forRoot({
-          enableLog: true,
-          middlewareApiConfig: {
-            url: 'https://mock-server.middleware.com',
-            token: 'fake token',
-          },
+        MiddlewareApiModule.forRoot({
+          url: 'https://mock-server.middleware.com',
+          token: 'fake token',
         }),
       ],
-      providers: [],
+      providers: [
+        {
+          provide: APP_PIPE,
+          useClass: ValidationPipe,
+        },
+      ],
     }).compile();
 
     app = moduleFixture.createNestApplication();

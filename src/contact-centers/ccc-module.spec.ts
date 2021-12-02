@@ -1,16 +1,17 @@
 import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Ccc } from './ccc';
-import { SdkConfig } from './src/common/types';
-import { cccToken } from './src/common/constants';
-import { CccOptionsFactory } from './src/common/interfaces';
+import { MiddlewareApi } from './src/middleware-api/middleware-api';
+import { MiddlewareApiToken } from './src/middleware-api/constants';
+import { MiddlewareApiOptionsFactory } from './src/middleware-api/interfaces';
 import { CccModule } from './ccc-module';
+import { MiddlewareApiConfig } from './src/middleware-api/types';
 
 describe('CccModule', () => {
-  class TestService implements CccOptionsFactory {
-    createCccOptions(): SdkConfig {
+  class TestService implements MiddlewareApiOptionsFactory {
+    createMiddlewareApiOptions(): MiddlewareApiConfig {
       return {
-        enableLog: true,
+        url: '',
+        token: '',
       };
     }
   }
@@ -26,14 +27,15 @@ describe('CccModule', () => {
       const module = await Test.createTestingModule({
         imports: [
           CccModule.forRoot({
-            enableLog: true,
+            url: '',
+            token: '',
           }),
         ],
       }).compile();
 
-      const cccClient = module.get<Ccc>(cccToken);
+      const cccClient = module.get<MiddlewareApi>(MiddlewareApiToken);
       expect(cccClient).toBeDefined();
-      expect(cccClient).toBeInstanceOf(Ccc);
+      expect(cccClient).toBeInstanceOf(MiddlewareApi);
     });
   });
 
@@ -44,15 +46,16 @@ describe('CccModule', () => {
           imports: [
             CccModule.forRootAsync({
               useFactory: () => ({
-                enableLog: true,
+                url: '',
+                token: '',
               }),
             }),
           ],
         }).compile();
 
-        const cccClient = module.get<Ccc>(cccToken);
+        const cccClient = module.get<MiddlewareApi>(MiddlewareApiToken);
         expect(cccClient).toBeDefined();
-        expect(cccClient).toBeInstanceOf(Ccc);
+        expect(cccClient).toBeInstanceOf(MiddlewareApi);
       });
     });
 
@@ -67,9 +70,9 @@ describe('CccModule', () => {
           ],
         }).compile();
 
-        const cccClient = module.get<Ccc>(cccToken);
+        const cccClient = module.get<MiddlewareApi>(MiddlewareApiToken);
         expect(cccClient).toBeDefined();
-        expect(cccClient).toBeInstanceOf(Ccc);
+        expect(cccClient).toBeInstanceOf(MiddlewareApi);
       });
     });
 
@@ -83,9 +86,9 @@ describe('CccModule', () => {
           ],
         }).compile();
 
-        const cccClient = module.get<Ccc>(cccToken);
+        const cccClient = module.get<MiddlewareApi>(MiddlewareApiToken);
         expect(cccClient).toBeDefined();
-        expect(cccClient).toBeInstanceOf(Ccc);
+        expect(cccClient).toBeInstanceOf(MiddlewareApi);
       });
     });
   });

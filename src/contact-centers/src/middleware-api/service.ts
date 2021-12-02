@@ -4,11 +4,14 @@ import {
   EndUserServices,
   AgentServices,
   MessageType,
-  MiddlewareApiConfig,
   SendMessageResponse,
 } from '../common/types';
 import axis, { AxiosResponse } from 'axios';
-import { ContactCenterProApiWebhookBody, SettingsObject } from './types';
+import {
+  ContactCenterProApiWebhookBody,
+  MiddlewareApiConfig,
+  SettingsObject,
+} from './types';
 import { components } from './types/openapi-types';
 import { ServiceNowService } from '../service-now/service';
 import { GenesysService } from '../genesys/service';

@@ -8,7 +8,6 @@ import {
   Post,
   Put,
   Query,
-  Render,
   Req,
   Res,
 } from '@nestjs/common';
@@ -21,22 +20,20 @@ import {
 } from './dto';
 
 import { Response, Request } from 'express';
-import { Ccc } from '../../ccc';
+import { MiddlewareApi } from './middleware-api';
 import { MessageType, AgentServices } from '../common/types';
 import { components, operations } from './types/openapi-types';
 import { MiddlewareApiService } from './service';
 
-import { cccToken } from '../common/constants';
+import { MiddlewareApiToken } from './constants';
 import { Body } from '@nestjs/common';
 
 @Controller('contactCenter/v1')
 export class MiddlewareApiController {
-  private readonly ccc: Ccc;
-
   private readonly middlewareApiService: MiddlewareApiService;
-  constructor(@Inject(cccToken) ccc: Ccc) {
-    this.ccc = ccc;
-    this.middlewareApiService = new MiddlewareApiService(ccc.middlewareApi);
+
+  constructor(@Inject(MiddlewareApiToken) middlewareApi: MiddlewareApi) {
+    this.middlewareApiService = new MiddlewareApiService(middlewareApi.config);
   }
 
   @Put('settings')

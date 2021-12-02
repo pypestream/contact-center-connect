@@ -3,6 +3,9 @@ import { GenesysController } from './genesys.controller';
 import { CccModule } from '../../ccc-module';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { APP_PIPE } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { GenesysModule } from './genesys.module';
 
 describe('GenesysController', () => {
   let app: INestApplication;
@@ -11,12 +14,13 @@ describe('GenesysController', () => {
   beforeEach(async () => {
     let moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [GenesysController],
-      imports: [
-        CccModule.forRoot({
-          enableLog: true,
-        }),
+      imports: [GenesysModule],
+      providers: [
+        {
+          provide: APP_PIPE,
+          useClass: ValidationPipe,
+        },
       ],
-      providers: [],
     }).compile();
 
     app = moduleFixture.createNestApplication();

@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { GenesysController } from './genesys.controller';
 import { GenesysWebsocket } from './genesys.websocket';
+import { BodyMiddleware } from '../common/middlewares/body-middleware';
+import { MiddlewareConsumer } from '@nestjs/common';
 
 @Module({
   imports: [],
@@ -16,4 +18,8 @@ import { GenesysWebsocket } from './genesys.websocket';
   controllers: [GenesysController],
   exports: [],
 })
-export class GenesysModule {}
+export class GenesysModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(BodyMiddleware).forRoutes('*');
+  }
+}

@@ -3,7 +3,6 @@ import {
   EndUserServices,
   MessageType,
   SendMessageResponse,
-  GenesysConfig,
 } from './../common/types';
 import {
   Service,
@@ -13,7 +12,7 @@ import {
 import axios, { AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
-import { GenesysWebhookBody } from './types';
+import { GenesysConfig, GenesysWebhookBody } from './types';
 import { MiddlewareApiService } from '../middleware-api/service';
 
 /* eslint-disable */

@@ -1,14 +1,14 @@
 import { Controller, Get, Render, Inject } from '@nestjs/common';
 import { MiddlewareApiService } from './service';
-import { cccToken } from '../common/constants';
-import { Ccc } from '../../ccc';
+import { MiddlewareApiToken } from './constants';
+import { MiddlewareApi } from './middleware-api';
 
 @Controller()
 export class MiddlewareUiController {
   private readonly middlewareApiService: MiddlewareApiService;
 
-  constructor(@Inject(cccToken) ccc: Ccc) {
-    this.middlewareApiService = new MiddlewareApiService(ccc.middlewareApi);
+  constructor(@Inject(MiddlewareApiToken) middlewareApi: MiddlewareApi) {
+    this.middlewareApiService = new MiddlewareApiService(middlewareApi.config);
   }
 
   @Get('')
