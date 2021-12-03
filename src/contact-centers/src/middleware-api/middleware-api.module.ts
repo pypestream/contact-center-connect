@@ -27,7 +27,7 @@ import { MiddlewareConsumer } from '@nestjs/common';
 })
 export class MiddlewareApiModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(BodyMiddleware).forRoutes('*');
+    consumer.apply(BodyMiddleware).forRoutes(MiddlewareApiController);
   }
   public static forRoot(options: MiddlewareApiConfig): DynamicModule {
     return {

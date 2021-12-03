@@ -66,8 +66,10 @@ export class MiddlewareApiController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const agentService: AgentServices =
-      this.middlewareApiService.getAgentService(req, this.middlewareApiService);
+    const agentService: AgentServices = this.middlewareApiService.getAgentService(
+      req,
+      this.middlewareApiService,
+    );
     const isAvailable = agentService.isAvailable(query.skill);
     return {
       available: isAvailable,
@@ -102,20 +104,19 @@ export class MiddlewareApiController {
   ) {
     const historyResponse = await this.middlewareApiService
       .history(conversationId)
-      .catch((err) => {
+      .catch(err => {
         return {
           data: { messages: [] },
         };
       });
 
     try {
-      const agentService: AgentServices =
-        this.middlewareApiService.getAgentService(
-          req,
-          this.middlewareApiService,
-        );
+      const agentService: AgentServices = this.middlewareApiService.getAgentService(
+        req,
+        this.middlewareApiService,
+      );
       const history: string = historyResponse.data.messages
-        .map((m) => m.content)
+        .map(m => m.content)
         .join('\r\n');
       const messageId = uuidv4();
       const message = {
@@ -158,9 +159,17 @@ export class MiddlewareApiController {
     @Res() res: Response,
     @Body() body: PostTypingBody,
   ) {
-    const agentService: AgentServices =
-      this.middlewareApiService.getAgentService(req, this.middlewareApiService);
-    await agentService.sendTyping(conversationId, body.typing);
+    const agentService: AgentServices = this.middlewareApiService.getAgentService(
+      req,
+      this.middlewareApiService,
+    );
+    await agentService.sendTyping(conversationId, body.typing).catch(error => {
+      // eslint-disable-next-line
+      console.error(
+        'Not able to reset typing indicator before end conversation  error:',
+        error.message,
+      );
+    });
     res.status(HttpStatus.NO_CONTENT).end();
   }
 
@@ -176,9 +185,18 @@ export class MiddlewareApiController {
       conversationId,
       messageId,
     });
-    const agentService: AgentServices =
-      this.middlewareApiService.getAgentService(req, this.middlewareApiService);
-    await agentService.sendTyping(cccMessage.conversationId, false);
+
+    const agentService: AgentServices = this.middlewareApiService.getAgentService(
+      req,
+      this.middlewareApiService,
+    );
+
+    await agentService.sendTyping(conversationId, false).catch(error => {
+      console.error(
+        'Not able to reset typing indicator before end conversation  error:',
+        error.message,
+      );
+    });
     await agentService.sendMessage(cccMessage);
 
     return res.status(HttpStatus.NO_CONTENT).end();
@@ -194,7 +212,13 @@ export class MiddlewareApiController {
       req,
       this.middlewareApiService,
     );
-    await service.sendTyping(conversationId, false);
+    await service.sendTyping(conversationId, false).catch(error => {
+      // eslint-disable-next-line
+      console.error(
+        'Not able to reset typing indicator before end conversation  error:',
+        error.message,
+      );
+    });
     await service.endConversation(conversationId);
     return res.status(HttpStatus.NO_CONTENT).end();
   }

@@ -18,6 +18,6 @@ import { MiddlewareConsumer } from '@nestjs/common';
 })
 export class ServiceNowModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(BodyMiddleware).forRoutes('*');
+    consumer.apply(BodyMiddleware).forRoutes(ServiceNowController);
   }
 }

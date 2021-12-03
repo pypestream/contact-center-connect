@@ -20,6 +20,6 @@ import { MiddlewareConsumer } from '@nestjs/common';
 })
 export class GenesysModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(BodyMiddleware).forRoutes('*');
+    consumer.apply(BodyMiddleware).forRoutes(GenesysController);
   }
 }
