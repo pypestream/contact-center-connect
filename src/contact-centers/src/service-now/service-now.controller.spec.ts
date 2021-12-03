@@ -1,12 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServiceNowController } from './service-now.controller';
-import { CccModule } from '../../ccc-module';
-import { ServiceNowConfig } from '../common/types';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ServiceNowModule } from './service-now.module';
+import { ServiceNowConfig } from './types';
 
 const serviceNowConfig: ServiceNowConfig = {
   instanceUrl: 'https://mock-server.service-now.com',
