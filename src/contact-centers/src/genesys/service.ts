@@ -132,7 +132,8 @@ export class GenesysService
           customAttributes: {
             customerAccountId: 'x123',
             customerName: 'John Doe',
-            customerEmailAddress: 'test@test.com',
+            customerEmail: 'test@test.com',
+            customerPhoneNumber: '9123456789',
           },
         },
         time: new Date().toISOString(),
@@ -166,7 +167,8 @@ export class GenesysService
           customAttributes: {
             customerAccountId: 'x123',
             customerName: 'John Doe',
-            customerEmailAddress: 'test@test.com',
+            customerEmail: 'test@test.com',
+            customerPhoneNumber: '9123456789',
           },
         },
         time: new Date().toISOString(),
@@ -195,6 +197,14 @@ export class GenesysService
           idType: 'Opaque',
           firstName: 'PS',
           lastName: 'User',
+        },
+        metadata: {
+          customAttributes: {
+            customerAccountId: 'x123',
+            customerName: 'John Doe',
+            customerEmail: 'test@test.com',
+            customerPhoneNumber: '9123456789',
+          },
         },
         time: new Date().toISOString(),
       },
@@ -247,6 +257,9 @@ export class GenesysService
     );
 
     const messageId = res.data.id;
+
+    // Wait few seconds for Genesys update conversation ID for the message:
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const genesysConversationId = await this.getGenesysConversationId(
       messageId,
     );
