@@ -165,7 +165,7 @@ describe('MiddlewareApiController', () => {
         .set('User-Agent', 'supertest')
         .set('Content-Type', 'application/octet-stream');
 
-    it('OK', async () => {
+    it('ServiceNow: OK', async () => {
       const body: components['schemas']['Message'] = {
         content: 'I am new message',
         senderId: 'user-123',
@@ -174,6 +174,20 @@ describe('MiddlewareApiController', () => {
       const response = await putMessage()
         .set('x-pypestream-customer', serviceNowCustomerHeader)
         .set('x-pypestream-integration', 'ServiceNow')
+        .send(JSON.stringify(body));
+
+      expect(response.statusCode).toEqual(204);
+    });
+
+    it('Genesys: OK', async () => {
+      const body: components['schemas']['Message'] = {
+        content: 'I am new message',
+        senderId: 'user-123',
+        side: 'user',
+      };
+      const response = await putMessage()
+        .set('x-pypestream-customer', genesysCustomerHeader)
+        .set('x-pypestream-integration', 'Genesys')
         .send(JSON.stringify(body));
 
       expect(response.statusCode).toEqual(204);
@@ -272,16 +286,30 @@ describe('MiddlewareApiController', () => {
     });
   });
 
-  it('/conversations/:conversationId/end (POST)', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/contactCenter/v1/conversations/conversation-123/end')
-      .set('Content-Type', 'application/json')
-      .set('User-Agent', 'supertest')
-      .set('Content-Type', 'application/octet-stream')
-      .set('x-pypestream-customer', serviceNowCustomerHeader)
-      .set('x-pypestream-integration', 'ServiceNow')
-      .send();
+  describe('/conversations/:conversationId/end (POST)', () => {
+    it('ServiceNow agent: End chat', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/contactCenter/v1/conversations/conversation-123/end')
+        .set('Content-Type', 'application/json')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream')
+        .set('x-pypestream-customer', serviceNowCustomerHeader)
+        .set('x-pypestream-integration', 'ServiceNow')
+        .send();
 
-    expect(response.statusCode).toEqual(204);
+      expect(response.statusCode).toEqual(204);
+    });
+    it('Genesys agent: End chat', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/contactCenter/v1/conversations/conversation-123/end')
+        .set('Content-Type', 'application/json')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream')
+        .set('x-pypestream-customer', genesysCustomerHeader)
+        .set('x-pypestream-integration', 'Genesys')
+        .send();
+
+      expect(response.statusCode).toEqual(204);
+    });
   });
 });

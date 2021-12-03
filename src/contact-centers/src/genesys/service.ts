@@ -128,6 +128,13 @@ export class GenesysService
           firstName: 'PS',
           lastName: 'User',
         },
+        metadata: {
+          customAttributes: {
+            customerAccountId: 'x123',
+            customerName: 'John Doe',
+            customerEmailAddress: 'test@test.com',
+          },
+        },
         time: new Date().toISOString(),
       },
       type: 'Text',
@@ -154,6 +161,13 @@ export class GenesysService
           idType: 'Opaque',
           firstName: 'PS',
           lastName: 'User',
+        },
+        metadata: {
+          customAttributes: {
+            customerAccountId: 'x123',
+            customerName: 'John Doe',
+            customerEmailAddress: 'test@test.com',
+          },
         },
         time: new Date().toISOString(),
       },
