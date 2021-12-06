@@ -1,17 +1,26 @@
-import { Controller, Post, Req, Res, HttpStatus } from '@nestjs/common';
-import { ServiceNowService } from './service';
+import {
+  Controller,
+  Post,
+  Req,
+  Res,
+  HttpStatus,
+  UseInterceptors,
+} from '@nestjs/common';
+import { ServiceNowService } from './service-now.service';
+import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 import { ServiceNowWebhookBody } from './types';
 import { Request, Response } from 'express';
 import { PostBody } from './dto';
 import { Body } from '@nestjs/common';
+import { BodyInterceptor } from '../common/interceptors/body.interceptor';
 
+@UseInterceptors(BodyInterceptor)
 @Controller('service-now')
 export class ServiceNowController {
-  private serviceNowService: ServiceNowService;
-
-  constructor() {
-    this.serviceNowService = new ServiceNowService();
-  }
+  constructor(
+    private readonly serviceNowService: ServiceNowService,
+    private readonly middlewareApiService: MiddlewareApiService,
+  ) {}
 
   @Post('webhook')
   async message(
@@ -19,23 +28,14 @@ export class ServiceNowController {
     @Res() res: Response,
     @Body() body: PostBody,
   ) {
-    const endUserService = this.serviceNowService.getEndUserService(
-      body as ServiceNowWebhookBody,
-    );
-    if (!endUserService) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .send({ message: 'Not able to get endUserService' });
-    }
     const requests = [];
 
     const hasChatEndedAction = this.serviceNowService.hasEndConversationAction(
       body as ServiceNowWebhookBody,
     );
     if (hasChatEndedAction) {
-      const endConversationRequest = await endUserService.endConversation(
-        body.clientSessionId,
-      );
+      const endConversationRequest =
+        await this.middlewareApiService.endConversation(body.clientSessionId);
       requests.push(endConversationRequest);
     }
     const hasNewMessageAction = this.serviceNowService.hasNewMessageAction(
@@ -51,7 +51,8 @@ export class ServiceNowController {
           },
         );
         if (message) {
-          const sendMessageRequest = endUserService.sendMessage(message);
+          const sendMessageRequest =
+            this.middlewareApiService.sendMessage(message);
           requests.push(sendMessageRequest);
         }
       }
@@ -64,7 +65,7 @@ export class ServiceNowController {
       const isTyping = this.serviceNowService.isTyping(
         body as ServiceNowWebhookBody,
       );
-      const sendTypingRequest = endUserService.sendTyping(
+      const sendTypingRequest = this.middlewareApiService.sendTyping(
         body.clientSessionId,
         isTyping,
       );

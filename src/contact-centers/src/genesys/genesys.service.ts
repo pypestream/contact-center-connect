@@ -1,19 +1,22 @@
 import {
   CccMessage,
-  EndUserServices,
   MessageType,
   SendMessageResponse,
 } from './../common/types';
-import {
-  Service,
-  GenericWebhookInterpreter,
-  AgentService,
-} from '../common/interfaces';
+import { Service, AgentService } from '../common/interfaces';
 import axios, { AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
 import { GenesysConfig, GenesysWebhookBody } from './types';
-import { MiddlewareApiService } from '../middleware-api/service';
+import { getCustomer } from '../common/utils/get-customer';
+import { InjectMiddlewareApi } from '../middleware-api/decorators';
+import { MiddlewareApi } from '../middleware-api/middleware-api';
+import { Request } from 'express';
+import { Inject } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import { Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 
 /* eslint-disable */
 const axiosRetry = require('axios-retry');
@@ -22,10 +25,10 @@ const qs = require('qs');
 
 axiosRetry(axios, { retries: 3 });
 
+@Injectable({ scope: Scope.REQUEST })
 export class GenesysService
   implements
     Service<GenesysWebhookBody, GenesysWebhookBody, GenesysWebhookBody>,
-    GenericWebhookInterpreter<GenesysWebhookBody>,
     AgentService
 {
   _genesysConfig: GenesysConfig;
@@ -46,31 +49,29 @@ export class GenesysService
    * @param genesysConfig
    */
   constructor(
-    genesysConfig: GenesysConfig = {
-      instanceUrl: '',
-      oAuthUrl: '',
-      clientId: '',
-      clientSecret: '',
-      grantType: '',
-      OMIntegrationId: '',
-    },
+    @Inject(REQUEST) private readonly request: Request,
+    @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
+    private httpService: HttpService,
   ) {
-    this._genesysConfig = genesysConfig;
-    if (genesysConfig.instanceUrl) {
-      this._url = `${genesysConfig.instanceUrl}/api/v2/conversations/messages/inbound/open`;
+    const base64Customer = this.request.headers['x-pypestream-customer'];
+    if (typeof base64Customer !== 'string') {
+      return null;
+    }
+    const customer = getCustomer(base64Customer);
+    this._genesysConfig = customer;
+    if (customer.instanceUrl) {
+      this._url = `${customer.instanceUrl}/api/v2/conversations/messages/inbound/open`;
     } else {
       this._url = '';
     }
-    this._oAuthUrl = genesysConfig.oAuthUrl
-      ? `${genesysConfig.oAuthUrl}/oauth/token`
+    this._oAuthUrl = customer.oAuthUrl
+      ? `${customer.oAuthUrl}/oauth/token`
       : '';
-    this._clientId = genesysConfig.clientId ? genesysConfig.clientId : '';
-    this._clientSecret = genesysConfig.clientSecret
-      ? genesysConfig.clientSecret
-      : '';
-    this._grantType = genesysConfig.grantType ? genesysConfig.grantType : '';
-    this._OMIntegrationId = genesysConfig.OMIntegrationId
-      ? genesysConfig.OMIntegrationId
+    this._clientId = customer.clientId ? customer.clientId : '';
+    this._clientSecret = customer.clientSecret ? customer.clientSecret : '';
+    this._grantType = customer.grantType ? customer.grantType : '';
+    this._OMIntegrationId = customer.OMIntegrationId
+      ? customer.OMIntegrationId
       : '';
   }
 
@@ -85,7 +86,9 @@ export class GenesysService
       client_id: this._clientId,
       client_secret: this._clientSecret,
     };
-    const res = await axios.post(this._oAuthUrl, qs.stringify(reqBody));
+    const res = await this.httpService
+      .post(this._oAuthUrl, qs.stringify(reqBody))
+      .toPromise();
     this._accessToken = res.data.access_token;
     return this._accessToken;
   }
@@ -220,13 +223,13 @@ export class GenesysService
       Authorization: 'Bearer ' + token,
     };
     // console.log('MEssage: ', message)
-    const res = await axios.post(
+    const res = this.httpService.post(
       this._url,
       this.getMessageRequestBody(message),
       { headers: headers },
     );
 
-    return res;
+    return res.toPromise();
   }
   /**
    * End conversation
@@ -252,11 +255,13 @@ export class GenesysService
     );
     if (!genesysConversationId) return res;
 
-    return await axios.patch(
-      `${this._genesysConfig.instanceUrl}/api/v2/conversations/chats/${genesysConversationId}`,
-      { state: 'disconnected' },
-      { headers: headers },
-    );
+    return this.httpService
+      .patch(
+        `${this._genesysConfig.instanceUrl}/api/v2/conversations/chats/${genesysConversationId}`,
+        { state: 'disconnected' },
+        { headers: headers },
+      )
+      .toPromise();
   }
   /**
    * Start new conversation with initial message
@@ -274,39 +279,11 @@ export class GenesysService
       Authorization: 'Bearer ' + token,
     };
     // console.log('Message: ', message)
-    return await axios.post(
-      this._url,
-      this.startConversationRequestBody(message),
-      { headers: headers },
-    );
-  }
-  /**
-   * Update Typing indicator in agent side
-   * @param message
-   */
-
-  async sendTyping(
-    conversationId: string,
-    isTyping: boolean,
-  ): Promise<AxiosResponse<SendMessageResponse>> {
-    if (!this._url) {
-      throw new Error('Genesys.sendTyping instance-url must has value');
-    }
-
-    if (!conversationId) {
-      throw new Error(
-        'Genesys.sendTyping conversationId param is required parameter',
-      );
-    }
-    throw 'Genesys.sendTyping is not available yet.';
-  }
-
-  getEndUserService(): EndUserServices {
-    const service = new MiddlewareApiService({
-      url: process.env.MIDDLEWARE_API_URL,
-      token: process.env.MIDDLEWARE_API_TOKEN,
-    });
-    return service;
+    return this.httpService
+      .post(this._url, this.startConversationRequestBody(message), {
+        headers: headers,
+      })
+      .toPromise();
   }
 
   /**
@@ -340,49 +317,11 @@ export class GenesysService
   }
 
   /**
-   * Determine if request body has `end conversation` action
-   * @param message
-   */
-  hasEndConversationAction(message: GenesysWebhookBody): boolean {
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Determine if request body has `typing indicator` action
-   * @param message
-   */
-  hasTypingIndicatorAction(message: GenesysWebhookBody): boolean {
-    throw new Error('Not implemented');
-  }
-  /**
-   * Determine if agent is typing or viewing based on request body
-   * @param message
-   */
-  isTyping(message: GenesysWebhookBody): boolean {
-    throw new Error('Not implemented');
-  }
-  /**
    * Determine if agent is available to receive new message
    * @param message
    */
   isAvailable(skill: string): boolean {
     return !!skill;
-  }
-
-  /**
-   * Determine if request body has `wait time` info
-   * @param message
-   */
-  hasWaitTime(message: GenesysWebhookBody): boolean {
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Return estimated wait time in seconds
-   * @param message
-   */
-  getWaitTime(message: GenesysWebhookBody): string {
-    throw new Error('Not implemented');
   }
 
   escalate(): boolean {

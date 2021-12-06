@@ -1,6 +1,5 @@
 import {
   CccMessage,
-  EndUserServices,
   MessageType,
   SendMessageResponse,
 } from './../common/types';
@@ -19,13 +18,23 @@ import {
   StartWaitTimeSpinnerType,
   ServiceNowConfig,
 } from './types';
-import { MiddlewareApiService } from '../middleware-api/service';
+import { Inject, Injectable } from '@nestjs/common';
+import { Scope } from '@nestjs/common';
+import { InjectMiddlewareApi } from '../middleware-api/decorators';
+import { MiddlewareApi } from '../middleware-api/middleware-api';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
+import { getCustomer } from '../common/utils/get-customer';
+import { HttpService } from '@nestjs/axios';
 
 // eslint-disable-next-line
 const axiosRetry = require('axios-retry');
 
 axiosRetry(axios, { retries: 3 });
 
+@Injectable({
+  scope: Scope.REQUEST,
+})
 export class ServiceNowService
   implements
     Service<
@@ -48,14 +57,28 @@ export class ServiceNowService
    * @param cccConfig
    * @param serviceNowConfig
    */
-  constructor(serviceNowConfig: ServiceNowConfig = {}) {
-    this.serviceNowConfig = serviceNowConfig;
-    if (serviceNowConfig.instanceUrl) {
-      this.url = `${serviceNowConfig.instanceUrl}/api/sn_va_as_service/bot/integration`;
+  constructor(
+    @Inject(REQUEST) private readonly request: Request,
+    @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
+    private httpService: HttpService,
+  ) {
+    const base64Customer = this.request.headers['x-pypestream-customer'];
+    if (typeof base64Customer !== 'string') {
+      return null;
+    }
+    const customer = getCustomer(base64Customer);
+    this.serviceNowConfig = {
+      ...customer,
+      ...this.middlewareApi.config,
+    };
+
+    if (this.serviceNowConfig.instanceUrl) {
+      this.url = `${this.serviceNowConfig.instanceUrl}/api/sn_va_as_service/bot/integration`;
     } else {
       this.url = '';
     }
   }
+
   /**
    * @ignore
    */
@@ -141,31 +164,34 @@ export class ServiceNowService
    * Send message to ServiceNow
    * @param message
    */
-  async sendMessage(
+  sendMessage(
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
     if (!this.serviceNowConfig.instanceUrl) {
       throw new Error('Servicenow.sendMessage instance-url must has value');
     }
-    const res = await axios.post(this.url, this.getMessageRequestBody(message));
+    const res = this.httpService.post(
+      this.url,
+      this.getMessageRequestBody(message),
+    );
 
-    return res;
+    return res.toPromise();
   }
   /**
    * End conversation
    * @param conversationId
    */
-  async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
+  endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     if (!this.serviceNowConfig.instanceUrl) {
       throw new Error('Servicenow.endConversation instance-url must has value');
     }
 
-    const res = await axios.post(
+    const res = this.httpService.post(
       this.url,
       this.getEndConversationRequestBody(conversationId),
     );
 
-    return res;
+    return res.toPromise();
   }
   /**
    * Start new conversation with initial message
@@ -181,13 +207,17 @@ export class ServiceNowService
       );
     }
 
-    await axios.post(this.url, this.startConversationRequestBody(message));
+    const startConversation = this.httpService.post(
+      this.url,
+      this.startConversationRequestBody(message),
+    );
+    await startConversation.toPromise();
 
-    const res = await axios.post(
+    const res = this.httpService.post(
       this.url,
       this.switchToAgentRequestBody(message),
     );
-    return res;
+    return res.toPromise();
   }
   /**
    * @ignore
@@ -222,7 +252,7 @@ export class ServiceNowService
    * @param message
    */
 
-  async sendTyping(
+  sendTyping(
     conversationId: string,
     isTyping: boolean,
   ): Promise<AxiosResponse<SendMessageResponse>> {
@@ -236,24 +266,12 @@ export class ServiceNowService
       );
     }
 
-    const res = await axios.post(
+    const res = this.httpService.post(
       this.url,
       this.getTypingRequestBody(conversationId, isTyping),
     );
 
-    return res;
-  }
-
-  getEndUserService(body): EndUserServices {
-    const configs = body.clientVariables;
-    if (!configs) {
-      return null;
-    }
-    const service = new MiddlewareApiService({
-      url: configs.middlewareApiUrl,
-      token: configs.token,
-    });
-    return service;
+    return res.toPromise();
   }
 
   /**

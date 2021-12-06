@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MiddlewareApiController } from './middleware-api.controller';
 import { CccModule } from '../../ccc-module';
-import { INestApplication } from '@nestjs/common';
+import { forwardRef, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { components } from './types';
 import { PutSettingsBody } from './dto';
@@ -9,6 +9,8 @@ import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { MiddlewareApiCoreModule } from './middleware-api-core.module';
 import { MiddlewareApiModule } from './middleware-api.module';
+import { AgentFactoryModule } from '../agent-factory/agent-factory.module';
+import { HttpModule } from '@nestjs/axios';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
@@ -25,6 +27,8 @@ describe('MiddlewareApiController', () => {
           url: 'https://mock-server.middleware.com',
           token: 'fake token',
         }),
+        forwardRef(() => AgentFactoryModule),
+        HttpModule,
       ],
       providers: [
         {

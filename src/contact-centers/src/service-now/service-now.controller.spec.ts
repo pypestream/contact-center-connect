@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServiceNowController } from './service-now.controller';
-import { INestApplication } from '@nestjs/common';
+import { forwardRef, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ServiceNowModule } from './service-now.module';
 import { ServiceNowConfig } from './types';
+import { CccModule } from '../../ccc-module';
 
 const serviceNowConfig: ServiceNowConfig = {
   instanceUrl: 'https://mock-server.service-now.com',
@@ -19,14 +20,14 @@ describe('ServiceNowController', () => {
 
   beforeEach(async () => {
     let moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [ServiceNowController],
-      imports: [ServiceNowModule],
-      providers: [
-        {
-          provide: APP_PIPE,
-          useClass: ValidationPipe,
-        },
+      controllers: [],
+      imports: [
+        CccModule.forRoot({
+          url: 'https://mock-server.middleware.com',
+          token: 'fake token',
+        }),
       ],
+      providers: [],
     }).compile();
 
     app = moduleFixture.createNestApplication();

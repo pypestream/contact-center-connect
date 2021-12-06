@@ -1,15 +1,9 @@
-import { Controller, Get, Render, Inject } from '@nestjs/common';
-import { MiddlewareApiService } from './service';
-import { MiddlewareApiToken } from './constants';
-import { MiddlewareApi } from './middleware-api';
+import { Controller, Get, Render } from '@nestjs/common';
+import { MiddlewareApiService } from './middleware-api.service';
 
 @Controller()
 export class MiddlewareUiController {
-  private readonly middlewareApiService: MiddlewareApiService;
-
-  constructor(@Inject(MiddlewareApiToken) middlewareApi: MiddlewareApi) {
-    this.middlewareApiService = new MiddlewareApiService(middlewareApi.config);
-  }
+  constructor(private readonly middlewareApiService: MiddlewareApiService) {}
 
   @Get('')
   @Render('homepage')
