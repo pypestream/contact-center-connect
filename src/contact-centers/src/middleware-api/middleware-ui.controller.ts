@@ -17,4 +17,12 @@ export class MiddlewareUiController {
     const sendMessageRes = await this.middlewareApiService.getSettings();
     return { message: JSON.stringify(sendMessageRes.data) };
   }
+
+  @Get('env')
+  async env() {
+    return {
+      MIDDLEWARE_API_TOKEN: process.env.MIDDLEWARE_API_TOKEN,
+      MIDDLEWARE_API_URL: process.env.MIDDLEWARE_API_URL,
+    };
+  }
 }
