@@ -11,10 +11,15 @@ export class GenesysWebsocket {
   private isConnect = false;
 
   constructor() {
-    this.setupConnection().then(() => {
-      // eslint-disable-next-line
-      console.log('Genesys websocket connection established');
-    });
+    // disable WS in test env
+    // https://github.com/mswjs/msw/issues/156#issuecomment-691454902
+    // they will support WS soon
+    if (process.env.NODE_ENV !== 'test') {
+      this.setupConnection().then(() => {
+        // eslint-disable-next-line
+        console.log('Genesys websocket connection established');
+      });
+    }
   }
 
   async setupConnection() {
