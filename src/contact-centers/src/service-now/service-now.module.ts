@@ -2,22 +2,21 @@ import { ValidationPipe } from '@nestjs/common';
 import { Module } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { ServiceNowController } from './service-now.controller';
-import { BodyMiddleware } from '../common/middlewares/body-middleware';
-import { MiddlewareConsumer } from '@nestjs/common';
+import { ServiceNowService } from './service-now.service';
+import { MiddlewareApiModule } from '../middleware-api/middleware-api.module';
+import { forwardRef } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [],
+  imports: [forwardRef(() => MiddlewareApiModule), HttpModule],
   providers: [
     {
       provide: APP_PIPE,
       useClass: ValidationPipe,
     },
+    ServiceNowService,
   ],
   controllers: [ServiceNowController],
-  exports: [],
+  exports: [ServiceNowService],
 })
-export class ServiceNowModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(BodyMiddleware).forRoutes(ServiceNowController);
-  }
-}
+export class ServiceNowModule {}

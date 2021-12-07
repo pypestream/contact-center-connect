@@ -1,106 +1,57 @@
-import { Service, EndUserService } from '../common/interfaces';
-import {
-  CccMessage,
-  EndUserServices,
-  AgentServices,
-  MessageType,
-  SendMessageResponse,
-} from '../common/types';
-import axis, { AxiosResponse } from 'axios';
+import { Service } from '../common/interfaces';
+import { CccMessage, MessageType, SendMessageResponse } from '../common/types';
 import {
   ContactCenterProApiWebhookBody,
   MiddlewareApiConfig,
   SettingsObject,
 } from './types';
 import { components } from './types/openapi-types';
-import { ServiceNowService } from '../service-now/service';
-import { GenesysService } from '../genesys/service';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { InjectMiddlewareApi } from './decorators/index';
+import { MiddlewareApi } from './middleware-api';
+import { AxiosResponse } from 'axios';
+import { HttpService } from '@nestjs/axios';
 
 /**
  * MiddlewareApi service
  */
+@Injectable()
 export class MiddlewareApiService
   implements
     Service<
       components['schemas']['Message'],
       components['schemas']['Message'],
       components['schemas']['Message']
-    >,
-    EndUserService
+    >
 {
   config: MiddlewareApiConfig;
 
-  constructor(config?: MiddlewareApiConfig) {
-    this.config = config;
-  }
-
-  getCustomer(req) {
-    const base64Customer = req.headers['x-pypestream-customer'];
-    if (!base64Customer) {
-      throw new Error('x-pypestream-customer header is null');
-    }
-    const stringifyCustomer = Buffer.from(base64Customer, 'base64').toString(
-      'ascii',
-    );
-    const customer = JSON.parse(stringifyCustomer);
-    return customer;
-  }
-
-  getAgentService(req, endUserService: EndUserServices): AgentServices {
-    const integrationName = req.headers['x-pypestream-integration'];
-    // console.log(integrationName)
-    if (!integrationName) {
-      throw new HttpException(
-        'x-pypestream-integration header is null',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const configs = this.getCustomer(req);
-    // console.log(configs)
-    if (integrationName === 'ServiceNow') {
-      return new ServiceNowService({
-        instanceUrl: configs.instanceUrl,
-        token: endUserService.config.token,
-        middlewareApiUrl: endUserService.config.url,
-      });
-    }
-
-    if (integrationName === 'Genesys') {
-      return new GenesysService({
-        instanceUrl: configs.instanceUrl,
-        token: endUserService.config.token,
-        middlewareApiUrl: endUserService.config.url,
-        oAuthUrl: configs.oAuthUrl,
-        clientId: configs.clientId,
-        clientSecret: configs.clientSecret,
-        grantType: configs.grantType,
-        OMIntegrationId: configs.OMIntegrationId,
-      });
-    }
-
-    return null;
+  constructor(
+    @InjectMiddlewareApi() middlewareApi: MiddlewareApi,
+    private httpService: HttpService,
+  ) {
+    this.config = middlewareApi.config;
   }
 
   /**
    * End conversation
    * @param conversationId
    */
-  async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
+  endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
-    const res = await axis.post(
-      `${this.config.url}/contactCenter/v1/conversations/${conversationId}/end`,
-      { senderId: 'test-agent' },
-      {
-        headers: {
-          'x-pypestream-token': this.config.token,
+    return this.httpService
+      .post(
+        `${this.config.url}/contactCenter/v1/conversations/${conversationId}/end`,
+        { senderId: 'test-agent' },
+        {
+          headers: {
+            'x-pypestream-token': this.config.token,
+          },
         },
-      },
-    );
-    return res;
+      )
+      .toPromise();
   }
 
   /**
@@ -151,19 +102,20 @@ export class MiddlewareApiService
    * Send message to MiddlewareApi
    * @param message
    */
-  async sendMessage(
+  sendMessage(
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    const res = await axis.put(
-      `${this.config.url}/contactCenter/v1/conversations/${message.conversationId}/messages/${message.message.id}`,
-      this.getMessageRequestBody(message),
-      {
-        headers: {
-          'x-pypestream-token': this.config.token,
+    return this.httpService
+      .put(
+        `${this.config.url}/contactCenter/v1/conversations/${message.conversationId}/messages/${message.message.id}`,
+        this.getMessageRequestBody(message),
+        {
+          headers: {
+            'x-pypestream-token': this.config.token,
+          },
         },
-      },
-    );
-    return res;
+      )
+      .toPromise();
   }
   /**
    * Convert posted body to CCC message
@@ -192,30 +144,26 @@ export class MiddlewareApiService
     return message.completed;
   }
 
-  async getSettings(): Promise<
-    AxiosResponse<components['schemas']['Setting']>
-  > {
+  getSettings(): Promise<AxiosResponse<components['schemas']['Setting']>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
-    const result = await axis.get(
-      `${this.config.url}/contactCenter/v1/settings`,
-      {
+    return this.httpService
+      .get(`${this.config.url}/contactCenter/v1/settings`, {
         headers: {
           'x-pypestream-token': this.config.token,
         },
-      },
-    );
-    return result;
+      })
+      .toPromise();
   }
 
-  async putSettings(
+  putSettings(
     data: SettingsObject,
   ): Promise<AxiosResponse<components['schemas']['Setting']>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
-    const result = await axis.put(
+    const result = this.httpService.put(
       `${this.config.url}/contactCenter/v1/settings`,
       data,
       {
@@ -224,19 +172,19 @@ export class MiddlewareApiService
         },
       },
     );
-    return result;
+    return result.toPromise();
   }
   /**
    * Get history of conversation
    * @param conversationId
    */
-  async history(
+  history(
     conversationId: string,
   ): Promise<AxiosResponse<components['schemas']['History']>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
-    const response = await axis.get(
+    const response = this.httpService.get(
       `${this.config.url}/contactCenter/v1/conversations/${conversationId}/history`,
       {
         headers: {
@@ -245,17 +193,17 @@ export class MiddlewareApiService
       },
     );
 
-    return response;
+    return response.toPromise();
   }
 
   /**
    * Get history of conversation
    */
-  async waitTime(): Promise<AxiosResponse<components['schemas']['WaitTime']>> {
+  waitTime(): Promise<AxiosResponse<components['schemas']['WaitTime']>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
-    const response = await axis.get(
+    const response = this.httpService.get(
       `${this.config.url}/contactCenter/v1/agents/waitTime`,
       {
         headers: {
@@ -264,7 +212,7 @@ export class MiddlewareApiService
       },
     );
 
-    return response;
+    return response.toPromise();
   }
 
   /**
@@ -272,7 +220,7 @@ export class MiddlewareApiService
    * @param conversationId
    * @param isTyping
    */
-  async sendTyping(
+  sendTyping(
     conversationId: string,
     isTyping: boolean,
   ): Promise<AxiosResponse<SendMessageResponse>> {
@@ -285,7 +233,7 @@ export class MiddlewareApiService
       );
       return null;
     }
-    const response = await axis.post(
+    const response = this.httpService.post(
       `${this.config.url}/contactCenter/v1/conversations/${conversationId}/type`,
       {
         typing: isTyping,
@@ -296,6 +244,6 @@ export class MiddlewareApiService
         },
       },
     );
-    return response;
+    return response.toPromise();
   }
 }

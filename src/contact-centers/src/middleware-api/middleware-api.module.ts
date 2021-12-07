@@ -1,44 +1,31 @@
 import { DynamicModule, ValidationPipe } from '@nestjs/common';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { MiddlewareApiController } from './middleware-api.controller';
 import { MiddlewareUiController } from './middleware-ui.controller';
 import { MiddlewareApiCoreModule } from './middleware-api-core.module';
+import { MiddlewareApiService } from './middleware-api.service';
 import { MiddlewareApiConfig } from './types';
 import { MiddlewareApiAsyncOptions } from './interfaces';
-import { BodyMiddleware } from '../common/middlewares/body-middleware';
-import { MiddlewareConsumer } from '@nestjs/common';
+import { AgentFactoryModule } from '../agent-factory/agent-factory.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [
-    MiddlewareApiCoreModule.forRoot({
-      url: process.env.MIDDLEWARE_API_URL,
-      token: process.env.MIDDLEWARE_API_TOKEN,
-    }),
-  ],
+  imports: [forwardRef(() => AgentFactoryModule), HttpModule],
   providers: [
     {
       provide: APP_PIPE,
       useClass: ValidationPipe,
     },
+    MiddlewareApiService,
   ],
   controllers: [MiddlewareApiController, MiddlewareUiController],
-  exports: [],
+  exports: [MiddlewareApiService],
 })
 export class MiddlewareApiModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(BodyMiddleware).forRoutes(MiddlewareApiController);
-  }
   public static forRoot(options: MiddlewareApiConfig): DynamicModule {
     return {
       module: MiddlewareApiModule,
-      providers: [
-        {
-          provide: APP_PIPE,
-          useClass: ValidationPipe,
-        },
-      ],
-      controllers: [MiddlewareApiController, MiddlewareUiController],
       imports: [MiddlewareApiCoreModule.forRoot(options)],
     };
   }
@@ -48,14 +35,7 @@ export class MiddlewareApiModule {
   ): DynamicModule {
     return {
       module: MiddlewareApiModule,
-      controllers: [MiddlewareApiController, MiddlewareUiController],
       imports: [MiddlewareApiCoreModule.forRootAsync(options)],
-      providers: [
-        {
-          provide: APP_PIPE,
-          useClass: ValidationPipe,
-        },
-      ],
     };
   }
 }

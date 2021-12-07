@@ -8,7 +8,7 @@ export interface GenericWebhookInterpreter<T> {
    * Determine if request body contains EndConversation action
    * @param body
    */
-  hasEndConversationAction(body: T): boolean;
+  hasEndConversationAction?(body: T): boolean;
   /**
    * Determine if request body contains NewMessage action
    * @param body
@@ -18,10 +18,10 @@ export interface GenericWebhookInterpreter<T> {
    * Determine if request body contains TypingIndicator action
    * @param body
    */
-  hasTypingIndicatorAction(body: T): boolean;
+  hasTypingIndicatorAction?(body: T): boolean;
   /**
    * Determine if request body contains WaitTime action
    * @param body
    */
-  hasWaitTime(body: T): boolean;
+  hasWaitTime?(body: T): boolean;
 }

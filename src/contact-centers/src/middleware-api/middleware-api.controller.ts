@@ -3,7 +3,6 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Inject,
   Param,
   Post,
   Put,
@@ -20,21 +19,23 @@ import {
 } from './dto';
 
 import { Response, Request } from 'express';
-import { MiddlewareApi } from './middleware-api';
 import { MessageType, AgentServices } from '../common/types';
 import { components, operations } from './types/openapi-types';
-import { MiddlewareApiService } from './service';
+import { MiddlewareApiService } from './middleware-api.service';
 
-import { MiddlewareApiToken } from './constants';
 import { Body } from '@nestjs/common';
+import { GenesysService } from '../genesys/genesys.service';
+import { AgentFactoryService } from '../agent-factory/agent-factory.service';
+import { UseInterceptors } from '@nestjs/common';
+import { BodyInterceptor } from '../common/interceptors/body.interceptor';
 
+@UseInterceptors(BodyInterceptor)
 @Controller('contactCenter/v1')
 export class MiddlewareApiController {
-  private readonly middlewareApiService: MiddlewareApiService;
-
-  constructor(@Inject(MiddlewareApiToken) middlewareApi: MiddlewareApi) {
-    this.middlewareApiService = new MiddlewareApiService(middlewareApi.config);
-  }
+  constructor(
+    private readonly agentFactoryService: AgentFactoryService,
+    private readonly middlewareApiService: MiddlewareApiService,
+  ) {}
 
   @Put('settings')
   async putSettings(
@@ -58,7 +59,6 @@ export class MiddlewareApiController {
   @Get('/agents/availability')
   async availability(
     @Query() query: operations['checkAgentAvailability']['parameters']['query'],
-    @Req() req: Request,
   ): Promise<components['schemas']['AgentAvailability']> {
     if (!query.skill) {
       throw new HttpException(
@@ -66,10 +66,8 @@ export class MiddlewareApiController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const agentService: AgentServices = this.middlewareApiService.getAgentService(
-      req,
-      this.middlewareApiService,
-    );
+    const agentService: AgentServices =
+      this.agentFactoryService.getAgentService();
     const isAvailable = agentService.isAvailable(query.skill);
     return {
       available: isAvailable,
@@ -104,19 +102,17 @@ export class MiddlewareApiController {
   ) {
     const historyResponse = await this.middlewareApiService
       .history(conversationId)
-      .catch(err => {
+      .catch(() => {
         return {
           data: { messages: [] },
         };
       });
 
     try {
-      const agentService: AgentServices = this.middlewareApiService.getAgentService(
-        req,
-        this.middlewareApiService,
-      );
+      const agentService: AgentServices =
+        this.agentFactoryService.getAgentService();
       const history: string = historyResponse.data.messages
-        .map(m => m.content)
+        .map((m) => m.content)
         .join('\r\n');
       const messageId = uuidv4();
       const message = {
@@ -159,17 +155,11 @@ export class MiddlewareApiController {
     @Res() res: Response,
     @Body() body: PostTypingBody,
   ) {
-    const agentService: AgentServices = this.middlewareApiService.getAgentService(
-      req,
-      this.middlewareApiService,
-    );
-    await agentService.sendTyping(conversationId, body.typing).catch(error => {
-      // eslint-disable-next-line
-      console.error(
-        'Not able to reset typing indicator before end conversation  error:',
-        error.message,
-      );
-    });
+    const agentService: AgentServices =
+      this.agentFactoryService.getAgentService();
+    if (!(agentService instanceof GenesysService)) {
+      await agentService.sendTyping(conversationId, body.typing);
+    }
     res.status(HttpStatus.NO_CONTENT).end();
   }
 
@@ -186,17 +176,12 @@ export class MiddlewareApiController {
       messageId,
     });
 
-    const agentService: AgentServices = this.middlewareApiService.getAgentService(
-      req,
-      this.middlewareApiService,
-    );
+    const agentService: AgentServices =
+      this.agentFactoryService.getAgentService();
 
-    await agentService.sendTyping(conversationId, false).catch(error => {
-      console.error(
-        'Not able to reset typing indicator before end conversation  error:',
-        error.message,
-      );
-    });
+    if (!(agentService instanceof GenesysService)) {
+      await agentService.sendTyping(conversationId, false);
+    }
     await agentService.sendMessage(cccMessage);
 
     return res.status(HttpStatus.NO_CONTENT).end();
@@ -208,17 +193,10 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const service: AgentServices = this.middlewareApiService.getAgentService(
-      req,
-      this.middlewareApiService,
-    );
-    await service.sendTyping(conversationId, false).catch(error => {
-      // eslint-disable-next-line
-      console.error(
-        'Not able to reset typing indicator before end conversation  error:',
-        error.message,
-      );
-    });
+    const service: AgentServices = this.agentFactoryService.getAgentService();
+    if (!(service instanceof GenesysService)) {
+      await service.sendTyping(conversationId, false);
+    }
     await service.endConversation(conversationId);
     return res.status(HttpStatus.NO_CONTENT).end();
   }

@@ -1,17 +1,26 @@
-import { Controller, Post, Req, Res, HttpStatus } from '@nestjs/common';
-import { GenesysService } from './service';
+import {
+  Controller,
+  Post,
+  Req,
+  Res,
+  HttpStatus,
+  UseInterceptors,
+} from '@nestjs/common';
+import { GenesysService } from './genesys.service';
+import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 import { GenesysWebhookBody } from './types';
 import { Request, Response } from 'express';
 import { PostBody } from './dto';
 import { Body } from '@nestjs/common';
+import { BodyInterceptor } from '../common/interceptors/body.interceptor';
 
+@UseInterceptors(BodyInterceptor)
 @Controller('genesys')
 export class GenesysController {
-  private genesysService: GenesysService;
-
-  constructor() {
-    this.genesysService = new GenesysService();
-  }
+  constructor(
+    private readonly genesysService: GenesysService,
+    private readonly middlewareApiService: MiddlewareApiService,
+  ) {}
 
   @Post('webhook')
   async message(
@@ -22,8 +31,6 @@ export class GenesysController {
     if (body.type === 'Receipt') {
       return res.status(HttpStatus.OK).send({ message: 'Receipt' });
     }
-
-    const endUserService = this.genesysService.getEndUserService();
 
     const requests = [];
 
@@ -36,7 +43,8 @@ export class GenesysController {
         body as GenesysWebhookBody,
       );
       if (message) {
-        const sendMessageRequest = endUserService.sendMessage(message);
+        const sendMessageRequest =
+          this.middlewareApiService.sendMessage(message);
         requests.push(sendMessageRequest);
       }
     }

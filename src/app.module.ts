@@ -3,8 +3,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { CccModule } from './contact-centers/ccc-module';
-import { BodyMiddleware } from './contact-centers/src/common/middlewares/body-middleware';
-import { MiddlewareConsumer } from '@nestjs/common';
 
 @Module({
   imports: [
