@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsObject } from 'class-validator';
+import { IsArray, IsNotEmpty } from 'class-validator';
 import { ServiceNowWebhookBodyItem, Message } from '../types';
 
 export class PostBody {

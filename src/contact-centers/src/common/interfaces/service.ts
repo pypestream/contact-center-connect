@@ -33,7 +33,7 @@ export interface Service<T, Y, Z> {
    * Determine if user/agent is typing or viewing based on request body
    * @param message
    */
-  isTyping(body: Y): boolean;
+  isTyping?(body: Y): boolean;
 
   /**
    * Determine if user/agent is available to receive new message
@@ -45,14 +45,14 @@ export interface Service<T, Y, Z> {
    * Return estimated wait time in seconds
    * @param message
    */
-  getWaitTime(body: Z): string;
+  getWaitTime?(body: Z): string;
 
   /**
    * Send is typing indicator to service
    * @param conversationId
    * @param isTyping
    */
-  sendTyping(
+  sendTyping?(
     conversationId: string,
     isTyping: boolean,
   ): Promise<AxiosResponse<SendMessageResponse>>;

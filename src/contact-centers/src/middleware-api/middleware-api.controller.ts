@@ -3,12 +3,10 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Inject,
   Param,
   Post,
   Put,
   Query,
-  Render,
   Req,
   Res,
 } from '@nestjs/common';
@@ -21,23 +19,23 @@ import {
 } from './dto';
 
 import { Response, Request } from 'express';
-import { Ccc } from '../../ccc';
 import { MessageType, AgentServices } from '../common/types';
 import { components, operations } from './types/openapi-types';
-import { MiddlewareApiService } from './service';
+import { MiddlewareApiService } from './middleware-api.service';
 
-import { cccToken } from '../common/constants';
 import { Body } from '@nestjs/common';
+import { GenesysService } from '../genesys/genesys.service';
+import { AgentFactoryService } from '../agent-factory/agent-factory.service';
+import { UseInterceptors } from '@nestjs/common';
+import { BodyInterceptor } from '../common/interceptors/body.interceptor';
 
+@UseInterceptors(BodyInterceptor)
 @Controller('contactCenter/v1')
 export class MiddlewareApiController {
-  private readonly ccc: Ccc;
-
-  private readonly middlewareApiService: MiddlewareApiService;
-  constructor(@Inject(cccToken) ccc: Ccc) {
-    this.ccc = ccc;
-    this.middlewareApiService = new MiddlewareApiService(ccc.middlewareApi);
-  }
+  constructor(
+    private readonly agentFactoryService: AgentFactoryService,
+    private readonly middlewareApiService: MiddlewareApiService,
+  ) {}
 
   @Put('settings')
   async putSettings(
@@ -61,7 +59,6 @@ export class MiddlewareApiController {
   @Get('/agents/availability')
   async availability(
     @Query() query: operations['checkAgentAvailability']['parameters']['query'],
-    @Req() req: Request,
   ): Promise<components['schemas']['AgentAvailability']> {
     if (!query.skill) {
       throw new HttpException(
@@ -70,7 +67,7 @@ export class MiddlewareApiController {
       );
     }
     const agentService: AgentServices =
-      this.middlewareApiService.getAgentService(req, this.middlewareApiService);
+      this.agentFactoryService.getAgentService();
     const isAvailable = agentService.isAvailable(query.skill);
     return {
       available: isAvailable,
@@ -105,7 +102,7 @@ export class MiddlewareApiController {
   ) {
     const historyResponse = await this.middlewareApiService
       .history(conversationId)
-      .catch((err) => {
+      .catch(() => {
         return {
           data: { messages: [] },
         };
@@ -113,10 +110,7 @@ export class MiddlewareApiController {
 
     try {
       const agentService: AgentServices =
-        this.middlewareApiService.getAgentService(
-          req,
-          this.middlewareApiService,
-        );
+        this.agentFactoryService.getAgentService();
       const history: string = historyResponse.data.messages
         .map((m) => m.content)
         .join('\r\n');
@@ -147,8 +141,8 @@ export class MiddlewareApiController {
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        errors: [ex.response.data],
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        errors: [ex.message],
         message: ex.message,
       });
     }
@@ -162,8 +156,10 @@ export class MiddlewareApiController {
     @Body() body: PostTypingBody,
   ) {
     const agentService: AgentServices =
-      this.middlewareApiService.getAgentService(req, this.middlewareApiService);
-    await agentService.sendTyping(conversationId, body.typing);
+      this.agentFactoryService.getAgentService();
+    if (!(agentService instanceof GenesysService)) {
+      await agentService.sendTyping(conversationId, body.typing);
+    }
     res.status(HttpStatus.NO_CONTENT).end();
   }
 
@@ -179,9 +175,13 @@ export class MiddlewareApiController {
       conversationId,
       messageId,
     });
+
     const agentService: AgentServices =
-      this.middlewareApiService.getAgentService(req, this.middlewareApiService);
-    await agentService.sendTyping(cccMessage.conversationId, false);
+      this.agentFactoryService.getAgentService();
+
+    if (!(agentService instanceof GenesysService)) {
+      await agentService.sendTyping(conversationId, false);
+    }
     await agentService.sendMessage(cccMessage);
 
     return res.status(HttpStatus.NO_CONTENT).end();
@@ -193,11 +193,10 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const service: AgentServices = this.middlewareApiService.getAgentService(
-      req,
-      this.middlewareApiService,
-    );
-    await service.sendTyping(conversationId, false);
+    const service: AgentServices = this.agentFactoryService.getAgentService();
+    if (!(service instanceof GenesysService)) {
+      await service.sendTyping(conversationId, false);
+    }
     await service.endConversation(conversationId);
     return res.status(HttpStatus.NO_CONTENT).end();
   }
