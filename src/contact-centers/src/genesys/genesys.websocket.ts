@@ -44,8 +44,15 @@ export class GenesysWebsocket {
         },
       },
     );
-    const { connectUri, expires } = channel.data;
+    const { connectUri, expires, id } = channel.data;
     this.connect(connectUri);
+    this.subscribeToChannel(
+      id,
+      config.getChannelUrl,
+      config.queueId,
+      token_type,
+      access_token,
+    );
     const expireInMilliseconds = differenceInMilliseconds(
       parseISO(expires),
       new Date(),
@@ -78,10 +85,38 @@ export class GenesysWebsocket {
     this.ws.on('message', async (message) => {
       // HANDLER: your logic should goes here
       // eslint-disable-next-line
-      const isEndConversation = true;
-      if (isEndConversation) {
-        await this.middlewareApiService.endConversation('conversation-id');
+      message = JSON.parse(message);
+      if (message.eventBody.participants) {
+        const conversationId =
+          message.eventBody.participants[0].attributes.conversationId;
+        const participant = message.eventBody.participants.pop();
+        if (this.isAgentDisconnected(participant)) {
+          //console.log('End chat conversation ID: ', conversationId);
+          this.middlewareApiService.endConversation(conversationId);
+        }
       }
+    });
+  }
+
+  async subscribeToChannel(
+    channelId: string,
+    url: string,
+    queueId: string,
+    tokenType: string,
+    accessToken: string,
+  ) {
+    const reqBody = JSON.stringify([
+      {
+        id: `v2.routing.queues.${queueId}.conversations.messages`,
+      },
+    ]);
+    const headers = {
+      Authorization: `${tokenType} ${accessToken}`,
+      'Content-Type': 'application/json',
+    };
+
+    await axios.post(`${url}/${channelId}/subscriptions`, reqBody, {
+      headers: headers,
     });
   }
 
@@ -91,5 +126,14 @@ export class GenesysWebsocket {
 
   getIsConnect() {
     return this.isConnect;
+  }
+
+  isAgentDisconnected(participant) {
+    return (
+      participant.purpose === 'agent' &&
+      participant.state === 'disconnected' &&
+      participant.disconnectType === 'client' &&
+      participant.endAcwTime
+    );
   }
 }

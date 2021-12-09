@@ -57,6 +57,7 @@ export class GenesysService
         getTokenUrl: 'https://login.usw2.pure.cloud/oauth/token',
         getChannelUrl:
           'https://api.usw2.pure.cloud/api/v2/notifications/channels',
+        queueId: '0c54f616-50d6-43a0-9373-ecda0dc0f69b',
       })
       .then(() => {
         console.log('Connected');
@@ -119,6 +120,7 @@ export class GenesysService
         },
         metadata: {
           customAttributes: {
+            conversationId: message.conversationId,
             customerAccountId: 'x123',
             customerName: 'John Doe',
             customerEmail: 'test@test.com',
@@ -154,6 +156,7 @@ export class GenesysService
         },
         metadata: {
           customAttributes: {
+            conversationId: conversationId,
             customerAccountId: 'x123',
             customerName: 'John Doe',
             customerEmail: 'test@test.com',
@@ -189,6 +192,7 @@ export class GenesysService
         },
         metadata: {
           customAttributes: {
+            conversationId: message.conversationId,
             customerAccountId: 'x123',
             customerName: 'John Doe',
             customerEmail: 'test@test.com',

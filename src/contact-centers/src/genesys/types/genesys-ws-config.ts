@@ -4,4 +4,5 @@ export type GenesysWsConfig = {
   clientSecret: string;
   getTokenUrl: string;
   getChannelUrl: string;
+  queueId: string;
 };
