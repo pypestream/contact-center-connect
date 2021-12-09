@@ -51,13 +51,12 @@ export class GenesysService
     this.customer = customer;
     this.genesysWebsocket
       .addConnection({
-        grantType: 'client_credentials',
-        clientId: 'cee20b0f-1881-4b8e-bea1-4fa625ec0c72',
-        clientSecret: '_pngpQy8CGpF69dVgOlnWZuCwRjGN1EjKqpv-GpAcYQ',
-        getTokenUrl: 'https://login.usw2.pure.cloud/oauth/token',
-        getChannelUrl:
-          'https://api.usw2.pure.cloud/api/v2/notifications/channels',
-        queueId: '0c54f616-50d6-43a0-9373-ecda0dc0f69b',
+        grantType: customer.grantType,
+        clientId: customer.clientId,
+        clientSecret: customer.clientSecret,
+        getTokenUrl: `${customer.oAuthUrl}/oauth/token`,
+        getChannelUrl: `${customer.instanceUrl}/api/v2/notifications/channels`,
+        queueId: customer.OMQueueId,
       })
       .then(() => {
         console.log('Connected');

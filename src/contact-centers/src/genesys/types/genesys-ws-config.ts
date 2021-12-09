@@ -1,5 +1,5 @@
 export type GenesysWsConfig = {
-  grantType: 'client_credentials';
+  grantType: string;
   clientId: string;
   clientSecret: string;
   getTokenUrl: string;

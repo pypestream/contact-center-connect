@@ -5,4 +5,5 @@ export type GenesysCustomer = {
   clientSecret: string;
   grantType: string;
   OMIntegrationId: string;
+  OMQueueId: string;
 };
