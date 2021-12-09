@@ -1,2 +1,3 @@
 export * from './types';
-export { GenesysConfig } from './genesys-config';
+export { GenesysCustomer } from './genesys-customer';
+export { GenesysWsConfig } from './genesys-ws-config';
