@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as WebSocket from 'ws';
 import { timer } from 'rxjs';
 import axios from 'axios';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
 import { differenceInMilliseconds, parseISO } from 'date-fns';
-import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 import { GenesysWsConfig } from './types/genesys-ws-config';
+import { GenesysCustomer } from './types';
+import { getCustomer } from '../common/utils/get-customer';
+import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
 @Injectable()
 export class GenesysWebsocket {
@@ -14,10 +18,29 @@ export class GenesysWebsocket {
 
   private connections: GenesysWsConfig[] = [];
 
-  constructor(private readonly middlewareApiService: MiddlewareApiService) {
-    // disable WS in test env
-    // https://github.com/mswjs/msw/issues/156#issuecomment-691454902
-    // they will support WS soon
+  constructor(
+    @Inject(REQUEST) private readonly request: Request,
+    private readonly middlewareApiService: MiddlewareApiService,
+  ) {
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+    const base64Customer = this.request.headers['x-pypestream-customer'];
+    if (typeof base64Customer !== 'string') {
+      return;
+    }
+    const customer: GenesysCustomer = getCustomer(base64Customer);
+    this.addConnection({
+      grantType: customer.grantType,
+      clientId: customer.clientId,
+      clientSecret: customer.clientSecret,
+      getTokenUrl: `${customer.oAuthUrl}/oauth/token`,
+      getChannelUrl: `${customer.instanceUrl}/api/v2/notifications/channels`,
+      queueId: customer.OMQueueId,
+    }).then(() => {
+      // eslint-disable-next-line
+      console.log('Connected to Genesys websocket');
+    });
   }
 
   async addConnection(config: GenesysWsConfig) {
@@ -92,7 +115,7 @@ export class GenesysWebsocket {
         const participant = message.eventBody.participants.pop();
         if (this.isAgentDisconnected(participant)) {
           //console.log('End chat conversation ID: ', conversationId);
-          this.middlewareApiService.endConversation(conversationId);
+          await this.middlewareApiService.endConversation(conversationId);
         }
       }
     });

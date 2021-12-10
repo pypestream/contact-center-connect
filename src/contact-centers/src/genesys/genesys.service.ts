@@ -45,22 +45,10 @@ export class GenesysService
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
     if (typeof base64Customer !== 'string') {
-      return null;
+      return;
     }
     const customer: GenesysCustomer = getCustomer(base64Customer);
     this.customer = customer;
-    this.genesysWebsocket
-      .addConnection({
-        grantType: customer.grantType,
-        clientId: customer.clientId,
-        clientSecret: customer.clientSecret,
-        getTokenUrl: `${customer.oAuthUrl}/oauth/token`,
-        getChannelUrl: `${customer.instanceUrl}/api/v2/notifications/channels`,
-        queueId: customer.OMQueueId,
-      })
-      .then(() => {
-        console.log('Connected');
-      });
   }
 
   /**
