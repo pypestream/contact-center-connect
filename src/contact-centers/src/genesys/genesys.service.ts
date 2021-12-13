@@ -7,7 +7,7 @@ import { Service, AgentService } from '../common/interfaces';
 import axios, { AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
-import { GenesysConfig, GenesysWebhookBody } from './types';
+import { GenesysWebhookBody, GenesysCustomer } from './types';
 import { getCustomer } from '../common/utils/get-customer';
 import { InjectMiddlewareApi } from '../middleware-api/decorators';
 import { MiddlewareApi } from '../middleware-api/middleware-api';
@@ -17,12 +17,13 @@ import { REQUEST } from '@nestjs/core';
 import { Scope } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { GenesysWebsocket } from './genesys.websocket';
 
 /* eslint-disable */
 const axiosRetry = require('axios-retry');
 const qs = require('qs');
 /* eslint-disable */
-
+const inboundUrl = '/api/v2/conversations/messages/inbound/open';
 axiosRetry(axios, { retries: 3 });
 
 @Injectable({ scope: Scope.REQUEST })
@@ -31,66 +32,39 @@ export class GenesysService
     Service<GenesysWebhookBody, GenesysWebhookBody, GenesysWebhookBody>,
     AgentService
 {
-  _genesysConfig: GenesysConfig;
-
   /**
    * @ignore
    */
-  private _url: string;
-  private _accessToken: string;
-  private _oAuthUrl: string;
-  private _clientId: string;
-  private _clientSecret: string;
-  private _grantType: string;
-  private _OMIntegrationId: string;
+  private customer: GenesysCustomer;
 
-  /**
-   *  Constructor
-   * @param genesysConfig
-   */
   constructor(
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
+    private readonly genesysWebsocket: GenesysWebsocket,
     private httpService: HttpService,
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
     if (typeof base64Customer !== 'string') {
-      return null;
+      return;
     }
-    const customer = getCustomer(base64Customer);
-    this._genesysConfig = customer;
-    if (customer.instanceUrl) {
-      this._url = `${customer.instanceUrl}/api/v2/conversations/messages/inbound/open`;
-    } else {
-      this._url = '';
-    }
-    this._oAuthUrl = customer.oAuthUrl
-      ? `${customer.oAuthUrl}/oauth/token`
-      : '';
-    this._clientId = customer.clientId ? customer.clientId : '';
-    this._clientSecret = customer.clientSecret ? customer.clientSecret : '';
-    this._grantType = customer.grantType ? customer.grantType : '';
-    this._OMIntegrationId = customer.OMIntegrationId
-      ? customer.OMIntegrationId
-      : '';
+    const customer: GenesysCustomer = getCustomer(base64Customer);
+    this.customer = customer;
   }
 
   /**
    * @ignore
    */
   private async getAccessToken() {
-    if (this._accessToken) return this._accessToken;
-
     const reqBody = {
-      grant_type: this._grantType,
-      client_id: this._clientId,
-      client_secret: this._clientSecret,
+      grant_type: this.customer.grantType,
+      client_id: this.customer.clientId,
+      client_secret: this.customer.clientSecret,
     };
+    const oAuthUrl = `${this.customer.oAuthUrl}/oauth/token`;
     const res = await this.httpService
-      .post(this._oAuthUrl, qs.stringify(reqBody))
+      .post(oAuthUrl, qs.stringify(reqBody))
       .toPromise();
-    this._accessToken = res.data.access_token;
-    return this._accessToken;
+    return res.data.access_token;
   }
 
   /**
@@ -102,10 +76,10 @@ export class GenesysService
       Authorization: 'Bearer ' + token,
     };
     try {
-      const res = await axios.get(
-        `${this._genesysConfig.instanceUrl}/api/v2/conversations/messages/${messageId}/details`,
-        { headers: headers },
-      );
+      const domain = this.customer.instanceUrl;
+      const url = `${domain}/api/v2/conversations/messages/${messageId}/details`;
+
+      const res = await axios.get(url, { headers: headers });
       return res.data.conversationId;
     } catch (error) {
       //console.log(error.response.status)
@@ -123,7 +97,7 @@ export class GenesysService
         type: 'Private',
         messageId: clientMessageId,
         to: {
-          id: this._OMIntegrationId,
+          id: this.customer.OMIntegrationId,
         },
         from: {
           id: message.conversationId,
@@ -133,6 +107,7 @@ export class GenesysService
         },
         metadata: {
           customAttributes: {
+            conversationId: message.conversationId,
             customerAccountId: 'x123',
             customerName: 'John Doe',
             customerEmail: 'test@test.com',
@@ -158,7 +133,7 @@ export class GenesysService
         type: 'Private',
         messageId: clientMessageId,
         to: {
-          id: this._OMIntegrationId,
+          id: this.customer.OMIntegrationId,
         },
         from: {
           id: conversationId,
@@ -168,6 +143,7 @@ export class GenesysService
         },
         metadata: {
           customAttributes: {
+            conversationId: conversationId,
             customerAccountId: 'x123',
             customerName: 'John Doe',
             customerEmail: 'test@test.com',
@@ -193,7 +169,7 @@ export class GenesysService
         type: 'Private',
         messageId: clientMessageId,
         to: {
-          id: this._OMIntegrationId,
+          id: this.customer.OMIntegrationId,
         },
         from: {
           id: message.conversationId,
@@ -203,6 +179,7 @@ export class GenesysService
         },
         metadata: {
           customAttributes: {
+            conversationId: message.conversationId,
             customerAccountId: 'x123',
             customerName: 'John Doe',
             customerEmail: 'test@test.com',
@@ -225,16 +202,14 @@ export class GenesysService
   async sendMessage(
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    if (!this._url) {
-      throw new Error('Genesys.sendMessage instance-url must has value');
-    }
     const token = await this.getAccessToken();
     const headers = {
       Authorization: 'Bearer ' + token,
     };
     // console.log('MEssage: ', message)
+    const url = `${this.customer.instanceUrl}${inboundUrl}`;
     const res = this.httpService.post(
-      this._url,
+      url,
       this.getMessageRequestBody(message),
       { headers: headers },
     );
@@ -246,15 +221,13 @@ export class GenesysService
    * @param conversationId
    */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
-    if (!this._url) {
-      throw new Error('Genesys.endConversation instance-url must has value');
-    }
     const token = await this.getAccessToken();
     const headers = {
       Authorization: 'Bearer ' + token,
     };
+    const domain = this.customer.instanceUrl;
     const res = await axios.post(
-      this._url,
+      `${domain}${inboundUrl}`,
       this.getEndConversationRequestBody(conversationId),
       { headers: headers },
     );
@@ -270,7 +243,7 @@ export class GenesysService
 
     return this.httpService
       .patch(
-        `${this._genesysConfig.instanceUrl}/api/v2/conversations/chats/${genesysConversationId}`,
+        `${domain}/api/v2/conversations/chats/${genesysConversationId}`,
         { state: 'disconnected' },
         { headers: headers },
       )
@@ -284,16 +257,15 @@ export class GenesysService
   async startConversation(
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    if (!this._url) {
-      throw new Error('Genesys.startConversation instance-url must has value');
-    }
     const token = await this.getAccessToken();
     const headers = {
       Authorization: 'Bearer ' + token,
     };
     // console.log('Message: ', message)
+    const domain = this.customer.instanceUrl;
+    const url = `${domain}${inboundUrl}`;
     return this.httpService
-      .post(this._url, this.startConversationRequestBody(message), {
+      .post(url, this.startConversationRequestBody(message), {
         headers: headers,
       })
       .toPromise();
