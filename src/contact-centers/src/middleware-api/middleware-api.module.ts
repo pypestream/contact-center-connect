@@ -12,13 +12,7 @@ import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [forwardRef(() => AgentFactoryModule), HttpModule],
-  providers: [
-    {
-      provide: APP_PIPE,
-      useClass: ValidationPipe,
-    },
-    MiddlewareApiService,
-  ],
+  providers: [MiddlewareApiService],
   controllers: [MiddlewareApiController, MiddlewareUiController],
   exports: [MiddlewareApiService],
 })

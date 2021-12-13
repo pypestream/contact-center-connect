@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
 import * as WebSocket from 'ws';
 import { timer } from 'rxjs';
 import axios from 'axios';
@@ -13,45 +13,24 @@ import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 @Injectable()
 export class GenesysWebsocket {
   // wss://echo.websocket.org is a test websocket server
-  private ws: WebSocket;
-  private isConnect = false;
+  private ws: WebSocket[];
+  private isConnect: boolean[] = [];
 
   private connections: GenesysWsConfig[] = [];
 
-  constructor(
-    @Inject(REQUEST) private readonly request: Request,
-    private readonly middlewareApiService: MiddlewareApiService,
-  ) {
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
-    const base64Customer = this.request.headers['x-pypestream-customer'];
-    if (typeof base64Customer !== 'string') {
-      return;
-    }
-    const customer: GenesysCustomer = getCustomer(base64Customer);
-    this.addConnection({
-      grantType: customer.grantType,
-      clientId: customer.clientId,
-      clientSecret: customer.clientSecret,
-      getTokenUrl: `${customer.oAuthUrl}/oauth/token`,
-      getChannelUrl: `${customer.instanceUrl}/api/v2/notifications/channels`,
-      queueId: customer.OMQueueId,
-    }).then(() => {
-      // eslint-disable-next-line
-      console.log('Connected to Genesys websocket');
-    });
-  }
+  constructor(private readonly middlewareApiService: MiddlewareApiService) {}
 
   async addConnection(config: GenesysWsConfig) {
-    const exist = this.connections.find((c) => c.clientId === config.clientId);
-    if (!exist) {
+    const connectionIndex = this.connections.findIndex(
+      (c) => c.clientId === config.clientId,
+    );
+    if (connectionIndex === -1) {
       this.connections.push(config);
-      await this.setupConnection(config);
+      await this.setupConnection(config, this.connections.length - 1);
     }
   }
 
-  async setupConnection(config: GenesysWsConfig) {
+  async setupConnection(config: GenesysWsConfig, connectionIndex) {
     const params = new URLSearchParams();
     params.append('grant_type', config.grantType);
     params.append('client_id', config.clientId);
@@ -68,8 +47,8 @@ export class GenesysWebsocket {
       },
     );
     const { connectUri, expires, id } = channel.data;
-    this.connect(connectUri);
-    this.subscribeToChannel(
+    this.connect(connectUri, connectionIndex);
+    await this.subscribeToChannel(
       id,
       config.getChannelUrl,
       config.queueId,
@@ -82,33 +61,33 @@ export class GenesysWebsocket {
     );
     setTimeout(async () => {
       // connectUri expired close connection and re-connect
-      this.ws.close();
-      await this.setupConnection(config);
+      this.ws[connectionIndex].close();
+      await this.setupConnection(config, connectionIndex);
     }, expireInMilliseconds);
   }
 
-  connect(url: string) {
-    this.ws = new WebSocket(url);
-    this.ws.on('open', () => {
-      this.isConnect = true;
+  connect(url: string, connectionIndex: number) {
+    this.ws[connectionIndex] = new WebSocket(url);
+    this.ws[connectionIndex].on('open', () => {
+      this.isConnect[connectionIndex] = true;
     });
 
-    this.ws.on('error', (message) => {
-      this.ws.close();
-      this.isConnect = false;
+    this.ws[connectionIndex].on('error', (message) => {
+      this.ws[connectionIndex].close();
+      this.isConnect[connectionIndex] = false;
     });
 
-    this.ws.on('close', (message) => {
+    this.ws[connectionIndex].on('close', (message) => {
       timer(1000).subscribe(() => {
-        this.isConnect = false;
-        this.connect(url);
+        this.isConnect[connectionIndex] = false;
+        this.connect(url, connectionIndex);
       });
     });
 
-    this.ws.on('message', async (message) => {
+    this.ws[connectionIndex].on('message', async (stringifyMessage) => {
       // HANDLER: your logic should goes here
       // eslint-disable-next-line
-      message = JSON.parse(message);
+      const message = JSON.parse(stringifyMessage);
       if (message.eventBody.participants) {
         const conversationId =
           message.eventBody.participants[0].attributes.conversationId;
@@ -141,14 +120,6 @@ export class GenesysWebsocket {
     await axios.post(`${url}/${channelId}/subscriptions`, reqBody, {
       headers: headers,
     });
-  }
-
-  send(data: any) {
-    this.ws.send(data);
-  }
-
-  getIsConnect() {
-    return this.isConnect;
   }
 
   isAgentDisconnected(participant) {

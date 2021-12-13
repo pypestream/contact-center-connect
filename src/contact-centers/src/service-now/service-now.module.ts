@@ -9,13 +9,7 @@ import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [forwardRef(() => MiddlewareApiModule), HttpModule],
-  providers: [
-    {
-      provide: APP_PIPE,
-      useClass: ValidationPipe,
-    },
-    ServiceNowService,
-  ],
+  providers: [ServiceNowService],
   controllers: [ServiceNowController],
   exports: [ServiceNowService],
 })

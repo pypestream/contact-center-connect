@@ -47,8 +47,26 @@ export class GenesysService
     if (typeof base64Customer !== 'string') {
       return;
     }
+
     const customer: GenesysCustomer = getCustomer(base64Customer);
     this.customer = customer;
+
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+    this.genesysWebsocket
+      .addConnection({
+        grantType: customer.grantType,
+        clientId: customer.clientId,
+        clientSecret: customer.clientSecret,
+        getTokenUrl: `${customer.oAuthUrl}/oauth/token`,
+        getChannelUrl: `${customer.instanceUrl}/api/v2/notifications/channels`,
+        queueId: customer.OMQueueId,
+      })
+      .then(() => {
+        // eslint-disable-next-line
+        console.log('Connected to Genesys websocket');
+      });
   }
 
   /**
