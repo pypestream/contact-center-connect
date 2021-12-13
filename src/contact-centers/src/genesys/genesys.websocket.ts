@@ -68,16 +68,26 @@ export class GenesysWebsocket {
   }
 
   connect(url: string, connectionIndex: number) {
+    if (this.connections.length >= connectionIndex) {
+      throw new Error('Invalid Connection Index');
+    }
     this.connections[connectionIndex].ws = new WebSocket(url);
+
+    // eslint-disable-next-line
+    // @ts-ignore
     this.connections[connectionIndex].ws.on('open', () => {
       this.connections[connectionIndex].isConnect = true;
     });
 
+    // eslint-disable-next-line
+    // @ts-ignore
     this.connections[connectionIndex].ws.on('error', (message) => {
       this.connections[connectionIndex].ws.close();
       this.connections[connectionIndex].isConnect = false;
     });
 
+    // eslint-disable-next-line
+    // @ts-ignore
     this.connections[connectionIndex].ws.on('close', (message) => {
       timer(1000).subscribe(() => {
         this.connections[connectionIndex].isConnect = false;
@@ -85,6 +95,8 @@ export class GenesysWebsocket {
       });
     });
 
+    // eslint-disable-next-line
+    // @ts-ignore
     this.connections[connectionIndex].ws.on(
       'message',
       async (stringifyMessage) => {
