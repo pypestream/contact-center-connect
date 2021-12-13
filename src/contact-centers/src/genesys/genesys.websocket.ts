@@ -68,7 +68,7 @@ export class GenesysWebsocket {
   }
 
   connect(url: string, connectionIndex: number) {
-    if (this.connections.length >= connectionIndex) {
+    if (this.connections.length <= connectionIndex) {
       throw new Error('Invalid Connection Index');
     }
     this.connections[connectionIndex].ws = new WebSocket(url);
