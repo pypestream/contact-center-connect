@@ -13,6 +13,9 @@
     $(document).ready(function(){
       var data = '{{message}}'.replace(/&quot;/g, '\"');
       $('#json-renderer').jsonViewer(JSON.parse(data));
+      console.log(location.protocol + '//' + location.host);
+      $('#serviceNow_callbackURL').val(location.protocol + '//' + location.host);
+      $('#genesys_callbackURL').val(location.protocol + '//' + location.host);
     })
   </script>
 </head>
@@ -22,13 +25,23 @@
 <br>
 <br>
 <h4>
-  Integration settings
+  Settings
 </h4>
 <p>
   <br>
   <code>/contactCenter/v1/settings</code> <br>
   <br>
 </p>
+<form action="/settings" method="post" >
+  <input type="hidden" name="callbackURL" id="serviceNow_callbackURL" value="xxxx">
+  <input type="hidden" name="integrationName" id="integrationName" value="ServiceNow">
+  <button type="submit">Use ServiceNow integration</button>
+</form>
+<form action="/settings" method="post" >
+  <input type="hidden" name="callbackURL" id="genesys_callbackURL" value="xxxx">
+  <input type="hidden" name="integrationName" id="integrationName" value="Genesys">
+  <button type="submit">Use Genesys integration</button>
+</form>
 <pre id="json-renderer"></pre>
 </body>
 </html>

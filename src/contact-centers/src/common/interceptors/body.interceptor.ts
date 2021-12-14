@@ -5,6 +5,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import * as getRawBody from 'raw-body';
+import * as qs from 'querystring';
 import { Observable } from 'rxjs';
 
 @Injectable()
@@ -17,8 +18,14 @@ export class BodyInterceptor implements NestInterceptor {
     const request = _context.switchToHttp().getRequest();
     const rawBody = await getRawBody(request);
     const stringifyBody = rawBody.toString();
-    const body = stringifyBody ? JSON.parse(stringifyBody) : null;
-    request.body = body;
+    if (
+      request.headers['content-type'] === 'application/x-www-form-urlencoded'
+    ) {
+      request.body = qs.parse(stringifyBody);
+    } else {
+      const body = stringifyBody ? JSON.parse(stringifyBody) : null;
+      request.body = body;
+    }
     return next.handle();
   }
 }
