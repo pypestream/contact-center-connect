@@ -10,14 +10,7 @@ import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [forwardRef(() => MiddlewareApiModule), HttpModule],
-  providers: [
-    {
-      provide: APP_PIPE,
-      useClass: ValidationPipe,
-    },
-    GenesysWebsocket,
-    GenesysService,
-  ],
+  providers: [GenesysWebsocket, GenesysService],
   controllers: [GenesysController],
   exports: [GenesysService],
 })
