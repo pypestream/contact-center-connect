@@ -6,7 +6,6 @@
 - docs:
     - [Add new service](/docs/add-new-service.md)
     - [Configure serviceNow instance](/docs/configure-serviceNow-instance.md)
-    - [Publish SDK to NPM](/docs/publish-sdk.md)
     - [Modules structure](/docs/modules-structure.md)
     - [SDK documentation](https://ccc.claybox.usa.pype.engineering/docs/modules.html)
 ### Technology
