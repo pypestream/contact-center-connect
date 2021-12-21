@@ -43,6 +43,7 @@ export class MiddlewareUiController {
       case 'Genesys':
         integrationFields = {
           instanceUrl: 'string',
+          oAuthUrl: 'string',
           clientId: 'string',
           clientSecret: 'string',
           grantType: 'string',
