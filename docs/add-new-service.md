@@ -120,35 +120,58 @@ export interface GenericWebhookInterpreter<T> {
 
 ## Add new service to AgentServices type
 
-in `/src/contact-centers/src/common/types/agent-services.ts` add your new service
-e.g.
-```
-import { NewService } from '../../new-service/service';
-
-export type AgentServices = OldService | NewService;
-```
-
-## Add new service to getAgentService
-in `/src/contact-centers/src/middleware-api/service.ts`
+in `/src/contact-centers/src/agent-factory/agent-factory.service.ts`
 based on request return service instance
 
 e.g. ServiceNow
 
 ```ts
-// /Users/noursammour/WebstormProjects/contact-center-pro/lib/sdk/src/services/common/types/agent-services.ts
+// /src/contact-centers/src/agent-factory/agent-factory.service.ts
 
-  getAgentService(req): AgentServices {
-    const base64Customer = req.headers["x-pypestream-customer"];
-    const stringifyCustomer = Buffer.from(base64Customer, "base64").toString(
-      "ascii"
-    );
-    const configs = JSON.parse(stringifyCustomer);
-    const integrationName = req.headers["x-pypestream-integration"];
-    if (integrationName === "ServiceNow") {
-      return new ServiceNowService({
-        instanceUrl: configs.instanceUrl,
-      });
+import { AgentServices } from '../common/types';
+import { ServiceNowService } from '../service-now/service-now.service';
+import { GenesysService } from '../genesys/genesys.service';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Scope } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
+import { InjectMiddlewareApi } from '../middleware-api/decorators';
+import { MiddlewareApi } from '../middleware-api/middleware-api';
+
+/**
+ * MiddlewareApi service
+ */
+@Injectable({
+  scope: Scope.REQUEST,
+})
+export class AgentFactoryService {
+  constructor(
+    private readonly serviceNowService: ServiceNowService,
+    private readonly genesysService: GenesysService,
+    @Inject(REQUEST) private readonly request: Request,
+    @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
+  ) {}
+
+  getAgentService(): AgentServices {
+    const integrationName = this.request.headers['x-pypestream-integration'];
+    if (!integrationName) {
+      throw new HttpException(
+        'x-pypestream-integration header is null',
+        HttpStatus.BAD_REQUEST,
+      );
     }
+
+    if (integrationName === 'ServiceNow') {
+      return this.serviceNowService;
+    }
+
+    if (integrationName === 'Genesys') {
+      return this.genesysService;
+    }
+
     return null;
   }
+}
+
 ```
