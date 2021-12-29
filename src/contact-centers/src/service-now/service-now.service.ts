@@ -17,6 +17,8 @@ import {
   EndTypingIndicatorType,
   StartWaitTimeSpinnerType,
   ServiceNowConfig,
+  OutputTextType,
+  ActionSystemType,
 } from './types';
 import { Inject, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
@@ -286,12 +288,28 @@ export class ServiceNowService
     const messageId = uuidv4();
     const { index } = params;
     const item = body.body[index];
-    if (item.uiType !== 'OutputText') {
+
+    let value: string;
+
+    if (item.uiType === 'OutputText') {
+      value = (item as unknown as OutputTextType).value;
+    } else if (
+      item.uiType === 'ActionMsg' &&
+      (item as unknown as ActionSystemType).actionType === 'System'
+    ) {
+      value = (item as unknown as ActionSystemType).message;
+    } else if (
+      item.uiType === 'ActionMsg' &&
+      (item as unknown as StartWaitTimeSpinnerType).actionType ===
+        'StartSpinner'
+    ) {
+      value = (item as unknown as StartWaitTimeSpinnerType).message;
+    } else {
       return;
     }
     return {
       message: {
-        value: item.value,
+        value: value,
         type: MessageType.Text,
         id: messageId,
       },
@@ -310,7 +328,9 @@ export class ServiceNowService
    */
   hasNewMessageAction(message: ServiceNowWebhookBody): boolean {
     const item = message.body.find(
-      (item) => item.uiType === 'OutputText' && item.group === 'DefaultText',
+      (item) =>
+        (item.uiType === 'OutputText' && item.group === 'DefaultText') ||
+        (item.uiType === 'ActionMsg' && item.actionType === 'System'),
     );
     return !!item;
   }
@@ -324,7 +344,7 @@ export class ServiceNowService
       (item) =>
         item.uiType === 'ActionMsg' &&
         item.actionType === 'System' &&
-        !item.message.includes('entered'),
+        item.message.includes('has closed the support session'),
     );
     return !!item;
   }

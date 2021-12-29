@@ -32,13 +32,13 @@ export type StartTypingIndicatorType = {
   actionType: 'StartTypingIndicator';
 };
 
-type ActionSystemType = {
+export type ActionSystemType = {
   uiType: 'ActionMsg';
   actionType: 'System';
   message: string;
 };
 
-type OutputTextType = {
+export type OutputTextType = {
   uiType: 'OutputText';
   actionType: 'DefaultText';
   group: 'DefaultText';

@@ -30,14 +30,6 @@ export class ServiceNowController {
   ) {
     const requests = [];
 
-    const hasChatEndedAction = this.serviceNowService.hasEndConversationAction(
-      body as ServiceNowWebhookBody,
-    );
-    if (hasChatEndedAction) {
-      const endConversationRequest =
-        await this.middlewareApiService.endConversation(body.clientSessionId);
-      requests.push(endConversationRequest);
-    }
     const hasNewMessageAction = this.serviceNowService.hasNewMessageAction(
       body as ServiceNowWebhookBody,
     );
@@ -57,6 +49,17 @@ export class ServiceNowController {
         }
       }
     }
+
+    const hasChatEndedAction = this.serviceNowService.hasEndConversationAction(
+      body as ServiceNowWebhookBody,
+    );
+    if (hasChatEndedAction) {
+      const endConversationRequest = this.middlewareApiService.endConversation(
+        body.clientSessionId,
+      );
+      requests.push(endConversationRequest);
+    }
+
     const hasTypingIndicatorAction =
       this.serviceNowService.hasTypingIndicatorAction(
         body as ServiceNowWebhookBody,
@@ -71,6 +74,7 @@ export class ServiceNowController {
       );
       requests.push(sendTypingRequest);
     }
+
     Promise.all(requests)
       .then((responses) => {
         const data = responses.map((r) => r.data);

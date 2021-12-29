@@ -44,7 +44,8 @@ export class GenesysService
     private httpService: HttpService,
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
-    if (typeof base64Customer !== 'string') {
+    const integration = this.request.headers['x-pypestream-integration'];
+    if (integration !== 'Genesys' || typeof base64Customer !== 'string') {
       return;
     }
 
