@@ -17,7 +17,12 @@ export class BodyInterceptor implements NestInterceptor {
     const request = _context.switchToHttp().getRequest();
     const rawBody = await getRawBody(request);
     const stringifyBody = rawBody.toString();
-    const body = stringifyBody ? JSON.parse(stringifyBody) : null;
+    let body = null;
+    try {
+      body = JSON.parse(stringifyBody);
+    } catch (error) {
+      body = Object.fromEntries(new URLSearchParams(stringifyBody).entries());
+    }
     request.body = body;
     return next.handle();
   }

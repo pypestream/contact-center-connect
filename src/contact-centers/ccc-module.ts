@@ -3,6 +3,7 @@ import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { MiddlewareApiModule } from './src/middleware-api/middleware-api.module';
 import { GenesysModule } from './src/genesys/genesys.module';
+import { FlexModule } from './src/flex/flex.module';
 import { ServiceNowModule } from './src/service-now/service-now.module';
 import { MiddlewareApiConfig } from './src/middleware-api/types';
 import { MiddlewareApiAsyncOptions } from './src/middleware-api/interfaces';
@@ -16,6 +17,7 @@ export class CccModule {
       imports: [
         MiddlewareApiModule.forRoot(options),
         GenesysModule,
+        FlexModule,
         ServiceNowModule,
       ],
       providers: [
@@ -37,6 +39,7 @@ export class CccModule {
         MiddlewareApiModule.forRootAsync(options),
         MiddlewareApiModule,
         GenesysModule,
+        FlexModule,
         ServiceNowModule,
       ],
       providers: [

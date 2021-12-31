@@ -25,6 +25,7 @@ import { MiddlewareApiService } from './middleware-api.service';
 
 import { Body } from '@nestjs/common';
 import { GenesysService } from '../genesys/genesys.service';
+import { FlexService } from '../flex/flex.service';
 import { AgentFactoryService } from '../agent-factory/agent-factory.service';
 import { UseInterceptors } from '@nestjs/common';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
@@ -157,7 +158,12 @@ export class MiddlewareApiController {
   ) {
     const agentService: AgentServices =
       this.agentFactoryService.getAgentService();
-    if (!(agentService instanceof GenesysService)) {
+    if (
+      !(
+        agentService instanceof GenesysService ||
+        agentService instanceof FlexService
+      )
+    ) {
       await agentService.sendTyping(conversationId, body.typing);
     }
     res.status(HttpStatus.NO_CONTENT).end();
@@ -179,7 +185,12 @@ export class MiddlewareApiController {
     const agentService: AgentServices =
       this.agentFactoryService.getAgentService();
 
-    if (!(agentService instanceof GenesysService)) {
+    if (
+      !(
+        agentService instanceof GenesysService ||
+        agentService instanceof FlexService
+      )
+    ) {
       await agentService.sendTyping(conversationId, false);
     }
     await agentService.sendMessage(cccMessage);
@@ -194,7 +205,9 @@ export class MiddlewareApiController {
     @Res() res: Response,
   ) {
     const service: AgentServices = this.agentFactoryService.getAgentService();
-    if (!(service instanceof GenesysService)) {
+    if (
+      !(service instanceof GenesysService || service instanceof FlexService)
+    ) {
       await service.sendTyping(conversationId, false);
     }
     await service.endConversation(conversationId);
