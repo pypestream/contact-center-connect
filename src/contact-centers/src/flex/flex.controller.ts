@@ -29,7 +29,7 @@ export class FlexController {
     @Res() res: Response,
     @Body() body: PostBody,
   ) {
-    const chatId = this.flexService.getConversationIdFromChannelId(
+    const chatId = await this.flexService.getConversationIdFromChannelId(
       'CH308c13edba984c5484901dfdcf51c121',
     );
     //console.log(chatId);
@@ -46,6 +46,7 @@ export class FlexController {
 
     if (hasNewMessageAction) {
       const message = this.flexService.mapToCccMessage(body as FlexWebhookBody);
+      message.conversationId = chatId;
       if (message) {
         const sendMessageRequest =
           this.middlewareApiService.sendMessage(message);
