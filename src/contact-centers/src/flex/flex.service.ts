@@ -3,7 +3,11 @@ import {
   MessageType,
   SendMessageResponse,
 } from './../common/types';
-import { Service, AgentService } from '../common/interfaces';
+import {
+  Service,
+  GenericWebhookInterpreter,
+  AgentService,
+} from '../common/interfaces';
 import axios, { AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -30,22 +34,26 @@ axiosRetry(axios, { retries: 3 });
 export class FlexService
   implements
     Service<FlexWebhookBody, FlexWebhookBody, FlexWebhookBody>,
+    GenericWebhookInterpreter<FlexWebhookBody>,
     AgentService
 {
   /**
    * @ignore
    */
   private customer: FlexCustomer;
-
+  private tokens;
   constructor(
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
     private httpService: HttpService,
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
+    this.tokens = {
+      IS3d2934585cab4fb59cc75a217bbf676a: '541f2df7cbe3d8f5c720db6e523fefae',
+    };
     const integration = this.request.headers['x-pypestream-integration'];
     if (integration !== 'Flex' || typeof base64Customer !== 'string') {
-      return;
+      return null;
     }
 
     const customer: FlexCustomer = getCustomer(base64Customer);
@@ -93,13 +101,17 @@ export class FlexService
   /**
    * @ignore
    */
-  async getConversationIdFromChannelId(channelId: string) {
+  async getConversationIdFromChannelId(
+    accountSid: string,
+    instanceSid: string,
+    channelId: string,
+  ) {
     const auth = {
-      username: this.customer.accountSid,
-      password: this.customer.authToken,
+      username: accountSid,
+      password: this.tokens[instanceSid],
     };
 
-    const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}`;
+    const url = `${chatServiceUrl}/${instanceSid}/Channels/${channelId}`;
     const res = await axios.get(url, { auth: auth });
     return res.data.unique_name;
   }
@@ -205,7 +217,7 @@ export class FlexService
    * @param message
    */
   hasNewMessageAction(message: FlexWebhookBody): boolean {
-    return !!message.Body;
+    return message.Source === 'SDK' && !!message.Body;
   }
 
   /**

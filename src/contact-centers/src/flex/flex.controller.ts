@@ -30,14 +30,10 @@ export class FlexController {
     @Body() body: PostBody,
   ) {
     const chatId = await this.flexService.getConversationIdFromChannelId(
-      'CH308c13edba984c5484901dfdcf51c121',
+      body.AccountSid,
+      body.InstanceSid,
+      body.ChannelSid,
     );
-    //console.log(chatId);
-
-    if (body.Body) {
-      return res.status(HttpStatus.OK).send({ message: 'Receipt' });
-    }
-
     const requests = [];
 
     const hasNewMessageAction = this.flexService.hasNewMessageAction(
