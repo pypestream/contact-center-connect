@@ -23,6 +23,7 @@ WORKDIR /ccc
 COPY --from=build-dev /ccc/node_modules ./node_modules
 COPY --from=build-dev /ccc/dist ./dist
 COPY --from=build-dev /ccc/views ./views
+COPY --from=build-dev /ccc/public ./public
 
 EXPOSE 3000
 CMD ["node", "dist/main"]
