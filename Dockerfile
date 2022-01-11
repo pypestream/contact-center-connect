@@ -7,6 +7,7 @@ COPY ./src ./src
 COPY ./config ./config
 COPY ./test ./test
 COPY ./views ./views
+COPY ./public ./public
 COPY ./tsconfig.build.json ./tsconfig.build.json
 COPY ./tsconfig.json ./tsconfig.json
 COPY ./jest.config.js ./jest.config.js
