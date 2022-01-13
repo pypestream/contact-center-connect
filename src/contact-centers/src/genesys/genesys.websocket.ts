@@ -1,7 +1,9 @@
+import { MessageType } from './../common/types';
 import { Injectable } from '@nestjs/common';
 import * as WebSocket from 'ws';
 import { timer } from 'rxjs';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { differenceInMilliseconds, parseISO } from 'date-fns';
 import { GenesysWsConfig } from './types/genesys-ws-config';
 import { WebsocketConnection } from './types';
@@ -12,6 +14,9 @@ export class GenesysWebsocket {
   // wss://echo.websocket.org is a test websocket server
 
   private connections: WebsocketConnection[] = [];
+
+  private lastEndchats: any[] = [];
+  private lastJoinChats: any[] = [];
 
   constructor(private readonly middlewareApiService: MiddlewareApiService) {}
 
@@ -104,12 +109,49 @@ export class GenesysWebsocket {
         // eslint-disable-next-line
         const message = JSON.parse(stringifyMessage);
         if (message.eventBody.participants) {
-          const conversationId =
-            message.eventBody.participants[0].attributes.conversationId;
+          //console.log('All participants: ', message.eventBody.participants)
+          const conversationId = this.getConversationId(
+            message.eventBody.participants,
+          );
           const participant = message.eventBody.participants.pop();
+          let chatText;
           if (this.isAgentDisconnected(participant)) {
-            //console.log('End chat conversation ID: ', conversationId);
-            await this.middlewareApiService.endConversation(conversationId);
+            const lastEndchat = this.lastEndchats.find(
+              (p) => p[conversationId] === participant.endAcwTime,
+            );
+            if (!lastEndchat) {
+              this.lastEndchats.push({
+                [conversationId]: participant.endAcwTime,
+              });
+              chatText = 'Automated message: Agent has left the chat.';
+            }
+          } else if (this.isAgentConnected(participant)) {
+            const lastJoinchat = this.lastJoinChats.find(
+              (p) => p[conversationId] === participant.connectedTime,
+            );
+            if (!lastJoinchat) {
+              this.lastJoinChats.push({
+                [conversationId]: participant.connectedTime,
+              });
+              chatText = 'Automated message: Agent has joined the chat.';
+            }
+          }
+
+          if (chatText) {
+            const message = {
+              message: {
+                value: chatText,
+                type: MessageType.Text,
+                id: uuidv4(),
+              },
+              sender: {
+                username: 'test-agent',
+                // username: item.agentInfo.agentName,
+              },
+              conversationId: conversationId,
+            };
+
+            await this.middlewareApiService.sendMessage(message);
           }
         }
       },
@@ -145,5 +187,15 @@ export class GenesysWebsocket {
       participant.disconnectType === 'client' &&
       participant.endAcwTime
     );
+  }
+
+  isAgentConnected(participant) {
+    return participant.purpose === 'agent' && participant.state === 'connected';
+  }
+
+  getConversationId(participants) {
+    // Looking the participant has attributes which includes conversation id
+    const endUser = participants.find((p) => p.attributes.conversationId);
+    return endUser.attributes.conversationId;
   }
 }
