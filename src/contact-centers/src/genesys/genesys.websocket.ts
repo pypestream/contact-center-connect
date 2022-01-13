@@ -6,7 +6,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { differenceInMilliseconds, parseISO } from 'date-fns';
 import { GenesysWsConfig } from './types/genesys-ws-config';
-import { WebsocketConnection } from './types';
+import { WebsocketConnection, WebsocketMessageChatInfo } from './types';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
 @Injectable()
@@ -15,8 +15,8 @@ export class GenesysWebsocket {
 
   private connections: WebsocketConnection[] = [];
 
-  private lastEndchats: any[] = [];
-  private lastJoinChats: any[] = [];
+  private lastEndchats: WebsocketMessageChatInfo[] = [];
+  private lastJoinChats: WebsocketMessageChatInfo[] = [];
 
   constructor(private readonly middlewareApiService: MiddlewareApiService) {}
 
@@ -61,6 +61,11 @@ export class GenesysWebsocket {
       token_type,
       access_token,
     );
+
+    // Reset lastEndchats, lastJoinchats list
+    this.lastEndchats = [];
+    this.lastJoinChats = [];
+
     const expireInMilliseconds = differenceInMilliseconds(
       parseISO(expires),
       new Date(),
@@ -109,7 +114,6 @@ export class GenesysWebsocket {
         // eslint-disable-next-line
         const message = JSON.parse(stringifyMessage);
         if (message.eventBody.participants) {
-          //console.log('All participants: ', message.eventBody.participants)
           const conversationId = this.getConversationId(
             message.eventBody.participants,
           );
@@ -146,7 +150,6 @@ export class GenesysWebsocket {
               },
               sender: {
                 username: 'test-agent',
-                // username: item.agentInfo.agentName,
               },
               conversationId: conversationId,
             };

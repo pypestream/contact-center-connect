@@ -101,7 +101,6 @@ export class GenesysService
       const res = await axios.get(url, { headers: headers });
       return res.data.conversationId;
     } catch (error) {
-      //console.log(error.response.status)
       return '';
     }
   }
@@ -225,7 +224,6 @@ export class GenesysService
     const headers = {
       Authorization: 'Bearer ' + token,
     };
-    // console.log('MEssage: ', message)
     const url = `${this.customer.instanceUrl}${inboundUrl}`;
     const res = this.httpService.post(
       url,
@@ -252,22 +250,6 @@ export class GenesysService
         { headers: headers },
       )
       .toPromise();
-
-    // const messageId = res.data.id;
-    // // Wait few seconds for Genesys update conversation ID for the message:
-    // await new Promise((resolve) => setTimeout(resolve, 2000));
-    // const genesysConversationId = await this.getGenesysConversationId(
-    //   messageId,
-    // );
-    // if (!genesysConversationId) return res;
-
-    // return this.httpService
-    //   .patch(
-    //     `${domain}/api/v2/conversations/chats/${genesysConversationId}`,
-    //     { state: 'disconnected' },
-    //     { headers: headers },
-    //   )
-    //   .toPromise();
   }
   /**
    * Start new conversation with initial message
@@ -281,7 +263,7 @@ export class GenesysService
     const headers = {
       Authorization: 'Bearer ' + token,
     };
-    // console.log('Message: ', message)
+
     const domain = this.customer.instanceUrl;
     const url = `${domain}${inboundUrl}`;
     return this.httpService
