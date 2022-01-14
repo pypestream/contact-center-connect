@@ -61,7 +61,7 @@ export class GenesysService
         clientId: customer.clientId,
         clientSecret: customer.clientSecret,
         getTokenUrl: `${customer.oAuthUrl}/oauth/token`,
-        getChannelUrl: `${customer.instanceUrl}/api/v2/notifications/channels`,
+        instanceUrl: customer.instanceUrl,
         queueId: customer.OMQueueId,
       })
       .then(() => {

@@ -32,8 +32,7 @@ export class GenesysController {
       clientId: 'cee20b0f-1881-4b8e-bea1-4fa625ec0c72',
       clientSecret: '_pngpQy8CGpF69dVgOlnWZuCwRjGN1EjKqpv-GpAcYQ',
       getTokenUrl: 'https://login.usw2.pure.cloud/oauth/token',
-      getChannelUrl:
-        'https://api.usw2.pure.cloud/api/v2/notifications/channels',
+      instanceUrl: 'https://api.usw2.pure.cloud',
       queueId: '0c54f616-50d6-43a0-9373-ecda0dc0f69b',
     });
   }

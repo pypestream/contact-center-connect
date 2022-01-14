@@ -3,6 +3,6 @@ export type GenesysWsConfig = {
   clientId: string;
   clientSecret: string;
   getTokenUrl: string;
-  getChannelUrl: string;
+  instanceUrl: string;
   queueId: string;
 };

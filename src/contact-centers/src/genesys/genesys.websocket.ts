@@ -43,8 +43,9 @@ export class GenesysWebsocket {
     params.append('client_secret', customer.clientSecret);
     const token = await axios.post(customer.getTokenUrl, params);
     const { access_token, token_type } = token.data;
+    const getChannelUrl = `${customer.instanceUrl}/api/v2/notifications/channels`;
     const channel = await axios.post(
-      customer.getChannelUrl,
+      getChannelUrl,
       {},
       {
         headers: {
@@ -53,10 +54,10 @@ export class GenesysWebsocket {
       },
     );
     const { connectUri, expires, id } = channel.data;
-    this.connect(connectUri, connectionIndex);
+    this.connect(connectUri, connectionIndex, access_token);
     await this.subscribeToChannel(
       id,
-      customer.getChannelUrl,
+      getChannelUrl,
       customer.queueId,
       token_type,
       access_token,
@@ -77,7 +78,7 @@ export class GenesysWebsocket {
     }, expireInMilliseconds);
   }
 
-  connect(url: string, connectionIndex: number) {
+  connect(url: string, connectionIndex: number, accessToken: string) {
     if (this.connections.length <= connectionIndex) {
       throw new Error('Invalid Connection Index');
     }
@@ -101,7 +102,7 @@ export class GenesysWebsocket {
     this.connections[connectionIndex].ws.on('close', (message) => {
       timer(1000).subscribe(() => {
         this.connections[connectionIndex].isConnect = false;
-        this.connect(url, connectionIndex);
+        this.connect(url, connectionIndex, accessToken);
       });
     });
 
@@ -142,6 +143,15 @@ export class GenesysWebsocket {
           }
 
           if (chatText) {
+            const agentInfo = await this.getAgentInfo(
+              this.connections[connectionIndex].customer,
+              participant.user.id,
+              accessToken,
+            );
+            const agentName = agentInfo['name'].find(
+              (elem) => elem.labelKey === 'name',
+            );
+
             const message = {
               message: {
                 value: chatText,
@@ -149,7 +159,7 @@ export class GenesysWebsocket {
                 id: uuidv4(),
               },
               sender: {
-                username: 'test-agent',
+                username: agentName.value,
               },
               conversationId: conversationId,
             };
@@ -181,6 +191,20 @@ export class GenesysWebsocket {
     await axios.post(`${url}/${channelId}/subscriptions`, reqBody, {
       headers: headers,
     });
+  }
+
+  async getAgentInfo(
+    customer: GenesysWsConfig,
+    agentId: string,
+    accessToken: string,
+  ) {
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    };
+    const url = `${customer.instanceUrl}/api/v2/users/${agentId}/profile`;
+    const response = await axios.get(url, { headers: headers });
+    return response.data.general;
   }
 
   isAgentDisconnected(participant) {
