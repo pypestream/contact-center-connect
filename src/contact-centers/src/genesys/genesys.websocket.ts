@@ -143,15 +143,6 @@ export class GenesysWebsocket {
           }
 
           if (chatText) {
-            const agentInfo = await this.getAgentInfo(
-              this.connections[connectionIndex].customer,
-              participant.user.id,
-              accessToken,
-            );
-            const agentName = agentInfo['name'].find(
-              (elem) => elem.labelKey === 'name',
-            );
-
             const message = {
               message: {
                 value: chatText,
@@ -159,7 +150,7 @@ export class GenesysWebsocket {
                 id: uuidv4(),
               },
               sender: {
-                username: agentName.value,
+                username: 'test-agent',
               },
               conversationId: conversationId,
             };
@@ -191,20 +182,6 @@ export class GenesysWebsocket {
     await axios.post(`${url}/${channelId}/subscriptions`, reqBody, {
       headers: headers,
     });
-  }
-
-  async getAgentInfo(
-    customer: GenesysWsConfig,
-    agentId: string,
-    accessToken: string,
-  ) {
-    const headers = {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    };
-    const url = `${customer.instanceUrl}/api/v2/users/${agentId}/profile`;
-    const response = await axios.get(url, { headers: headers });
-    return response.data.general;
   }
 
   isAgentDisconnected(participant) {
