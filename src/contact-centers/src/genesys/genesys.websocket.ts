@@ -1,10 +1,12 @@
+import { MessageType } from './../common/types';
 import { Injectable } from '@nestjs/common';
 import * as WebSocket from 'ws';
 import { timer } from 'rxjs';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { differenceInMilliseconds, parseISO } from 'date-fns';
 import { GenesysWsConfig } from './types/genesys-ws-config';
-import { WebsocketConnection } from './types';
+import { WebsocketConnection, WebsocketMessageChatInfo } from './types';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
 @Injectable()
@@ -12,6 +14,9 @@ export class GenesysWebsocket {
   // wss://echo.websocket.org is a test websocket server
 
   private connections: WebsocketConnection[] = [];
+
+  private lastEndchats: WebsocketMessageChatInfo[] = [];
+  private lastJoinChats: WebsocketMessageChatInfo[] = [];
 
   constructor(private readonly middlewareApiService: MiddlewareApiService) {}
 
@@ -38,8 +43,9 @@ export class GenesysWebsocket {
     params.append('client_secret', customer.clientSecret);
     const token = await axios.post(customer.getTokenUrl, params);
     const { access_token, token_type } = token.data;
+    const getChannelUrl = `${customer.instanceUrl}/api/v2/notifications/channels`;
     const channel = await axios.post(
-      customer.getChannelUrl,
+      getChannelUrl,
       {},
       {
         headers: {
@@ -48,14 +54,19 @@ export class GenesysWebsocket {
       },
     );
     const { connectUri, expires, id } = channel.data;
-    this.connect(connectUri, connectionIndex);
+    this.connect(connectUri, connectionIndex, access_token);
     await this.subscribeToChannel(
       id,
-      customer.getChannelUrl,
+      getChannelUrl,
       customer.queueId,
       token_type,
       access_token,
     );
+
+    // Reset lastEndchats, lastJoinchats list
+    this.lastEndchats = [];
+    this.lastJoinChats = [];
+
     const expireInMilliseconds = differenceInMilliseconds(
       parseISO(expires),
       new Date(),
@@ -67,7 +78,7 @@ export class GenesysWebsocket {
     }, expireInMilliseconds);
   }
 
-  connect(url: string, connectionIndex: number) {
+  connect(url: string, connectionIndex: number, accessToken: string) {
     if (this.connections.length <= connectionIndex) {
       throw new Error('Invalid Connection Index');
     }
@@ -91,7 +102,7 @@ export class GenesysWebsocket {
     this.connections[connectionIndex].ws.on('close', (message) => {
       timer(1000).subscribe(() => {
         this.connections[connectionIndex].isConnect = false;
-        this.connect(url, connectionIndex);
+        this.connect(url, connectionIndex, accessToken);
       });
     });
 
@@ -104,12 +115,47 @@ export class GenesysWebsocket {
         // eslint-disable-next-line
         const message = JSON.parse(stringifyMessage);
         if (message.eventBody.participants) {
-          const conversationId =
-            message.eventBody.participants[0].attributes.conversationId;
+          const conversationId = this.getConversationId(
+            message.eventBody.participants,
+          );
           const participant = message.eventBody.participants.pop();
+          let chatText;
           if (this.isAgentDisconnected(participant)) {
-            //console.log('End chat conversation ID: ', conversationId);
-            await this.middlewareApiService.endConversation(conversationId);
+            const lastEndchat = this.lastEndchats.find(
+              (p) => p[conversationId] === participant.endAcwTime,
+            );
+            if (!lastEndchat) {
+              this.lastEndchats.push({
+                [conversationId]: participant.endAcwTime,
+              });
+              chatText = 'Automated message: Agent has left the chat.';
+            }
+          } else if (this.isAgentConnected(participant)) {
+            const lastJoinchat = this.lastJoinChats.find(
+              (p) => p[conversationId] === participant.connectedTime,
+            );
+            if (!lastJoinchat) {
+              this.lastJoinChats.push({
+                [conversationId]: participant.connectedTime,
+              });
+              chatText = 'Automated message: Agent has joined the chat.';
+            }
+          }
+
+          if (chatText) {
+            const message = {
+              message: {
+                value: chatText,
+                type: MessageType.Text,
+                id: uuidv4(),
+              },
+              sender: {
+                username: 'test-agent',
+              },
+              conversationId: conversationId,
+            };
+
+            await this.middlewareApiService.sendMessage(message);
           }
         }
       },
@@ -145,5 +191,15 @@ export class GenesysWebsocket {
       participant.disconnectType === 'client' &&
       participant.endAcwTime
     );
+  }
+
+  isAgentConnected(participant) {
+    return participant.purpose === 'agent' && participant.state === 'connected';
+  }
+
+  getConversationId(participants) {
+    // Looking the participant has attributes which includes conversation id
+    const endUser = participants.find((p) => p.attributes.conversationId);
+    return endUser.attributes.conversationId;
   }
 }

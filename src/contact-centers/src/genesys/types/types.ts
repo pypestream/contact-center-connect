@@ -27,3 +27,8 @@ type GenesysSender = {
   firstName?: string;
   lastName?: string;
 };
+
+export type WebsocketMessageChatInfo = {
+  // conversationId : start(end) datetime
+  [key: string]: Date;
+};

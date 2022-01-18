@@ -61,7 +61,7 @@ export class GenesysService
         clientId: customer.clientId,
         clientSecret: customer.clientSecret,
         getTokenUrl: `${customer.oAuthUrl}/oauth/token`,
-        getChannelUrl: `${customer.instanceUrl}/api/v2/notifications/channels`,
+        instanceUrl: customer.instanceUrl,
         queueId: customer.OMQueueId,
       })
       .then(() => {
@@ -101,7 +101,6 @@ export class GenesysService
       const res = await axios.get(url, { headers: headers });
       return res.data.conversationId;
     } catch (error) {
-      //console.log(error.response.status)
       return '';
     }
   }
@@ -172,7 +171,7 @@ export class GenesysService
         time: new Date().toISOString(),
       },
       type: 'Text',
-      text: 'Automated message: USER ENDED CHAT.',
+      text: 'Automated message: User has left the chat.',
       direction: 'Inbound',
     };
     return res;
@@ -225,7 +224,6 @@ export class GenesysService
     const headers = {
       Authorization: 'Bearer ' + token,
     };
-    // console.log('MEssage: ', message)
     const url = `${this.customer.instanceUrl}${inboundUrl}`;
     const res = this.httpService.post(
       url,
@@ -245,25 +243,10 @@ export class GenesysService
       Authorization: 'Bearer ' + token,
     };
     const domain = this.customer.instanceUrl;
-    const res = await axios.post(
-      `${domain}${inboundUrl}`,
-      this.getEndConversationRequestBody(conversationId),
-      { headers: headers },
-    );
-
-    const messageId = res.data.id;
-
-    // Wait few seconds for Genesys update conversation ID for the message:
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    const genesysConversationId = await this.getGenesysConversationId(
-      messageId,
-    );
-    if (!genesysConversationId) return res;
-
     return this.httpService
-      .patch(
-        `${domain}/api/v2/conversations/chats/${genesysConversationId}`,
-        { state: 'disconnected' },
+      .post(
+        `${domain}${inboundUrl}`,
+        this.getEndConversationRequestBody(conversationId),
         { headers: headers },
       )
       .toPromise();
@@ -280,7 +263,7 @@ export class GenesysService
     const headers = {
       Authorization: 'Bearer ' + token,
     };
-    // console.log('Message: ', message)
+
     const domain = this.customer.instanceUrl;
     const url = `${domain}${inboundUrl}`;
     return this.httpService
@@ -326,6 +309,24 @@ export class GenesysService
    */
   isAvailable(skill: string): boolean {
     return !!skill;
+  }
+
+  /**
+   * Return estimated wait time in seconds
+   * @param message
+   */
+  getWaitTime(_: any): any {
+    this.getAccessToken().then((token) => {
+      const headers = {
+        Authorization: 'Bearer ' + token,
+      };
+      const domain = this.customer.instanceUrl;
+      const url = `${domain}/api/v2/routing/queues/${this.customer.OMQueueId}/mediatypes/message/estimatedwaittime`;
+
+      axios.get(url, { headers: headers }).then((response) => {
+        return response.data.results[0].estimatedWaitTimeSeconds.toString();
+      });
+    });
   }
 
   escalate(): boolean {
