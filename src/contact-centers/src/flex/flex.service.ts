@@ -79,7 +79,7 @@ export class FlexService
    */
   private getEndConversationRequestBody() {
     const res = {
-      Body: 'Automated message: USER LEFT CHAT.',
+      Body: 'Automated message: User has left the chat.',
       From: 'PS User',
     };
     return res;
@@ -149,16 +149,11 @@ export class FlexService
 
     // Send message to notifiy agent
     const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${conversationId}/Messages`;
-    this.httpService.post(
-      url,
-      qs.stringify(this.getEndConversationRequestBody()),
-      { auth: auth },
-    );
-
-    // Leave the channel
-    const reqUrl = `https://chat.twilio.com/v2/Services/${this.customer.serviceSid}/Channels/${conversationId}/Members/${conversationId}`;
-
-    return this.httpService.delete(reqUrl, { auth: auth }).toPromise();
+    return this.httpService
+      .post(url, qs.stringify(this.getEndConversationRequestBody()), {
+        auth: auth,
+      })
+      .toPromise();
   }
   /**
    * Start new conversation with initial message
@@ -180,6 +175,15 @@ export class FlexService
       { auth: auth },
     );
     const channelId = res.data.sid;
+
+    // Send chat history
+    const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}/Messages`;
+    this.httpService
+      .post(url, qs.stringify(this.getMessageRequestBody(message)), {
+        auth: auth,
+      })
+      .toPromise();
+
     // Update channel to use conversationID as unniqueName
     const reqUrl = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}`;
     return this.httpService
@@ -218,6 +222,18 @@ export class FlexService
    */
   hasNewMessageAction(message: FlexWebhookBody): boolean {
     return message.Source === 'SDK' && !!message.Body;
+  }
+
+  /**
+   * Determine if request body is about Agent end chat
+   * @param message
+   */
+  hasAgentEndChatAction(message: FlexWebhookBody): boolean {
+    return (
+      message.Source === 'SDK' &&
+      message.EventType === 'onChannelUpdate' &&
+      JSON.parse(message.Attributes).status === 'INACTIVE'
+    );
   }
 
   /**

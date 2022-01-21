@@ -19,7 +19,9 @@ export class BodyInterceptor implements NestInterceptor {
     const rawBody = await getRawBody(request);
     const stringifyBody = rawBody.toString();
     if (
-      request.headers['content-type'] === 'application/x-www-form-urlencoded'
+      request.headers['content-type'].includes(
+        'application/x-www-form-urlencoded',
+      )
     ) {
       request.body = qs.parse(stringifyBody);
     } else {

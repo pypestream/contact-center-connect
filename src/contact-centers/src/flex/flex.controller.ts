@@ -5,7 +5,6 @@ import {
   Res,
   HttpStatus,
   UseInterceptors,
-  Get,
 } from '@nestjs/common';
 import { FlexService } from './flex.service';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
@@ -29,6 +28,7 @@ export class FlexController {
     @Res() res: Response,
     @Body() body: PostBody,
   ) {
+    //console.log(body)
     const chatId = await this.flexService.getConversationIdFromChannelId(
       body.AccountSid,
       body.InstanceSid,
@@ -48,6 +48,14 @@ export class FlexController {
           this.middlewareApiService.sendMessage(message);
         requests.push(sendMessageRequest);
       }
+    }
+
+    const hasAgentEndChatAction = this.flexService.hasAgentEndChatAction(
+      body as FlexWebhookBody,
+    );
+    if (hasAgentEndChatAction) {
+      const endChatRequest = this.middlewareApiService.endConversation(chatId);
+      requests.push(endChatRequest);
     }
 
     Promise.all(requests)
