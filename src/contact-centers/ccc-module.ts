@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { MiddlewareApiModule } from './src/middleware-api/middleware-api.module';
 import { GenesysModule } from './src/genesys/genesys.module';
 import { ServiceNowModule } from './src/service-now/service-now.module';
+import { FreshChatModule } from './src/fresh-chat/fresh-chat.module';
 import { MiddlewareApiConfig } from './src/middleware-api/types';
 import { MiddlewareApiAsyncOptions } from './src/middleware-api/interfaces';
 
@@ -17,6 +18,7 @@ export class CccModule {
         MiddlewareApiModule.forRoot(options),
         GenesysModule,
         ServiceNowModule,
+        FreshChatModule,
       ],
       providers: [
         {

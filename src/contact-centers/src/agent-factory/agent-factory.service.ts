@@ -1,6 +1,7 @@
 import { AgentServices } from '../common/types';
 import { ServiceNowService } from '../service-now/service-now.service';
 import { GenesysService } from '../genesys/genesys.service';
+import { FreshChatService } from '../fresh-chat/fresh-chat.service';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { MiddlewareApi } from '../middleware-api/middleware-api';
 })
 export class AgentFactoryService {
   constructor(
+    private readonly freshChatService: FreshChatService,
     private readonly serviceNowService: ServiceNowService,
     private readonly genesysService: GenesysService,
     @Inject(REQUEST) private readonly request: Request,
@@ -30,6 +32,10 @@ export class AgentFactoryService {
         'x-pypestream-integration header is null',
         HttpStatus.BAD_REQUEST,
       );
+    }
+
+    if (integrationName === 'FreshChat') {
+      return this.freshChatService;
     }
 
     if (integrationName === 'ServiceNow') {
