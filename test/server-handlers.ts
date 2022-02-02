@@ -154,6 +154,29 @@ const handlers = [
       );
     },
   ),
+  rest.get(
+    'https://api.usw2.pure.cloud/api/v2/conversations/messages/:id/details',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          conversationId: 'random-conversation-id',
+        }),
+      );
+    },
+  ),
+  rest.patch(
+    'https://api.usw2.pure.cloud/api/v2/conversations/messages/:conversationId',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          participants: [],
+          state: 'disconnected',
+        }),
+      );
+    },
+  ),
   rest.post(
     'https://login.usw2.pure.cloud/oauth/token',
     async (req, res, ctx) => {
