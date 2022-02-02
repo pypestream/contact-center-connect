@@ -4,7 +4,7 @@ import {
   SendMessageResponse,
 } from './../common/types';
 import { Service, AgentService } from '../common/interfaces';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
 import { GenesysWebhookBody, GenesysCustomer } from './types';
@@ -242,14 +242,34 @@ export class GenesysService
     const headers = {
       Authorization: 'Bearer ' + token,
     };
+    const config: AxiosRequestConfig = {
+      headers: {
+        Authorization: 'Bearer ' + token,
+      },
+    };
     const domain = this.customer.instanceUrl;
-    return this.httpService
+    const messageSent = await this.httpService
       .post(
         `${domain}${inboundUrl}`,
         this.getEndConversationRequestBody(conversationId),
         { headers: headers },
       )
       .toPromise();
+    const messageId = messageSent.data.id;
+    const conversationUrl = `${domain}/api/v2/conversations/messages/${messageId}/details`;
+    const conversation = await this.httpService
+      .get(conversationUrl, config)
+      .toPromise();
+
+    const updateConversationUrl = `${domain}/api/v2/conversations/messages/${conversation.data.conversationId}`;
+
+    const endConversationStatus = this.httpService.patch(
+      updateConversationUrl,
+      { state: 'DISCONNECTED' },
+      config,
+    );
+
+    return endConversationStatus.toPromise();
   }
   /**
    * Start new conversation with initial message
@@ -260,17 +280,16 @@ export class GenesysService
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const token = await this.getAccessToken();
-    const headers = {
-      Authorization: 'Bearer ' + token,
-    };
 
     const domain = this.customer.instanceUrl;
     const url = `${domain}${inboundUrl}`;
-    return this.httpService
-      .post(url, this.startConversationRequestBody(message), {
-        headers: headers,
-      })
-      .toPromise();
+    const body = this.startConversationRequestBody(message);
+    const config: AxiosRequestConfig = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return this.httpService.post(url, body, config).toPromise();
   }
 
   /**

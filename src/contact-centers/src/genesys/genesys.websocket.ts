@@ -128,7 +128,20 @@ export class GenesysWebsocket {
               this.lastEndchats.push({
                 [conversationId]: participant.endAcwTime,
               });
-              chatText = 'Automated message: Agent has left the chat.';
+              const chatText = 'Automated message: Agent has left the chat.';
+              const message = {
+                message: {
+                  value: chatText,
+                  type: MessageType.Text,
+                  id: uuidv4(),
+                },
+                sender: {
+                  username: 'test-agent',
+                },
+                conversationId: conversationId,
+              };
+              await this.middlewareApiService.sendMessage(message);
+              await this.middlewareApiService.endConversation(conversationId);
             }
           } else if (this.isAgentConnected(participant)) {
             const lastJoinchat = this.lastJoinChats.find(
@@ -139,23 +152,20 @@ export class GenesysWebsocket {
                 [conversationId]: participant.connectedTime,
               });
               chatText = 'Automated message: Agent has joined the chat.';
+              const message = {
+                message: {
+                  value: chatText,
+                  type: MessageType.Text,
+                  id: uuidv4(),
+                },
+                sender: {
+                  username: 'test-agent',
+                },
+                conversationId: conversationId,
+              };
+
+              await this.middlewareApiService.sendMessage(message);
             }
-          }
-
-          if (chatText) {
-            const message = {
-              message: {
-                value: chatText,
-                type: MessageType.Text,
-                id: uuidv4(),
-              },
-              sender: {
-                username: 'test-agent',
-              },
-              conversationId: conversationId,
-            };
-
-            await this.middlewareApiService.sendMessage(message);
           }
         }
       },
