@@ -169,7 +169,7 @@ export class GenesysService
         time: new Date().toISOString(),
       },
       type: 'Text',
-      text: 'Automated message: User has left the chat.',
+      text: 'Automated message: User has left the chat ------ nour changed this message.',
       direction: 'Inbound',
     };
     return res;
