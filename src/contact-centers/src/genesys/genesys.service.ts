@@ -239,9 +239,6 @@ export class GenesysService
    */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     const token = await this.getAccessToken();
-    const headers = {
-      Authorization: 'Bearer ' + token,
-    };
     const config: AxiosRequestConfig = {
       headers: {
         Authorization: 'Bearer ' + token,
@@ -252,17 +249,19 @@ export class GenesysService
       .post(
         `${domain}${inboundUrl}`,
         this.getEndConversationRequestBody(conversationId),
-        { headers: headers },
+        config,
       )
       .toPromise();
     const messageId = messageSent.data.id;
     const conversationUrl = `${domain}/api/v2/conversations/messages/${messageId}/details`;
+    console.log(conversationUrl);
+    console.log(config.headers);
     const conversation = await this.httpService
       .get(conversationUrl, config)
       .toPromise();
 
     const updateConversationUrl = `${domain}/api/v2/conversations/messages/${conversation.data.conversationId}`;
-
+    console.log(updateConversationUrl);
     const endConversationStatus = this.httpService.patch(
       updateConversationUrl,
       { state: 'DISCONNECTED' },
