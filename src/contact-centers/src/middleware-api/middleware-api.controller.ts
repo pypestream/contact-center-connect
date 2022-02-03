@@ -120,7 +120,7 @@ export class MiddlewareApiController {
         skill: body.skill,
         message: {
           id: messageId,
-          value: history,
+          value: 'New Conversation',
           type: MessageType.Text,
         },
         sender: {

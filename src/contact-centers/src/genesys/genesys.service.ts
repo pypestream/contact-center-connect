@@ -254,15 +254,24 @@ export class GenesysService
     const conversationUrl = `${domain}/api/v2/conversations/messages/${messageId}/details`;
     console.log(conversationUrl);
     console.log(config.headers);
-    await require('timers/promises').setTimeout(3000);
-    const conversation = await this.httpService
+    let conversation = await this.httpService
       .get(conversationUrl, config)
       .toPromise()
       .catch((err) => console.log(err));
 
+    // if there is an error re-try after 3 seconds
+    if (!conversation) {
+      await require('timers/promises').setTimeout(3000);
+      conversation = await this.httpService
+        .get(conversationUrl, config)
+        .toPromise()
+        .catch((err) => console.log(err));
+    }
+
     if (!conversation) {
       return;
     }
+
     const updateConversationUrl = `${domain}/api/v2/conversations/messages/${conversation.data.conversationId}`;
     console.log(updateConversationUrl);
     const endConversationStatus = this.httpService.patch(
