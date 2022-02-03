@@ -169,7 +169,7 @@ export class GenesysService
         time: new Date().toISOString(),
       },
       type: 'Text',
-      text: 'Automated message: User has left the chat ------ nour changed this message.',
+      text: 'Automated message: User has left the chat',
       direction: 'Inbound',
     };
     return res;
@@ -239,7 +239,7 @@ export class GenesysService
     const token = await this.getAccessToken();
     const config: AxiosRequestConfig = {
       headers: {
-        Authorization: 'Bearer ' + token,
+        Authorization: `Bearer ${token}`,
       },
     };
     const domain = this.customer.instanceUrl;
@@ -254,6 +254,7 @@ export class GenesysService
     const conversationUrl = `${domain}/api/v2/conversations/messages/${messageId}/details`;
     console.log(conversationUrl);
     console.log(config.headers);
+    await require('timers/promises').setTimeout(3000);
     const conversation = await this.httpService
       .get(conversationUrl, config)
       .toPromise()
