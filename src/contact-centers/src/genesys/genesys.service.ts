@@ -256,8 +256,12 @@ export class GenesysService
     console.log(config.headers);
     const conversation = await this.httpService
       .get(conversationUrl, config)
-      .toPromise();
+      .toPromise()
+      .catch((err) => console.log(err));
 
+    if (!conversation) {
+      return;
+    }
     const updateConversationUrl = `${domain}/api/v2/conversations/messages/${conversation.data.conversationId}`;
     console.log(updateConversationUrl);
     const endConversationStatus = this.httpService.patch(
