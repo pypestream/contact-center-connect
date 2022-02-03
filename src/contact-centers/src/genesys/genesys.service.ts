@@ -20,11 +20,9 @@ import { HttpService } from '@nestjs/axios';
 import { GenesysWebsocket } from './genesys.websocket';
 
 /* eslint-disable */
-const axiosRetry = require('axios-retry');
 const qs = require('qs');
 /* eslint-disable */
 const inboundUrl = '/api/v2/conversations/messages/inbound/open';
-axiosRetry(axios, { retries: 3 });
 
 @Injectable({ scope: Scope.REQUEST })
 export class GenesysService

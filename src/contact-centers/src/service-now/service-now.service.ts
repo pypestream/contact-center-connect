@@ -29,11 +29,6 @@ import { Request } from 'express';
 import { getCustomer } from '../common/utils/get-customer';
 import { HttpService } from '@nestjs/axios';
 
-// eslint-disable-next-line
-const axiosRetry = require('axios-retry');
-
-axiosRetry(axios, { retries: 3 });
-
 @Injectable({
   scope: Scope.REQUEST,
 })
