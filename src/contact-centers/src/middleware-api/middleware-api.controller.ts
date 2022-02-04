@@ -170,6 +170,7 @@ export class MiddlewareApiController {
     } else {
       this.logger.log('sync typing indicator is not supported');
     }
+    res.status(HttpStatus.NO_CONTENT).end();
   }
 
   @Put('/conversations/:conversationId/messages/:messageId')

@@ -10,7 +10,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { MiddlewareApiCoreModule } from './middleware-api-core.module';
 import { MiddlewareApiModule } from './middleware-api.module';
 import { AgentFactoryModule } from '../agent-factory/agent-factory.module';
-import { HttpModule } from '@nestjs/axios';
+import { HttpModule } from '@nestjs/common';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
