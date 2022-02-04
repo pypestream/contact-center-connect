@@ -8,7 +8,7 @@ import { MiddlewareApiService } from './middleware-api.service';
 import { MiddlewareApiConfig } from './types';
 import { MiddlewareApiAsyncOptions } from './interfaces';
 import { AgentFactoryModule } from '../agent-factory/agent-factory.module';
-import { HttpModule } from '@nestjs/axios';
+import { HttpModule } from '../common/interceptors/http.module';
 
 @Module({
   imports: [forwardRef(() => AgentFactoryModule), HttpModule],

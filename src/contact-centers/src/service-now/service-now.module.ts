@@ -5,7 +5,7 @@ import { ServiceNowController } from './service-now.controller';
 import { ServiceNowService } from './service-now.service';
 import { MiddlewareApiModule } from '../middleware-api/middleware-api.module';
 import { forwardRef } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios';
+import { HttpModule } from '../common/interceptors/http.module';
 
 @Module({
   imports: [forwardRef(() => MiddlewareApiModule), HttpModule],

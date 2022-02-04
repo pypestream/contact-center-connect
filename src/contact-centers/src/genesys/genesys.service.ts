@@ -12,11 +12,10 @@ import { getCustomer } from '../common/utils/get-customer';
 import { InjectMiddlewareApi } from '../middleware-api/decorators';
 import { MiddlewareApi } from '../middleware-api/middleware-api';
 import { Request } from 'express';
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { Scope } from '@nestjs/common';
+import { Scope, HttpService } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
 import { GenesysWebsocket } from './genesys.websocket';
 
 /* eslint-disable */
@@ -34,6 +33,7 @@ export class GenesysService
    * @ignore
    */
   private customer: GenesysCustomer;
+  private readonly logger = new Logger(GenesysService.name);
 
   constructor(
     @Inject(REQUEST) private readonly request: Request,
@@ -64,7 +64,10 @@ export class GenesysService
       })
       .then(() => {
         // eslint-disable-next-line
-        console.log('Connected to Genesys websocket');
+        this.logger.log('Connected to Genesys websocket');
+      })
+      .catch((err) => {
+        this.logger.warn(err.message);
       });
   }
 
@@ -252,28 +255,36 @@ export class GenesysService
       .toPromise();
     const messageId = messageSent.data.id;
     const conversationUrl = `${domain}/api/v2/conversations/messages/${messageId}/details`;
-    console.log(conversationUrl);
-    console.log(config.headers);
+    this.logger.log('end-conversation get message details');
     let conversation = await this.httpService
       .get(conversationUrl, config)
       .toPromise()
-      .catch((err) => console.log(err));
+      .catch((err) =>
+        this.logger.error(
+          'error in get end conversation message details: ' + err.message,
+        ),
+      );
 
     // if there is an error re-try after 3 seconds
     if (!conversation) {
+      this.logger.log('end-conversation retry get message details');
       await require('timers/promises').setTimeout(3000);
       conversation = await this.httpService
         .get(conversationUrl, config)
         .toPromise()
-        .catch((err) => console.log(err));
+        .catch((err) =>
+          this.logger.error(
+            'error in get end conversation message details: ' + err.message,
+          ),
+        );
     }
 
     if (!conversation) {
+      this.logger.error('failed to get end-conversation message details');
       return;
     }
 
     const updateConversationUrl = `${domain}/api/v2/conversations/messages/${conversation.data.conversationId}`;
-    console.log(updateConversationUrl);
     const endConversationStatus = this.httpService.patch(
       updateConversationUrl,
       { state: 'DISCONNECTED' },

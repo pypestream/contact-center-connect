@@ -32,6 +32,8 @@ export class GenesysWebsocket {
       };
       this.connections.push(connection);
       await this.setupConnection(this.connections.length - 1);
+    } else {
+      throw new Error('There is connection open for this genesys client');
     }
   }
 
