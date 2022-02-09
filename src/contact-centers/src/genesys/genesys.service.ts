@@ -4,7 +4,7 @@ import {
   SendMessageResponse,
 } from './../common/types';
 import { Service, AgentService } from '../common/interfaces';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
 import { GenesysWebhookBody, GenesysCustomer } from './types';
@@ -12,19 +12,16 @@ import { getCustomer } from '../common/utils/get-customer';
 import { InjectMiddlewareApi } from '../middleware-api/decorators';
 import { MiddlewareApi } from '../middleware-api/middleware-api';
 import { Request } from 'express';
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { Scope } from '@nestjs/common';
+import { Scope, HttpService } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
 import { GenesysWebsocket } from './genesys.websocket';
 
 /* eslint-disable */
-const axiosRetry = require('axios-retry');
 const qs = require('qs');
 /* eslint-disable */
 const inboundUrl = '/api/v2/conversations/messages/inbound/open';
-axiosRetry(axios, { retries: 3 });
 
 @Injectable({ scope: Scope.REQUEST })
 export class GenesysService
@@ -36,6 +33,7 @@ export class GenesysService
    * @ignore
    */
   private customer: GenesysCustomer;
+  private readonly logger = new Logger(GenesysService.name);
 
   constructor(
     @Inject(REQUEST) private readonly request: Request,
@@ -66,7 +64,10 @@ export class GenesysService
       })
       .then(() => {
         // eslint-disable-next-line
-        console.log('Connected to Genesys websocket');
+        this.logger.log('Connected to Genesys websocket');
+      })
+      .catch((err) => {
+        this.logger.warn(err.message);
       });
   }
 
@@ -171,7 +172,7 @@ export class GenesysService
         time: new Date().toISOString(),
       },
       type: 'Text',
-      text: 'Automated message: User has left the chat.',
+      text: 'Automated message: User has left the chat',
       direction: 'Inbound',
     };
     return res;
@@ -239,17 +240,58 @@ export class GenesysService
    */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     const token = await this.getAccessToken();
-    const headers = {
-      Authorization: 'Bearer ' + token,
+    const config: AxiosRequestConfig = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     };
     const domain = this.customer.instanceUrl;
-    return this.httpService
+    const messageSent = await this.httpService
       .post(
         `${domain}${inboundUrl}`,
         this.getEndConversationRequestBody(conversationId),
-        { headers: headers },
+        config,
       )
       .toPromise();
+    const messageId = messageSent.data.id;
+    const conversationUrl = `${domain}/api/v2/conversations/messages/${messageId}/details`;
+    this.logger.log('end-conversation get message details');
+    let conversation = await this.httpService
+      .get(conversationUrl, config)
+      .toPromise()
+      .catch((err) =>
+        this.logger.error(
+          'error in get end conversation message details: ' + err.message,
+        ),
+      );
+
+    // if there is an error re-try after 3 seconds
+    if (!conversation) {
+      this.logger.log('end-conversation retry get message details');
+      await require('timers/promises').setTimeout(3000);
+      conversation = await this.httpService
+        .get(conversationUrl, config)
+        .toPromise()
+        .catch((err) =>
+          this.logger.error(
+            'error in get end conversation message details: ' + err.message,
+          ),
+        );
+    }
+
+    if (!conversation) {
+      this.logger.error('failed to get end-conversation message details');
+      return;
+    }
+
+    const updateConversationUrl = `${domain}/api/v2/conversations/messages/${conversation.data.conversationId}`;
+    const endConversationStatus = this.httpService.patch(
+      updateConversationUrl,
+      { state: 'DISCONNECTED' },
+      config,
+    );
+
+    return endConversationStatus.toPromise();
   }
   /**
    * Start new conversation with initial message
@@ -260,17 +302,16 @@ export class GenesysService
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const token = await this.getAccessToken();
-    const headers = {
-      Authorization: 'Bearer ' + token,
-    };
 
     const domain = this.customer.instanceUrl;
     const url = `${domain}${inboundUrl}`;
-    return this.httpService
-      .post(url, this.startConversationRequestBody(message), {
-        headers: headers,
-      })
-      .toPromise();
+    const body = this.startConversationRequestBody(message);
+    const config: AxiosRequestConfig = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return this.httpService.post(url, body, config).toPromise();
   }
 
   /**

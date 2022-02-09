@@ -27,12 +27,7 @@ import { MiddlewareApi } from '../middleware-api/middleware-api';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { getCustomer } from '../common/utils/get-customer';
-import { HttpService } from '@nestjs/axios';
-
-// eslint-disable-next-line
-const axiosRetry = require('axios-retry');
-
-axiosRetry(axios, { retries: 3 });
+import { HttpService } from '@nestjs/common';
 
 @Injectable({
   scope: Scope.REQUEST,

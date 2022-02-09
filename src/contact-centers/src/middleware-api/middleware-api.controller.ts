@@ -3,6 +3,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Logger,
   Param,
   Post,
   Put,
@@ -32,6 +33,8 @@ import { BodyInterceptor } from '../common/interceptors/body.interceptor';
 @UseInterceptors(BodyInterceptor)
 @Controller('contactCenter/v1')
 export class MiddlewareApiController {
+  private readonly logger = new Logger(MiddlewareApiController.name);
+
   constructor(
     private readonly agentFactoryService: AgentFactoryService,
     private readonly middlewareApiService: MiddlewareApiService,
@@ -120,7 +123,7 @@ export class MiddlewareApiController {
         skill: body.skill,
         message: {
           id: messageId,
-          value: history,
+          value: 'Escalated from chat',
           type: MessageType.Text,
         },
         sender: {
@@ -141,6 +144,7 @@ export class MiddlewareApiController {
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
+      this.logger.error('error in start new conversation ' + ex.message);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         errors: [ex.message],
         message: ex.message,
@@ -158,7 +162,13 @@ export class MiddlewareApiController {
     const agentService: AgentServices =
       this.agentFactoryService.getAgentService();
     if (!(agentService instanceof GenesysService)) {
-      await agentService.sendTyping(conversationId, body.typing);
+      await agentService
+        .sendTyping(conversationId, body.typing)
+        .catch((err) =>
+          this.logger.error('error in sync typing indicator: ' + err.message),
+        );
+    } else {
+      this.logger.log('sync typing indicator is not supported');
     }
     res.status(HttpStatus.NO_CONTENT).end();
   }
@@ -180,11 +190,16 @@ export class MiddlewareApiController {
       this.agentFactoryService.getAgentService();
 
     if (!(agentService instanceof GenesysService)) {
+      this.logger.log('set typing indicator to false');
       await agentService.sendTyping(conversationId, false);
     }
-    await agentService.sendMessage(cccMessage);
-
-    return res.status(HttpStatus.NO_CONTENT).end();
+    try {
+      await agentService.sendMessage(cccMessage);
+      return res.status(HttpStatus.NO_CONTENT).end();
+    } catch (err) {
+      this.logger.error(`error in send message to agent: ${err.message}`);
+      return res.status(HttpStatus.BAD_REQUEST).end();
+    }
   }
 
   @Post('/conversations/:conversationId/end')
@@ -195,9 +210,22 @@ export class MiddlewareApiController {
   ) {
     const service: AgentServices = this.agentFactoryService.getAgentService();
     if (!(service instanceof GenesysService)) {
-      await service.sendTyping(conversationId, false);
+      this.logger.log('conversation end: set typing indicator to false');
+      await service
+        .sendTyping(conversationId, false)
+        .catch((err) =>
+          this.logger.error(
+            'error in set typing indicator to false, Error: ' + err.message,
+          ),
+        );
     }
-    await service.endConversation(conversationId);
-    return res.status(HttpStatus.NO_CONTENT).end();
+    try {
+      await service.endConversation(conversationId);
+      return res.status(HttpStatus.NO_CONTENT).end();
+    } catch (err) {
+      this.logger.error('error in: end-conversation action:');
+      this.logger.error(err.message);
+      return res.status(HttpStatus.BAD_REQUEST).end();
+    }
   }
 }
