@@ -124,11 +124,11 @@ export class GenesysWebsocket {
           let chatText;
           if (this.isAgentDisconnected(participant)) {
             const lastEndchat = this.lastEndchats.find(
-              (p) => p[conversationId] === participant.endAcwTime,
+              (p) => p[conversationId] === participant.startAcwTime,
             );
             if (!lastEndchat) {
               this.lastEndchats.push({
-                [conversationId]: participant.endAcwTime,
+                [conversationId]: participant.startAcwTime,
               });
               const chatText = 'Automated message: Agent has left the chat.';
               const message = {
@@ -201,7 +201,7 @@ export class GenesysWebsocket {
       participant.purpose === 'agent' &&
       participant.state === 'disconnected' &&
       participant.disconnectType === 'client' &&
-      participant.endAcwTime
+      participant.startAcwTime
     );
   }
 
