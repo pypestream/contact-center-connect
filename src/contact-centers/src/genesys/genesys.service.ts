@@ -246,52 +246,13 @@ export class GenesysService
       },
     };
     const domain = this.customer.instanceUrl;
-    const messageSent = await this.httpService
-      .post(
-        `${domain}${inboundUrl}`,
-        this.getEndConversationRequestBody(conversationId),
-        config,
-      )
-      .toPromise();
-    const messageId = messageSent.data.id;
-    const conversationUrl = `${domain}/api/v2/conversations/messages/${messageId}/details`;
-    this.logger.log('end-conversation get message details');
-    let conversation = await this.httpService
-      .get(conversationUrl, config)
-      .toPromise()
-      .catch((err) =>
-        this.logger.error(
-          'error in get end conversation message details: ' + err.message,
-        ),
-      );
-
-    // if there is an error re-try after 3 seconds
-    if (!conversation) {
-      this.logger.log('end-conversation retry get message details');
-      await require('timers/promises').setTimeout(3000);
-      conversation = await this.httpService
-        .get(conversationUrl, config)
-        .toPromise()
-        .catch((err) =>
-          this.logger.error(
-            'error in get end conversation message details: ' + err.message,
-          ),
-        );
-    }
-
-    if (!conversation) {
-      this.logger.error('failed to get end-conversation message details');
-      return;
-    }
-
-    const updateConversationUrl = `${domain}/api/v2/conversations/messages/${conversation.data.conversationId}`;
-    const endConversationStatus = this.httpService.patch(
-      updateConversationUrl,
-      { state: 'DISCONNECTED' },
+    const messageSent = await this.httpService.post(
+      `${domain}${inboundUrl}`,
+      this.getEndConversationRequestBody(conversationId),
       config,
     );
 
-    return endConversationStatus.toPromise();
+    return messageSent.toPromise();
   }
   /**
    * Start new conversation with initial message
