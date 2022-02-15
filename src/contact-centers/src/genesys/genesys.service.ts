@@ -17,6 +17,7 @@ import { REQUEST } from '@nestjs/core';
 import { Scope, HttpService } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { GenesysWebsocket } from './genesys.websocket';
+import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
 /* eslint-disable */
 const qs = require('qs');
@@ -40,6 +41,7 @@ export class GenesysService
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
     private readonly genesysWebsocket: GenesysWebsocket,
     private httpService: HttpService,
+    private readonly middlewareApiService: MiddlewareApiService,
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
     const integration = this.request.headers['x-pypestream-integration'];
@@ -85,6 +87,16 @@ export class GenesysService
       .post(oAuthUrl, qs.stringify(reqBody))
       .toPromise();
     return res.data.access_token;
+  }
+
+  private async getAgentOnQueueTotal(accessToken: string) {
+    const headers = {
+      Authorization: 'Bearer ' + accessToken,
+    };
+    const domain = this.customer.instanceUrl;
+    const url = `${domain}/api/v2/routing/queues/${this.customer.OMQueueId}/users?presence=ON%20QUEUE`;
+    const res = await axios.get(url, { headers: headers });
+    return res.data.total;
   }
 
   /**
@@ -272,7 +284,29 @@ export class GenesysService
         Authorization: `Bearer ${token}`,
       },
     };
-    return this.httpService.post(url, body, config).toPromise();
+    const resp = this.httpService.post(url, body, config).toPromise();
+
+    const agentOnQueueTotal = await this.getAgentOnQueueTotal(token);
+    if (agentOnQueueTotal === 0) {
+      const chatText =
+        "We're sorry, there are currently no agents available. Please leave a message, we'll get back to you as soon as possible.";
+      const chatMessage = {
+        message: {
+          value: chatText,
+          type: MessageType.Text,
+          id: uuidv4(),
+        },
+        sender: {
+          username: 'test-agent',
+        },
+        conversationId: message.conversationId,
+      };
+      setTimeout(
+        () => this.middlewareApiService.sendMessage(chatMessage),
+        5000,
+      );
+    }
+    return resp;
   }
 
   /**
