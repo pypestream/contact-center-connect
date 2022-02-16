@@ -115,6 +115,7 @@ export class MiddlewareApiController {
       const agentService: AgentServices =
         this.agentFactoryService.getAgentService();
       const history: string = historyResponse.data.messages
+        .reverse()
         .map((m) => m.content)
         .join('\r\n');
       const messageId = uuidv4();
@@ -123,7 +124,7 @@ export class MiddlewareApiController {
         skill: body.skill,
         message: {
           id: messageId,
-          value: 'Escalated from chat',
+          value: history,
           type: MessageType.Text,
         },
         sender: {
