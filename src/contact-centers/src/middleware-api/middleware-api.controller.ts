@@ -116,7 +116,7 @@ export class MiddlewareApiController {
         this.agentFactoryService.getAgentService();
       const history: string = historyResponse.data.messages
         .reverse()
-        .map((m) => m.content)
+        .map((m) => `[${m.side}] ${m.content}`)
         .join('\r\n');
       const messageId = uuidv4();
       const message = {
