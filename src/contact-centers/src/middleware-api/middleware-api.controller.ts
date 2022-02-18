@@ -26,6 +26,7 @@ import { MiddlewareApiService } from './middleware-api.service';
 
 import { Body } from '@nestjs/common';
 import { GenesysService } from '../genesys/genesys.service';
+import { AmazonConnectService } from '../amazon-connect/amazon-connect.service';
 import { AgentFactoryService } from '../agent-factory/agent-factory.service';
 import { UseInterceptors } from '@nestjs/common';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
@@ -103,20 +104,20 @@ export class MiddlewareApiController {
     @Res() res: Response,
     @Body() body: PostEscalateBody,
   ) {
-    const historyResponse = await this.middlewareApiService
-      .history(conversationId)
-      .catch(() => {
-        return {
-          data: { messages: [] },
-        };
-      });
+    // const historyResponse = await this.middlewareApiService
+    //   .history(conversationId)
+    //   .catch(() => {
+    //     return {
+    //       data: { messages: [] },
+    //     };
+    //   });
 
     try {
       const agentService: AgentServices =
         this.agentFactoryService.getAgentService();
-      const history: string = historyResponse.data.messages
-        .map((m) => m.content)
-        .join('\r\n');
+      // const history: string = historyResponse.data.messages
+      //   .map((m) => m.content)
+      //   .join('\r\n');
       const messageId = uuidv4();
       const message = {
         conversationId: conversationId,
@@ -131,10 +132,14 @@ export class MiddlewareApiController {
           username: body.userId,
         },
       };
-      await agentService.startConversation(message);
+      const resp = await agentService.startConversation(message);
+      const escalationId = resp.data.message.includes('Mapping')
+        ? resp.data.message.split(':')[1]
+        : conversationId;
+
       const json: components['schemas']['EscalateResponse'] = {
         agentId: 'test-agent',
-        escalationId: conversationId,
+        escalationId: escalationId,
         /** Estimated wait time in seconds */
         estimatedWaitTime: 0,
         /** The user position in the chat queue. */

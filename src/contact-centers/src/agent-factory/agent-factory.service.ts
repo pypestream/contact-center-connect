@@ -1,6 +1,7 @@
 import { AgentServices } from '../common/types';
 import { ServiceNowService } from '../service-now/service-now.service';
 import { GenesysService } from '../genesys/genesys.service';
+import { AmazonConnectService } from '../amazon-connect/amazon-connect.service';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
@@ -19,6 +20,7 @@ export class AgentFactoryService {
   constructor(
     private readonly serviceNowService: ServiceNowService,
     private readonly genesysService: GenesysService,
+    private readonly amazonConnectService: AmazonConnectService,
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
   ) {}
@@ -37,8 +39,13 @@ export class AgentFactoryService {
     }
 
     if (integrationName === 'Genesys') {
-      return this.genesysService;
+      //console.log('Integration name: ', integrationName)
+      return this.amazonConnectService;
     }
+
+    // if (integrationName === 'AmazonConnect') {
+    //   return this.amazonConnectService;
+    // }
 
     return null;
   }
