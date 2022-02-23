@@ -27,4 +27,5 @@ COPY --from=build-dev /ccc/views ./views
 COPY --from=build-dev /ccc/public ./public
 
 EXPOSE 3000
+EXPOSE 8082
 CMD ["node", "dist/main"]
