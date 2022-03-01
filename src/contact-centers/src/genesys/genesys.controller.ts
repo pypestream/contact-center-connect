@@ -25,18 +25,6 @@ export class GenesysController {
     private readonly middlewareApiService: MiddlewareApiService,
   ) {}
 
-  @Get('test-websocket')
-  async webSocket() {
-    await this.genesysWebsocket.addConnection({
-      grantType: 'client_credentials',
-      clientId: 'cee20b0f-1881-4b8e-bea1-4fa625ec0c72',
-      clientSecret: '_pngpQy8CGpF69dVgOlnWZuCwRjGN1EjKqpv-GpAcYQ',
-      getTokenUrl: 'https://login.usw2.pure.cloud/oauth/token',
-      instanceUrl: 'https://api.usw2.pure.cloud',
-      queueId: '0c54f616-50d6-43a0-9373-ecda0dc0f69b',
-    });
-  }
-
   @Post('webhook')
   async message(
     @Req() req: Request,
