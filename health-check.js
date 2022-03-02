@@ -12,6 +12,8 @@ const healthCheck = async (req, res) => {
     await axios.get(url);
     res.status(200).send();
   } catch (error) {
+    // eslint-disable-next-line
+    console.error(error.message);
     res.status(500).send();
   }
 };
