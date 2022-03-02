@@ -1,5 +1,5 @@
 import { MessageType } from './../common/types';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as WebSocket from 'ws';
 import { timer } from 'rxjs';
 import axios from 'axios';
@@ -18,6 +18,8 @@ export class GenesysWebsocket {
 
   private lastEndchats: WebsocketMessageChatInfo[] = [];
   private lastJoinChats: WebsocketMessageChatInfo[] = [];
+
+  private readonly logger = new Logger(GenesysWebsocket.name);
 
   constructor(private readonly middlewareApiService: MiddlewareApiService) {}
 
@@ -122,6 +124,11 @@ export class GenesysWebsocket {
             message.eventBody.participants,
           );
           if (!conversationId) {
+            this.logger.warn(
+              `Not able to find conversation id for this message: ${JSON.stringify(
+                message,
+              )}`,
+            );
             return;
           }
           const participant = message.eventBody.participants.pop();
