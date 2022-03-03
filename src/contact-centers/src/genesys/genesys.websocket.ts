@@ -1,5 +1,5 @@
 import { MessageType } from './../common/types';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as WebSocket from 'ws';
 import { timer } from 'rxjs';
 import axios from 'axios';
@@ -8,6 +8,7 @@ import { differenceInMilliseconds, parseISO } from 'date-fns';
 import { GenesysWsConfig } from './types/genesys-ws-config';
 import { WebsocketConnection, WebsocketMessageChatInfo } from './types';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
+import { isEmpty } from 'lodash';
 
 @Injectable()
 export class GenesysWebsocket {
@@ -17,6 +18,8 @@ export class GenesysWebsocket {
 
   private lastEndchats: WebsocketMessageChatInfo[] = [];
   private lastJoinChats: WebsocketMessageChatInfo[] = [];
+
+  private readonly logger = new Logger(GenesysWebsocket.name);
 
   constructor(private readonly middlewareApiService: MiddlewareApiService) {}
 
@@ -120,6 +123,14 @@ export class GenesysWebsocket {
           const conversationId = this.getConversationId(
             message.eventBody.participants,
           );
+          if (!conversationId) {
+            this.logger.warn(
+              `Not able to find conversation id for this message: ${JSON.stringify(
+                message,
+              )}`,
+            );
+            return;
+          }
           const participant = message.eventBody.participants.pop();
           let chatText;
           if (this.isAgentDisconnected(participant)) {
@@ -198,6 +209,7 @@ export class GenesysWebsocket {
 
   isAgentDisconnected(participant) {
     return (
+      participant &&
       participant.purpose === 'agent' &&
       participant.state === 'disconnected' &&
       participant.disconnectType === 'client' &&
@@ -211,7 +223,13 @@ export class GenesysWebsocket {
 
   getConversationId(participants) {
     // Looking the participant has attributes which includes conversation id
+    if (isEmpty(participants)) {
+      return null;
+    }
     const endUser = participants.find((p) => p.attributes.conversationId);
+    if (!endUser) {
+      return null;
+    }
     return endUser.attributes.conversationId;
   }
 }
