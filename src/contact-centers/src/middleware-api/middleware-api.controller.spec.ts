@@ -1,16 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MiddlewareApiController } from './middleware-api.controller';
 import { CccModule } from '../../ccc-module';
-import { forwardRef, INestApplication } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { components } from './types';
 import { PutSettingsBody } from './dto';
-import { APP_PIPE } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { MiddlewareApiCoreModule } from './middleware-api-core.module';
-import { MiddlewareApiModule } from './middleware-api.module';
-import { AgentFactoryModule } from '../agent-factory/agent-factory.module';
-import { HttpModule } from '@nestjs/common';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
@@ -21,21 +15,14 @@ describe('MiddlewareApiController', () => {
 
   beforeEach(async () => {
     let moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [MiddlewareApiController],
+      controllers: [],
       imports: [
-        MiddlewareApiModule.forRoot({
+        CccModule.forRoot({
           url: 'https://mock-server.middleware.com',
           token: 'fake token',
         }),
-        forwardRef(() => AgentFactoryModule),
-        HttpModule,
       ],
-      providers: [
-        {
-          provide: APP_PIPE,
-          useClass: ValidationPipe,
-        },
-      ],
+      providers: [],
     }).compile();
 
     app = moduleFixture.createNestApplication();
