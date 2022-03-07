@@ -10,7 +10,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectMiddlewareApi } from './decorators/index';
 import { MiddlewareApi } from './middleware-api';
 import { AxiosResponse } from 'axios';
-import { HttpService } from '@nestjs/axios';
+import { HttpService } from '@nestjs/common';
 
 /**
  * MiddlewareApi service
