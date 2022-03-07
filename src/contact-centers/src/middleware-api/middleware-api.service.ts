@@ -6,11 +6,12 @@ import {
   SettingsObject,
 } from './types';
 import { components } from './types/openapi-types';
-import { Injectable } from '@nestjs/common';
+import { HttpService, Injectable } from '@nestjs/common';
 import { InjectMiddlewareApi } from './decorators/index';
 import { MiddlewareApi } from './middleware-api';
 import { AxiosResponse } from 'axios';
-import { HttpService } from '@nestjs/common';
+import { FeatureFlagService } from '../feature-flag/feature-flag.service';
+import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 
 /**
  * MiddlewareApi service
@@ -29,27 +30,41 @@ export class MiddlewareApiService
   constructor(
     @InjectMiddlewareApi() middlewareApi: MiddlewareApi,
     private httpService: HttpService,
+    private readonly featureFlagService: FeatureFlagService,
   ) {
     this.config = middlewareApi.config;
   }
 
+  private async getHeaders(): Promise<{ headers: { [key: string]: string } }> {
+    const isPE19446FlagEnabled = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.PE_19446,
+    );
+    return isPE19446FlagEnabled
+      ? {
+          headers: {
+            Authorization: `Basic ${this.config.token}`,
+          },
+        }
+      : {
+          headers: {
+            'x-pypestream-token': this.config.token,
+          },
+        };
+  }
   /**
    * End conversation
    * @param conversationId
    */
-  endConversation(conversationId: string): Promise<AxiosResponse<any>> {
+  async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
+    const headers = await this.getHeaders();
     return this.httpService
       .post(
         `${this.config.url}/contactCenter/v1/conversations/${conversationId}/end`,
         { senderId: 'test-agent' },
-        {
-          headers: {
-            'x-pypestream-token': this.config.token,
-          },
-        },
+        headers,
       )
       .toPromise();
   }
@@ -102,18 +117,15 @@ export class MiddlewareApiService
    * Send message to MiddlewareApi
    * @param message
    */
-  sendMessage(
+  async sendMessage(
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
+    const headers = await this.getHeaders();
     return this.httpService
       .put(
         `${this.config.url}/contactCenter/v1/conversations/${message.conversationId}/messages/${message.message.id}`,
         this.getMessageRequestBody(message),
-        {
-          headers: {
-            'x-pypestream-token': this.config.token,
-          },
-        },
+        headers,
       )
       .toPromise();
   }
@@ -144,33 +156,29 @@ export class MiddlewareApiService
     return message.completed;
   }
 
-  getSettings(): Promise<AxiosResponse<components['schemas']['Setting']>> {
+  async getSettings(): Promise<
+    AxiosResponse<components['schemas']['Setting']>
+  > {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
+    const headers = await this.getHeaders();
     return this.httpService
-      .get(`${this.config.url}/contactCenter/v1/settings`, {
-        headers: {
-          'x-pypestream-token': this.config.token,
-        },
-      })
+      .get(`${this.config.url}/contactCenter/v1/settings`, headers)
       .toPromise();
   }
 
-  putSettings(
+  async putSettings(
     data: SettingsObject,
   ): Promise<AxiosResponse<components['schemas']['Setting']>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
+    const headers = await this.getHeaders();
     const result = this.httpService.put(
       `${this.config.url}/contactCenter/v1/settings`,
       data,
-      {
-        headers: {
-          'x-pypestream-token': this.config.token,
-        },
-      },
+      headers,
     );
     return result.toPromise();
   }
@@ -178,19 +186,16 @@ export class MiddlewareApiService
    * Get history of conversation
    * @param conversationId
    */
-  history(
+  async history(
     conversationId: string,
   ): Promise<AxiosResponse<components['schemas']['History']>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
+    const headers = await this.getHeaders();
     const response = this.httpService.get(
       `${this.config.url}/contactCenter/v1/conversations/${conversationId}/history`,
-      {
-        headers: {
-          'x-pypestream-token': this.config.token,
-        },
-      },
+      headers,
     );
 
     return response.toPromise();
@@ -199,17 +204,14 @@ export class MiddlewareApiService
   /**
    * Get history of conversation
    */
-  waitTime(): Promise<AxiosResponse<components['schemas']['WaitTime']>> {
+  async waitTime(): Promise<AxiosResponse<components['schemas']['WaitTime']>> {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
+    const headers = await this.getHeaders();
     const response = this.httpService.get(
       `${this.config.url}/contactCenter/v1/agents/waitTime`,
-      {
-        headers: {
-          'x-pypestream-token': this.config.token,
-        },
-      },
+      headers,
     );
 
     return response.toPromise();
@@ -220,7 +222,7 @@ export class MiddlewareApiService
    * @param conversationId
    * @param isTyping
    */
-  sendTyping(
+  async sendTyping(
     conversationId: string,
     isTyping: boolean,
   ): Promise<AxiosResponse<SendMessageResponse>> {
@@ -233,16 +235,13 @@ export class MiddlewareApiService
       );
       return null;
     }
+    const headers = await this.getHeaders();
     const response = this.httpService.post(
       `${this.config.url}/contactCenter/v1/conversations/${conversationId}/type`,
       {
         typing: isTyping,
       },
-      {
-        headers: {
-          'x-pypestream-token': this.config.token,
-        },
-      },
+      headers,
     );
     return response.toPromise();
   }
