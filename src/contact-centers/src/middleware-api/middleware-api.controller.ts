@@ -29,6 +29,8 @@ import { GenesysService } from '../genesys/genesys.service';
 import { AgentFactoryService } from '../agent-factory/agent-factory.service';
 import { UseInterceptors } from '@nestjs/common';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
+import { FeatureFlagService } from '../feature-flag/feature-flag.service';
+import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 
 @UseInterceptors(BodyInterceptor)
 @Controller('contactCenter/v1')
@@ -38,6 +40,7 @@ export class MiddlewareApiController {
   constructor(
     private readonly agentFactoryService: AgentFactoryService,
     private readonly middlewareApiService: MiddlewareApiService,
+    private readonly featureFlagService: FeatureFlagService,
   ) {}
 
   @Put('settings')
@@ -96,13 +99,7 @@ export class MiddlewareApiController {
     };
   }
 
-  @Post('/conversations/:conversationId/escalate')
-  async escalate(
-    @Param('conversationId') conversationId,
-    @Req() req: Request,
-    @Res() res: Response,
-    @Body() body: PostEscalateBody,
-  ) {
+  private async getHistory(conversationId: string): Promise<string> {
     const historyResponse = await this.middlewareApiService
       .history(conversationId)
       .catch(() => {
@@ -110,14 +107,30 @@ export class MiddlewareApiController {
           data: { messages: [] },
         };
       });
+    const history: string = historyResponse.data.messages
+      .reverse()
+      .map((m) => `[${m.side}] ${m.content}`)
+      .join('\r\n');
+    return history;
+  }
 
+  @Post('/conversations/:conversationId/escalate')
+  async escalate(
+    @Param('conversationId') conversationId,
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body() body: PostEscalateBody,
+  ) {
     try {
       const agentService: AgentServices =
         this.agentFactoryService.getAgentService();
-      const history: string = historyResponse.data.messages
-        .reverse()
-        .map((m) => `[${m.side}] ${m.content}`)
-        .join('\r\n');
+      const isHistoryFlagEnabled = this.featureFlagService.isFlagEnabled(
+        FeatureFlagEnum.History,
+      );
+      const history = isHistoryFlagEnabled
+        ? await this.getHistory(conversationId)
+        : 'Escalated from chat';
+
       const messageId = uuidv4();
       const message = {
         conversationId: conversationId,

@@ -9,6 +9,8 @@ import { GenesysWsConfig } from './types/genesys-ws-config';
 import { WebsocketConnection, WebsocketMessageChatInfo } from './types';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 import { isEmpty } from 'lodash';
+import { FeatureFlagService } from '../feature-flag/feature-flag.service';
+import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 
 @Injectable()
 export class GenesysWebsocket {
@@ -21,7 +23,10 @@ export class GenesysWebsocket {
 
   private readonly logger = new Logger(GenesysWebsocket.name);
 
-  constructor(private readonly middlewareApiService: MiddlewareApiService) {}
+  constructor(
+    private readonly middlewareApiService: MiddlewareApiService,
+    private readonly featureFlagService: FeatureFlagService,
+  ) {}
 
   async addConnection(customer: GenesysWsConfig) {
     const connectionIndex = this.connections.findIndex(
@@ -111,6 +116,9 @@ export class GenesysWebsocket {
       });
     });
 
+    const isPE19853FlagEnabled = this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.PE_19853,
+    );
     // eslint-disable-next-line
     // @ts-ignore
     this.connections[connectionIndex].ws.on(
@@ -123,7 +131,7 @@ export class GenesysWebsocket {
           const conversationId = this.getConversationId(
             message.eventBody.participants,
           );
-          if (!conversationId) {
+          if (!conversationId && isPE19853FlagEnabled) {
             this.logger.warn(
               `Not able to find conversation id for this message: ${JSON.stringify(
                 message,
@@ -222,12 +230,15 @@ export class GenesysWebsocket {
   }
 
   getConversationId(participants) {
+    const isPE19853FlagEnabled = this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.PE_19853,
+    );
     // Looking the participant has attributes which includes conversation id
-    if (isEmpty(participants)) {
+    if (isEmpty(participants) && isPE19853FlagEnabled) {
       return null;
     }
     const endUser = participants.find((p) => p.attributes.conversationId);
-    if (!endUser) {
+    if (!endUser && isPE19853FlagEnabled) {
       return null;
     }
     return endUser.attributes.conversationId;

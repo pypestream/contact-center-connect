@@ -10,11 +10,16 @@ import {
 import { MiddlewareApiService } from './middleware-api.service';
 import { SettingsObject } from './types';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
+import { FeatureFlagService } from '../feature-flag/feature-flag.service';
+import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 
 @UseInterceptors(BodyInterceptor)
 @Controller()
 export class MiddlewareUiController {
-  constructor(private readonly middlewareApiService: MiddlewareApiService) {}
+  constructor(
+    private readonly middlewareApiService: MiddlewareApiService,
+    private readonly featureFlagService: FeatureFlagService,
+  ) {}
 
   @Get('')
   @Render('homepage')
@@ -31,6 +36,23 @@ export class MiddlewareUiController {
     } catch (ex) {
       return { message: JSON.stringify({}) };
     }
+  }
+
+  @Get('feature-flags')
+  async flags() {
+    const history = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.History,
+    );
+    const PE_19853 = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.PE_19853,
+    );
+    const PE_19446 = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.PE_19446,
+    );
+    const test = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.Test,
+    );
+    return { history, PE_19853, test, PE_19446 };
   }
 
   @Post('settings')
