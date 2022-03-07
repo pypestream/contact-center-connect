@@ -1,6 +1,8 @@
 // add this to your setupFilesAfterEnv config in jest so it's imported for every test file
 import { server } from './server';
 
+jest.mock('launchdarkly-node-server-sdk');
+
 beforeAll(() =>
   server.listen({
     onUnhandledRequest: ({ headers, method, url }) => {

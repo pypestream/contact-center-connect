@@ -5,6 +5,8 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { components } from './types';
 import { PutSettingsBody } from './dto';
+import * as LaunchDarkly from 'launchdarkly-node-server-sdk';
+import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
@@ -14,6 +16,11 @@ describe('MiddlewareApiController', () => {
     'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vYXBpLnVzdzIucHVyZS5jbG91ZCIsIm9BdXRoVXJsIjoiaHR0cHM6Ly9sb2dpbi51c3cyLnB1cmUuY2xvdWQiLCJjbGllbnRJZCI6ImNlZTIwYjBmLTE4ODEtNGI4ZS1iZWExLTRmYTYyNWVjMGM3MiIsImNsaWVudFNlY3JldCI6Il9wbmdwUXk4Q0dwRjY5ZFZnT2xuV1p1Q3dSakdOMUVqS3Fwdi1HcEFjWVEiLCJncmFudFR5cGUiOiJjbGllbnRfY3JlZGVudGlhbHMiLCJPTUludGVncmF0aW9uSWQiOiJhMjE3MTc0Mi03MzU5LTQxY2YtYWE2OC1hZDUwNDkyNTA4MDYiLCJPTVF1ZXVlSWQiOiIwYzU0ZjYxNi01MGQ2LTQzYTAtOTM3My1lY2RhMGRjMGY2OWIifQ==';
 
   beforeEach(async () => {
+    // @ts-ignore
+    LaunchDarkly.__mockFlags({
+      [FeatureFlagEnum.PE_19853]: true,
+      [FeatureFlagEnum.History]: true,
+    });
     let moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [],
       imports: [
