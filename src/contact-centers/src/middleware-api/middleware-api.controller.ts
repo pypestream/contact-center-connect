@@ -109,7 +109,7 @@ export class MiddlewareApiController {
       });
     const history: string = historyResponse.data.messages
       .reverse()
-      .map((m) => `[${m.side}] ${m.content}`)
+      .map((m) => `[${m.side}] ${m.content ? m.content : ''}`)
       .join('\r\n');
     return history;
   }
