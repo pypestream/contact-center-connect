@@ -192,19 +192,24 @@ export class GenesysWebsocket {
     tokenType: string,
     accessToken: string,
   ) {
-    const reqBody = JSON.stringify([
-      {
-        id: `v2.routing.queues.${queueId}.conversations.messages`,
-      },
-    ]);
+    queueId =
+      'a162b32f-fd3f-46fd-b413-90d76328836c,0c54f616-50d6-43a0-9373-ecda0dc0f69b,7b67986c-5c76-4b8c-9d85-5508f4dde09d';
+    const reqBody = queueId.split(',').map((queue) => ({
+      id: `v2.routing.queues.${queue.trim()}.conversations.messages`,
+    }));
+
     const headers = {
       Authorization: `${tokenType} ${accessToken}`,
       'Content-Type': 'application/json',
     };
 
-    await axios.post(`${url}/${channelId}/subscriptions`, reqBody, {
-      headers: headers,
-    });
+    await axios.post(
+      `${url}/${channelId}/subscriptions`,
+      JSON.stringify(reqBody),
+      {
+        headers: headers,
+      },
+    );
   }
 
   isAgentDisconnected(participant) {
