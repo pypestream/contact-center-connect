@@ -124,7 +124,7 @@ export class MiddlewareApiController {
     try {
       const agentService: AgentServices =
         this.agentFactoryService.getAgentService();
-      const isHistoryFlagEnabled = this.featureFlagService.isFlagEnabled(
+      const isHistoryFlagEnabled = await this.featureFlagService.isFlagEnabled(
         FeatureFlagEnum.History,
       );
       const history = isHistoryFlagEnabled
