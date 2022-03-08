@@ -64,7 +64,7 @@ export class GenesysWebsocket {
       },
     );
     const { connectUri, expires, id } = channel.data;
-    this.connect(connectUri, connectionIndex, access_token);
+    await this.connect(connectUri, connectionIndex, access_token);
     await this.subscribeToChannel(
       id,
       getChannelUrl,
@@ -88,7 +88,7 @@ export class GenesysWebsocket {
     }, expireInMilliseconds);
   }
 
-  connect(url: string, connectionIndex: number, accessToken: string) {
+  async connect(url: string, connectionIndex: number, accessToken: string) {
     if (this.connections.length <= connectionIndex) {
       throw new Error('Invalid Connection Index');
     }
@@ -116,7 +116,7 @@ export class GenesysWebsocket {
       });
     });
 
-    const isPE19853FlagEnabled = this.featureFlagService.isFlagEnabled(
+    const isPE19853FlagEnabled = await this.featureFlagService.isFlagEnabled(
       FeatureFlagEnum.PE_19853,
     );
     // eslint-disable-next-line
@@ -128,7 +128,7 @@ export class GenesysWebsocket {
         // eslint-disable-next-line
         const message = JSON.parse(stringifyMessage);
         if (message.eventBody.participants) {
-          const conversationId = this.getConversationId(
+          const conversationId = await this.getConversationId(
             message.eventBody.participants,
           );
           if (!conversationId && isPE19853FlagEnabled) {
@@ -229,8 +229,8 @@ export class GenesysWebsocket {
     return participant.purpose === 'agent' && participant.state === 'connected';
   }
 
-  getConversationId(participants) {
-    const isPE19853FlagEnabled = this.featureFlagService.isFlagEnabled(
+  async getConversationId(participants) {
+    const isPE19853FlagEnabled = await this.featureFlagService.isFlagEnabled(
       FeatureFlagEnum.PE_19853,
     );
     // Looking the participant has attributes which includes conversation id
