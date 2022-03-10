@@ -131,7 +131,7 @@ export class GenesysService
             customerName: 'John Doe',
             customerEmail: 'test@test.com',
             customerPhoneNumber: '9123456789',
-            skills: message.skill,
+            skill: message.skill,
           },
         },
         time: new Date().toISOString(),
