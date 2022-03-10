@@ -192,7 +192,7 @@ export class GenesysWebsocket {
     tokenType: string,
     accessToken: string,
   ) {
-    const reqBody = queueId.split(',').map((queue) => ({
+    const reqBody: Array<{ id: string }> = queueId.split(',').map((queue) => ({
       id: `v2.routing.queues.${queue.trim()}.conversations.messages`,
     }));
 
