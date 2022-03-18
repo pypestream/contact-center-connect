@@ -146,9 +146,11 @@ export class MiddlewareApiController {
         },
       };
       await agentService.startConversation(message);
+      const escalationId = uuidv4();
+
       const json: components['schemas']['EscalateResponse'] = {
         agentId: 'test-agent',
-        escalationId: conversationId,
+        escalationId: escalationId,
         /** Estimated wait time in seconds */
         estimatedWaitTime: 0,
         /** The user position in the chat queue. */
