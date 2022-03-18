@@ -104,7 +104,7 @@ export class GenesysWebsocket {
         const customer = connection.customer;
         this.destroyConnection(this.connections[key]);
         await this.setupConnection(customer);
-      } else if (!connection.ws) {
+      } else if (!connection.ws && connection.customer) {
         // if connection closed or there is error in connection reconnect
         const customer = connection.customer;
         await this.setupConnection(customer);
