@@ -43,7 +43,7 @@ export class MiddlewareApiService
     return isPE19446FlagEnabled
       ? {
           headers: {
-            Authorization: `Basic ${this.config.token}`,
+            Authorization: `Basic ${this.config.basicToken}`,
           },
         }
       : {
