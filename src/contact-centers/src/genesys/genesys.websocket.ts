@@ -8,7 +8,7 @@ import { GenesysWsConfig } from './types/genesys-ws-config';
 import { WebsocketConnection, WebsocketMessageChatInfo } from './types';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 import { isEmpty } from 'lodash';
-import { HttpService } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 import { Cron, CronExpression } from '@nestjs/schedule';

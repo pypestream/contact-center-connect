@@ -14,7 +14,8 @@ import { MiddlewareApi } from '../middleware-api/middleware-api';
 import { Request } from 'express';
 import { Inject, Logger } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { Scope, HttpService } from '@nestjs/common';
+import { Scope } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { GenesysWebsocket } from './genesys.websocket';
 
