@@ -33,13 +33,13 @@ export class GenesysWebsocket {
   async addConnection(customer: GenesysWsConfig) {
     const connection = this.connections[customer.clientId];
     if (!connection) {
-      const connection = {
+      const newConnection = {
         customer,
         isConnect: false,
         ws: null,
         expireAt: null,
       };
-      this.connections[customer.clientId] = connection;
+      this.connections[customer.clientId] = newConnection;
       await this.setupConnection(customer);
     } else {
       throw new Error('There is connection open for this genesys client');
@@ -68,7 +68,7 @@ export class GenesysWebsocket {
       )
       .toPromise();
     const { connectUri, expires, id } = channel.data;
-    await this.connect(connectUri, customer, access_token);
+    await this.connect(connectUri, customer);
     await this.subscribeToChannel(
       id,
       getChannelUrl,
@@ -112,7 +112,7 @@ export class GenesysWebsocket {
     });
   }
 
-  async connect(url: string, customer: GenesysWsConfig, accessToken: string) {
+  async connect(url: string, customer: GenesysWsConfig) {
     if (!this.connections[customer.clientId]) {
       throw new Error('Invalid Connection');
     }

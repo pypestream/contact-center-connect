@@ -19,6 +19,7 @@ describe('MiddlewareApiController', () => {
     // @ts-ignore
     LaunchDarkly.__mockFlags({
       [FeatureFlagEnum.PE_19853]: true,
+      [FeatureFlagEnum.PE_19446]: false,
       [FeatureFlagEnum.History]: true,
     });
     let moduleFixture: TestingModule = await Test.createTestingModule({
