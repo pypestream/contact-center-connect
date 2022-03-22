@@ -113,7 +113,7 @@ export class GenesysWebsocket {
   }
 
   async connect(url: string, customer: GenesysWsConfig, accessToken: string) {
-    if (this.connections[customer.clientId]) {
+    if (!this.connections[customer.clientId]) {
       throw new Error('Invalid Connection');
     }
     const key = customer.clientId;
