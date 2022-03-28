@@ -43,6 +43,7 @@ export class HttpModule implements OnModuleInit {
         logger.error(
           `/${err.request.method} ${err.config.url} - ${err}`,
           JSON.stringify(err.request._header),
+          JSON.stringify(err.request.body),
         );
 
         // Don't forget this line like I did at first: it makes your failed HTTP requests resolve with "undefined" :-(
