@@ -19,8 +19,8 @@ export class GenesysWebsocket {
 
   private connections: { [x: string]: WebsocketConnection } = {};
 
-  private lastEndChats: WebsocketMessageChatInfo[] = [];
-  private lastJoinChats: WebsocketMessageChatInfo[] = [];
+  private lastEndChats: { [x: string]: string } = {};
+  private lastJoinChats: { [x: string]: string } = {};
 
   private readonly logger = new Logger(GenesysWebsocket.name);
 
@@ -78,8 +78,8 @@ export class GenesysWebsocket {
     );
 
     // Reset lastEndChats, lastJoinchats list
-    this.lastEndChats = [];
-    this.lastJoinChats = [];
+    this.lastEndChats = {};
+    this.lastJoinChats = {};
 
     this.connections[customer.clientId].expireAt = parseISO(expires);
   }
@@ -155,13 +155,11 @@ export class GenesysWebsocket {
         const participant = message.eventBody.participants.pop();
         let chatText;
         if (this.isAgentDisconnected(participant)) {
-          const lastEndchat = this.lastEndChats.find(
-            (p) => p[conversationId] === participant.startAcwTime,
-          );
-          if (!lastEndchat) {
-            this.lastEndChats.push({
-              [conversationId]: participant.startAcwTime,
-            });
+          const lastEndChat =
+            this.lastEndChats[conversationId] === participant.id;
+          if (!lastEndChat) {
+            this.lastEndChats[conversationId] = participant.id;
+
             const chatText = 'Automated message: Agent has left the chat.';
             const message = {
               message: {
@@ -178,13 +176,10 @@ export class GenesysWebsocket {
             await this.middlewareApiService.endConversation(conversationId);
           }
         } else if (this.isAgentConnected(participant)) {
-          const lastJoinChat = this.lastJoinChats.find(
-            (p) => p[conversationId] === participant.connectedTime,
-          );
+          const lastJoinChat =
+            this.lastJoinChats[conversationId] === participant.id;
           if (!lastJoinChat) {
-            this.lastJoinChats.push({
-              [conversationId]: participant.connectedTime,
-            });
+            this.lastJoinChats[conversationId] = participant.id;
             chatText = 'Automated message: Agent has joined the chat.';
             const message = {
               message: {
@@ -240,7 +235,7 @@ export class GenesysWebsocket {
   }
 
   isAgentConnected(participant) {
-    return participant.purpose === 'agent' && participant.state === 'connected';
+    return participant.purpose === 'agent' && participant.state === 'alerting';
   }
 
   async getConversationId(participants) {
