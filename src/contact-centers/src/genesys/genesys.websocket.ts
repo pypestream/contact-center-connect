@@ -235,7 +235,7 @@ export class GenesysWebsocket {
   }
 
   isAgentConnected(participant) {
-    return participant.purpose === 'agent' && participant.state === 'alerting';
+    return participant.purpose === 'agent' && participant.state === 'connected';
   }
 
   async getConversationId(participants) {
