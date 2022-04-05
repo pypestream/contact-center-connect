@@ -6,7 +6,8 @@ import {
   SettingsObject,
 } from './types';
 import { components } from './types/openapi-types';
-import { HttpService, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { InjectMiddlewareApi } from './decorators/index';
 import { MiddlewareApi } from './middleware-api';
 import { AxiosResponse } from 'axios';
@@ -42,7 +43,7 @@ export class MiddlewareApiService
     return isPE19446FlagEnabled
       ? {
           headers: {
-            Authorization: `Basic ${this.config.token}`,
+            Authorization: `Basic ${this.config.basicToken}`,
           },
         }
       : {

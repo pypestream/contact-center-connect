@@ -16,6 +16,7 @@ export class MiddlewareApi {
   constructor(
     config: MiddlewareApiConfig = {
       token: '',
+      basicToken: '',
       url: '',
     },
   ) {

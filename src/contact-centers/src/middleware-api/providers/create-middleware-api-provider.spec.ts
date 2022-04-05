@@ -10,6 +10,7 @@ describe('cccProvider', () => {
       const provider = createMiddlewareApiProvider({
         url: '',
         token: '',
+        basicToken: '',
       });
       expect(provider).toHaveProperty('provide', MiddlewareApiToken);
     });
@@ -18,6 +19,7 @@ describe('cccProvider', () => {
       const provider = createMiddlewareApiProvider({
         url: '',
         token: '',
+        basicToken: '',
       });
       expect(provider).toHaveProperty('useValue');
       expect((provider as any).useValue).toBeInstanceOf(MiddlewareApi);
