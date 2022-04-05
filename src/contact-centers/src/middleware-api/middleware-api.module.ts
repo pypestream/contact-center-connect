@@ -1,6 +1,7 @@
 import { DynamicModule, ValidationPipe } from '@nestjs/common';
 import { Module, forwardRef } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
+import { FeatureFlagModule } from './../feature-flag/feature-flag.module';
 import { MiddlewareApiController } from './middleware-api.controller';
 import { MiddlewareUiController } from './middleware-ui.controller';
 import { MiddlewareApiCoreModule } from './middleware-api-core.module';
@@ -8,10 +9,14 @@ import { MiddlewareApiService } from './middleware-api.service';
 import { MiddlewareApiConfig } from './types';
 import { MiddlewareApiAsyncOptions } from './interfaces';
 import { AgentFactoryModule } from '../agent-factory/agent-factory.module';
-import { HttpModule } from '@nestjs/axios';
+import { HttpModule } from '../common/interceptors/http.module';
 
 @Module({
-  imports: [forwardRef(() => AgentFactoryModule), HttpModule],
+  imports: [
+    forwardRef(() => AgentFactoryModule),
+    HttpModule,
+    FeatureFlagModule,
+  ],
   providers: [MiddlewareApiService],
   controllers: [MiddlewareApiController, MiddlewareUiController],
   exports: [MiddlewareApiService],

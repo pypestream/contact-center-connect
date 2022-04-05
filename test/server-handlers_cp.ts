@@ -154,39 +154,17 @@ const handlers = [
       );
     },
   ),
-  rest.get(
-    'https://api.usw2.pure.cloud/api/v2/conversations/messages/:id/details',
-    async (req, res, ctx) => {
-      // do whatever other things you need to do with this shopping cart
-      return res(
-        ctx.json({
-          conversationId: 'random-conversation-id',
-        }),
-      );
-    },
-  ),
-  rest.patch(
-    'https://api.usw2.pure.cloud/api/v2/conversations/messages/:conversationId',
-    async (req, res, ctx) => {
-      // do whatever other things you need to do with this shopping cart
-      return res(
-        ctx.json({
-          participants: [],
-          state: 'disconnected',
-        }),
-      );
-    },
-  ),
   rest.post(
-    'https://login.usw2.pure.cloud/oauth/token',
+    'https://api.usw2.pure.cloud/api/v2/notifications/channels/streaming-4-ukr8up4nma82lhpci5kd2mi86t/subscriptions',
     async (req, res, ctx) => {
       // do whatever other things you need to do with this shopping cart
       return res(
         ctx.json({
-          access_token:
-            'RxmaDSoqnKwh3q-kPJ3bAeciqqBIQmDecFyJ5ls34PQ9-lu3k6kK7Dzv33f3_2xeTvGo45uu8TZqFRsbK5tz1g',
-          token_type: 'bearer',
-          expires_in: 86399,
+          entities: [
+            {
+              id: 'v2.routing.queues.0c54f616-50d6-43a0-9373-ecda0dc0f69b.conversations.messages',
+            },
+          ],
         }),
       );
     },
