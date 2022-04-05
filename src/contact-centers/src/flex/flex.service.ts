@@ -176,18 +176,18 @@ export class FlexService
     );
     const channelId = res.data.sid;
 
-    // Send chat history
-    const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}/Messages`;
-    this.httpService
-      .post(url, qs.stringify(this.getMessageRequestBody(message)), {
-        auth: auth,
-      })
-      .toPromise();
-
     // Update channel to use conversationID as unniqueName
     const reqUrl = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}`;
     return this.httpService
       .post(reqUrl, qs.stringify({ UniqueName: message.conversationId }), {
+        auth: auth,
+      })
+      .toPromise();
+
+    // Send chat history
+    const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}/Messages`;
+    this.httpService
+      .post(url, qs.stringify(this.getMessageRequestBody(message)), {
         auth: auth,
       })
       .toPromise();
