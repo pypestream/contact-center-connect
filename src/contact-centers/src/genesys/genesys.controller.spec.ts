@@ -1,14 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GenesysController } from './genesys.controller';
 import { CccModule } from '../../ccc-module';
-import { forwardRef, INestApplication } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { APP_PIPE } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { GenesysModule } from './genesys.module';
-import { HttpModule } from '@nestjs/axios';
-import { MiddlewareApiModule } from '../middleware-api/middleware-api.module';
-import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
 describe('GenesysController', () => {
   let app: INestApplication;
@@ -21,6 +15,7 @@ describe('GenesysController', () => {
         CccModule.forRoot({
           url: 'https://mock-server.middleware.com',
           token: 'fake token',
+          basicToken: 'fake basic token',
         }),
       ],
       providers: [],

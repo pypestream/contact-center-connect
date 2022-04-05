@@ -15,6 +15,7 @@ import { CccModule } from './contact-centers/ccc-module';
     CccModule.forRoot({
       url: process.env.MIDDLEWARE_API_URL,
       token: process.env.MIDDLEWARE_API_TOKEN,
+      basicToken: process.env.MIDDLEWARE_API_BASIC_TOKEN,
     }),
   ],
   providers: [],
