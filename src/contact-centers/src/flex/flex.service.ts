@@ -41,16 +41,13 @@ export class FlexService
    * @ignore
    */
   private customer: FlexCustomer;
-  private tokens;
   constructor(
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
     private httpService: HttpService,
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
-    this.tokens = {
-      IS3d2934585cab4fb59cc75a217bbf676a: '541f2df7cbe3d8f5c720db6e523fefae',
-    };
+
     const integration = this.request.headers['x-pypestream-integration'];
     if (integration !== 'Flex' || typeof base64Customer !== 'string') {
       return null;
@@ -96,24 +93,6 @@ export class FlexService
     };
 
     return res;
-  }
-
-  /**
-   * @ignore
-   */
-  async getConversationIdFromChannelId(
-    accountSid: string,
-    instanceSid: string,
-    channelId: string,
-  ) {
-    const auth = {
-      username: accountSid,
-      password: this.tokens[instanceSid],
-    };
-
-    const url = `${chatServiceUrl}/${instanceSid}/Channels/${channelId}`;
-    const res = await axios.get(url, { auth: auth });
-    return res.data.unique_name;
   }
 
   /**
@@ -176,14 +155,6 @@ export class FlexService
     );
     const channelId = res.data.sid;
 
-    // Update channel to use conversationID as unniqueName
-    const reqUrl = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}`;
-    return this.httpService
-      .post(reqUrl, qs.stringify({ UniqueName: message.conversationId }), {
-        auth: auth,
-      })
-      .toPromise();
-
     // Send chat history
     const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}/Messages`;
     this.httpService
@@ -191,6 +162,25 @@ export class FlexService
         auth: auth,
       })
       .toPromise();
+
+    // Update channel to use conversationID as unniqueName
+    const reqUrl = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}`;
+    this.httpService
+      .post(reqUrl, qs.stringify({ UniqueName: message.conversationId }), {
+        auth: auth,
+      })
+      .toPromise();
+
+    return Promise.resolve({
+      data: {
+        status: 201,
+        message: `Flex:${channelId}`,
+      },
+      statusText: 'ok',
+      status: 201,
+      headers: {},
+      config: {},
+    });
   }
 
   /**
@@ -217,6 +207,43 @@ export class FlexService
   }
 
   /**
+   * Get chat ID
+   * @param message
+   */
+  getChatId(message: FlexWebhookBody): string {
+    if (message.ChannelSid) return message.ChannelSid;
+    const attributes = JSON.parse(message.TaskAttributes);
+    return attributes.channelSid;
+  }
+
+  /**
+   * Determine if Agent reject the chat
+   * @param message
+   */
+  hasAgentRejectedChat(message: FlexWebhookBody): boolean {
+    return (
+      message.EventType === 'reservation.rejected' ||
+      message.TaskReEvaluatedReason === 'reservation_rejected'
+    );
+  }
+
+  /**
+   * Determine if Agent has joined the chat
+   * @param message
+   */
+  hasAgentJoinedChat(message: FlexWebhookBody): boolean {
+    return message.EventType === 'reservation.accepted';
+  }
+
+  /**
+   * Determine if Agent left the chat
+   * @param message
+   */
+  hasAgentLeftChat(message: FlexWebhookBody): boolean {
+    return message.EventType === 'reservation.wrapup';
+  }
+
+  /**
    * Determine if request body is new message from Agent
    * @param message
    */
@@ -225,23 +252,20 @@ export class FlexService
   }
 
   /**
-   * Determine if request body is about Agent end chat
-   * @param message
-   */
-  hasAgentEndChatAction(message: FlexWebhookBody): boolean {
-    return (
-      message.Source === 'SDK' &&
-      message.EventType === 'onChannelUpdate' &&
-      JSON.parse(message.Attributes).status === 'INACTIVE'
-    );
-  }
-
-  /**
    * Determine if agent is available to receive new message
    * @param message
    */
-  isAvailable(skill: string): boolean {
-    return !!skill;
+  async isAvailable(skill: string): Promise<boolean> {
+    const auth = {
+      username: this.customer.accountSid,
+      password: this.customer.authToken,
+    };
+
+    const url = `https://taskrouter.twilio.com/v1/Workspaces/${this.customer.workspaceSid}/Workers`;
+
+    // Create a channel to start conversation
+    const res = await axios.post(url, { auth: auth });
+    return res.data.workers.some((worker) => worker.available);
   }
 
   escalate(): boolean {

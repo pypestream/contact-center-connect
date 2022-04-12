@@ -3,4 +3,5 @@ export type FlexCustomer = {
   authToken: string;
   flexFlowSid: string;
   serviceSid: string;
+  workspaceSid: string;
 };

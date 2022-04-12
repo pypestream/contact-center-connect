@@ -6,6 +6,8 @@ import {
   HttpStatus,
   UseInterceptors,
 } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
+import { MessageType } from './../common/types';
 import { FlexService } from './flex.service';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 import { FlexWebhookBody } from './types';
@@ -28,13 +30,42 @@ export class FlexController {
     @Res() res: Response,
     @Body() body: PostBody,
   ) {
-    //console.log(body)
-    const chatId = await this.flexService.getConversationIdFromChannelId(
-      body.AccountSid,
-      body.InstanceSid,
-      body.ChannelSid,
-    );
+    const chatId = this.flexService.getChatId(body as FlexWebhookBody);
+
     const requests = [];
+
+    if (this.flexService.hasAgentJoinedChat(body as FlexWebhookBody)) {
+      const chatText = 'Automated message: Agent has joined the chat.';
+      const message = {
+        message: {
+          value: chatText,
+          type: MessageType.Text,
+          id: uuidv4(),
+        },
+        sender: {
+          username: 'test-agent',
+        },
+        conversationId: chatId,
+      };
+      await this.middlewareApiService.sendMessage(message);
+    }
+
+    if (this.flexService.hasAgentLeftChat(body as FlexWebhookBody)) {
+      const chatText = 'Automated message: Agent has left the chat.';
+      const message = {
+        message: {
+          value: chatText,
+          type: MessageType.Text,
+          id: uuidv4(),
+        },
+        sender: {
+          username: 'test-agent',
+        },
+        conversationId: chatId,
+      };
+      await this.middlewareApiService.sendMessage(message);
+      await this.middlewareApiService.endConversation(chatId);
+    }
 
     const hasNewMessageAction = this.flexService.hasNewMessageAction(
       body as FlexWebhookBody,
@@ -48,14 +79,6 @@ export class FlexController {
           this.middlewareApiService.sendMessage(message);
         requests.push(sendMessageRequest);
       }
-    }
-
-    const hasAgentEndChatAction = this.flexService.hasAgentEndChatAction(
-      body as FlexWebhookBody,
-    );
-    if (hasAgentEndChatAction) {
-      const endChatRequest = this.middlewareApiService.endConversation(chatId);
-      requests.push(endChatRequest);
     }
 
     Promise.all(requests)

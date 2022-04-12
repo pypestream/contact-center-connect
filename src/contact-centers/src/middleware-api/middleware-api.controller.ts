@@ -75,7 +75,7 @@ export class MiddlewareApiController {
     }
     const agentService: AgentServices =
       this.agentFactoryService.getAgentService();
-    const isAvailable = agentService.isAvailable(query.skill);
+    const isAvailable = await agentService.isAvailable(query.skill);
     return {
       available: isAvailable,
       estimatedWaitTime: 30,
@@ -146,16 +146,25 @@ export class MiddlewareApiController {
           username: body.userId,
         },
       };
-      await agentService.startConversation(message);
+      //await agentService.startConversation(message);
+
+      const resp = await agentService.startConversation(message);
+
+      let escalationId = conversationId;
+
+      if (resp.data.message.includes('Flex')) {
+        escalationId = resp.data.message.split(':')[1];
+      }
+
       const json: components['schemas']['EscalateResponse'] = {
         agentId: 'test-agent',
-        escalationId: conversationId,
+        escalationId: escalationId,
         /** Estimated wait time in seconds */
         estimatedWaitTime: 0,
         /** The user position in the chat queue. */
         queuePosition: 0,
         /** (accepted, queued) */
-        status: 'queued',
+        status: 'accepted',
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
