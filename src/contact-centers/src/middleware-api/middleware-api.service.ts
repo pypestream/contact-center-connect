@@ -84,8 +84,8 @@ export class MiddlewareApiService
    * @param message
    */
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isAvailable(skill: string): boolean {
-    return true;
+  isAvailable(skill: string): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   /**

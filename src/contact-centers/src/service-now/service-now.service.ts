@@ -379,8 +379,8 @@ export class ServiceNowService
    * Determine if agent is available to receive new message
    * @param message
    */
-  isAvailable(skill: string): boolean {
-    return !!skill;
+  isAvailable(skill: string): Promise<boolean> {
+    return Promise.resolve(!!skill);
   }
 
   /**
