@@ -21,6 +21,7 @@ describe('FlexController', () => {
         CccModule.forRoot({
           url: 'https://mock-server.middleware.com',
           token: 'fake token',
+          basicToken: 'fake basic token',
         }),
       ],
       providers: [],

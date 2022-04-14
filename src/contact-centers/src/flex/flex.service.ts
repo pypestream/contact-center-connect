@@ -212,8 +212,11 @@ export class FlexService
    */
   getChatId(message: FlexWebhookBody): string {
     if (message.ChannelSid) return message.ChannelSid;
-    const attributes = JSON.parse(message.TaskAttributes);
-    return attributes.channelSid;
+    if (message.TaskAttributes) {
+      const attributes = JSON.parse(message.TaskAttributes);
+      return attributes.channelSid;
+    }
+    return null;
   }
 
   /**
@@ -264,7 +267,7 @@ export class FlexService
     const url = `https://taskrouter.twilio.com/v1/Workspaces/${this.customer.workspaceSid}/Workers`;
 
     // Create a channel to start conversation
-    const res = await axios.post(url, { auth: auth });
+    const res = await axios.get(url, { auth: auth });
     return res.data.workers.some((worker) => worker.available);
   }
 
