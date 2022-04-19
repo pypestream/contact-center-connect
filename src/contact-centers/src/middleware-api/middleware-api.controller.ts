@@ -109,7 +109,15 @@ export class MiddlewareApiController {
       });
     const history: string = historyResponse.data.messages
       .reverse()
-      .map((m) => `[${m.side}] ${m.content ? m.content : ''}`)
+      .map((m) => {
+        try {
+          return `[side:${m.side}] [type: ${m.type}] ${
+            m.content ? JSON.stringify(m.content) : ''
+          }`;
+        } catch (e) {
+          return `[side:${m.side}] [type: ${m.type}] ${m.content}`;
+        }
+      })
       .join('\r\n');
     return history;
   }
