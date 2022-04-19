@@ -13,6 +13,7 @@ import { MiddlewareApi } from './middleware-api';
 import { AxiosResponse } from 'axios';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
+import qs from 'qs';
 
 /**
  * MiddlewareApi service
@@ -194,8 +195,9 @@ export class MiddlewareApiService
       throw new Error('MiddlewareApi instance-url must has value');
     }
     const headers = await this.getHeaders();
+    const query: string = qs.stringify({ pageSize: 1000 });
     const response = this.httpService.get(
-      `${this.config.url}/contactCenter/v2/conversations/${conversationId}/history`,
+      `${this.config.url}/contactCenter/v2/conversations/${conversationId}/history?${query}`,
       headers,
     );
 
