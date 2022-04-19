@@ -152,7 +152,7 @@ export class MiddlewareApiController {
 
       let escalationId = conversationId;
 
-      if (resp.data.message.includes('Flex')) {
+      if (resp.data.message && resp.data.message.includes('Flex')) {
         escalationId = resp.data.message.split(':')[1];
       }
 
