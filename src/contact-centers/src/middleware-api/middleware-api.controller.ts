@@ -107,9 +107,14 @@ export class MiddlewareApiController {
           data: { messages: [] },
         };
       });
+    this.logger.log(
+      `History response for conversation-id: ${conversationId} : ${JSON.stringify(
+        historyResponse.data.messages,
+      )}`,
+    );
     const history: string = historyResponse.data.messages
       .reverse()
-      .filter((m) => m.content.text)
+      .filter((m) => m.content && m.content.text)
       .map((m) => `[side:${m.side}] ${m.content.text}`)
       .join('\r\n');
     return history;
@@ -159,7 +164,10 @@ export class MiddlewareApiController {
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
-      this.logger.error('error in start new conversation ' + ex.message);
+      this.logger.error(
+        'error in start new conversation ' + ex.message,
+        ex.stack,
+      );
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         errors: [ex.message],
         message: ex.message,
@@ -180,7 +188,10 @@ export class MiddlewareApiController {
       await agentService
         .sendTyping(conversationId, body.typing)
         .catch((err) =>
-          this.logger.error('error in sync typing indicator: ' + err.message),
+          this.logger.error(
+            'error in sync typing indicator: ' + err.message,
+            err.stack,
+          ),
         );
     } else {
       this.logger.log('sync typing indicator is not supported');
@@ -212,7 +223,10 @@ export class MiddlewareApiController {
       await agentService.sendMessage(cccMessage);
       return res.status(HttpStatus.NO_CONTENT).end();
     } catch (err) {
-      this.logger.error(`error in send message to agent: ${err.message}`);
+      this.logger.error(
+        `error in send message to agent: ${err.message}`,
+        err.stack,
+      );
       return res.status(HttpStatus.BAD_REQUEST).end();
     }
   }
@@ -231,6 +245,7 @@ export class MiddlewareApiController {
         .catch((err) =>
           this.logger.error(
             'error in set typing indicator to false, Error: ' + err.message,
+            err.stack,
           ),
         );
     }
@@ -239,7 +254,7 @@ export class MiddlewareApiController {
       return res.status(HttpStatus.NO_CONTENT).end();
     } catch (err) {
       this.logger.error('error in: end-conversation action:');
-      this.logger.error(err.message);
+      this.logger.error(err.message, err.stack);
       return res.status(HttpStatus.BAD_REQUEST).end();
     }
   }
