@@ -2,6 +2,7 @@ import {
   CccMessage,
   MessageType,
   SendMessageResponse,
+  StartConversationResponse,
 } from './../common/types';
 import {
   Service,
@@ -141,7 +142,7 @@ export class FlexService
    */
   async startConversation(
     message: CccMessage,
-  ): Promise<AxiosResponse<SendMessageResponse>> {
+  ): Promise<AxiosResponse<StartConversationResponse>> {
     const auth = {
       username: this.customer.accountSid,
       password: this.customer.authToken,
@@ -165,22 +166,20 @@ export class FlexService
 
     // Update channel to use conversationID as unniqueName
     const reqUrl = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}`;
-    this.httpService
+
+    const startConversationRes = await this.httpService
       .post(reqUrl, qs.stringify({ UniqueName: message.conversationId }), {
         auth: auth,
       })
       .toPromise();
 
-    return Promise.resolve({
+    return {
+      ...startConversationRes,
       data: {
-        status: 201,
-        message: `Flex:${channelId}`,
+        ...startConversationRes.data,
+        escalationId: channelId,
       },
-      statusText: 'ok',
-      status: 201,
-      headers: {},
-      config: {},
-    });
+    };
   }
 
   /**

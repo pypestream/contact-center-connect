@@ -2,6 +2,7 @@ import {
   CccMessage,
   MessageType,
   SendMessageResponse,
+  StartConversationResponse,
 } from './../common/types';
 import { Service, AgentService } from '../common/interfaces';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -262,7 +263,7 @@ export class GenesysService
    */
   async startConversation(
     message: CccMessage,
-  ): Promise<AxiosResponse<SendMessageResponse>> {
+  ): Promise<AxiosResponse<StartConversationResponse>> {
     const token = await this.getAccessToken();
 
     const domain = this.customer.instanceUrl;
@@ -273,7 +274,14 @@ export class GenesysService
         Authorization: `Bearer ${token}`,
       },
     };
-    return this.httpService.post(url, body, config).toPromise();
+    const res = await this.httpService.post(url, body, config).toPromise();
+    return {
+      ...res,
+      data: {
+        message: res.data.message,
+        escalationId: null,
+      },
+    };
   }
 
   /**

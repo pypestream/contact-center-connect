@@ -150,15 +150,9 @@ export class MiddlewareApiController {
 
       const resp = await agentService.startConversation(message);
 
-      let escalationId = conversationId;
-
-      if (resp.data.message && resp.data.message.includes('Flex')) {
-        escalationId = resp.data.message.split(':')[1];
-      }
-
       const json: components['schemas']['EscalateResponse'] = {
         agentId: 'test-agent',
-        escalationId: escalationId,
+        escalationId: resp.data.escalationId,
         /** Estimated wait time in seconds */
         estimatedWaitTime: 0,
         /** The user position in the chat queue. */

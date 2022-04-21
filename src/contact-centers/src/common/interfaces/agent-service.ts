@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import { CccMessage, SendMessageResponse } from '../types';
+import { CccMessage, StartConversationResponse } from '../types';
 
 /**
  * Service should implement this interface for core features interface
@@ -12,5 +12,5 @@ export interface AgentService {
    */
   startConversation(
     message: CccMessage,
-  ): Promise<AxiosResponse<SendMessageResponse>>;
+  ): Promise<AxiosResponse<StartConversationResponse>>;
 }
