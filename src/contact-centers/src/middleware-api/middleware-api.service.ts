@@ -8,6 +8,7 @@ import {
 import { components } from './types/openapi-types';
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { AxiosRequestHeaders } from 'axios';
 import { InjectMiddlewareApi } from './decorators/index';
 import { MiddlewareApi } from './middleware-api';
 import { AxiosResponse } from 'axios';
@@ -37,20 +38,16 @@ export class MiddlewareApiService
     this.config = middlewareApi.config;
   }
 
-  private async getHeaders(): Promise<{ headers: { [key: string]: string } }> {
+  private async getHeaders(): Promise<AxiosRequestHeaders> {
     const isPE19446FlagEnabled = await this.featureFlagService.isFlagEnabled(
       FeatureFlagEnum.PE_19446,
     );
     return isPE19446FlagEnabled
       ? {
-          headers: {
-            Authorization: `Basic ${this.config.basicToken}`,
-          },
+          Authorization: `Basic ${this.config.basicToken}`,
         }
       : {
-          headers: {
-            'x-pypestream-token': this.config.token,
-          },
+          'x-pypestream-token': this.config.token,
         };
   }
   /**
@@ -66,7 +63,7 @@ export class MiddlewareApiService
       .post(
         `${this.config.url}/contactCenter/v1/conversations/${conversationId}/end`,
         { senderId: 'test-agent' },
-        headers,
+        { headers },
       )
       .toPromise();
   }
@@ -127,7 +124,7 @@ export class MiddlewareApiService
       .put(
         `${this.config.url}/contactCenter/v1/conversations/${message.conversationId}/messages/${message.message.id}`,
         this.getMessageRequestBody(message),
-        headers,
+        { headers },
       )
       .toPromise();
   }
@@ -166,7 +163,7 @@ export class MiddlewareApiService
     }
     const headers = await this.getHeaders();
     return this.httpService
-      .get(`${this.config.url}/contactCenter/v1/settings`, headers)
+      .get(`${this.config.url}/contactCenter/v1/settings`, { headers })
       .toPromise();
   }
 
@@ -195,10 +192,9 @@ export class MiddlewareApiService
       throw new Error('MiddlewareApi instance-url must has value');
     }
     const headers = await this.getHeaders();
-    const query: string = qs.stringify({ pageSize: 1000 });
     const response = this.httpService.get(
-      `${this.config.url}/contactCenter/v2/conversations/${conversationId}/history?${query}`,
-      headers,
+      `${this.config.url}/contactCenter/v2/conversations/${conversationId}/history`,
+      { headers, params: { pageSize: 1000 } },
     );
 
     return response.toPromise();
@@ -214,7 +210,7 @@ export class MiddlewareApiService
     const headers = await this.getHeaders();
     const response = this.httpService.get(
       `${this.config.url}/contactCenter/v1/agents/waitTime`,
-      headers,
+      { headers },
     );
 
     return response.toPromise();
@@ -244,7 +240,7 @@ export class MiddlewareApiService
       {
         typing: isTyping,
       },
-      headers,
+      { headers },
     );
     return response.toPromise();
   }
