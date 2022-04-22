@@ -200,8 +200,7 @@ export class FlexService
         username: 'test-agent',
         // username: item.agentInfo.agentName,
       },
-      //conversationId: this.getConversationIdFromChannelId(body.ChannelSid),
-      conversationId: 'x123',
+      conversationId: uuidv4(),
     };
   }
 

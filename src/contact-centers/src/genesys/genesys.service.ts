@@ -279,7 +279,7 @@ export class GenesysService
       ...res,
       data: {
         message: res.data.message,
-        escalationId: null,
+        escalationId: res.data.channel.id,
       },
     };
   }

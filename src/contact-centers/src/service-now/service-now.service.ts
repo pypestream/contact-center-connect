@@ -218,7 +218,7 @@ export class ServiceNowService
       ...res,
       data: {
         ...res.data,
-        escalationId: null,
+        escalationId: uuidv4(),
       },
     };
   }
