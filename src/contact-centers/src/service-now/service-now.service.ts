@@ -2,6 +2,7 @@ import {
   CccMessage,
   MessageType,
   SendMessageResponse,
+  StartConversationResponse,
 } from './../common/types';
 import {
   Service,
@@ -197,7 +198,7 @@ export class ServiceNowService
    */
   async startConversation(
     message: CccMessage,
-  ): Promise<AxiosResponse<SendMessageResponse>> {
+  ): Promise<AxiosResponse<StartConversationResponse>> {
     if (!this.serviceNowConfig.instanceUrl) {
       throw new Error(
         'Servicenow.startConversation instance-url must has value',
@@ -210,12 +211,18 @@ export class ServiceNowService
     );
     await startConversation.toPromise();
 
-    const res = this.httpService.post(
-      this.url,
-      this.switchToAgentRequestBody(message),
-    );
-    return res.toPromise();
+    const res = await this.httpService
+      .post(this.url, this.switchToAgentRequestBody(message))
+      .toPromise();
+    return {
+      ...res,
+      data: {
+        ...res.data,
+        escalationId: null,
+      },
+    };
   }
+
   /**
    * @ignore
    */
