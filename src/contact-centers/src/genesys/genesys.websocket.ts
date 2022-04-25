@@ -12,6 +12,10 @@ import { HttpService } from '@nestjs/axios';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import {
+  agentJoinedChatMessage,
+  agentLeftChatMessage,
+} from '../common/messages-templates';
 
 @Injectable()
 export class GenesysWebsocket {
@@ -159,11 +163,9 @@ export class GenesysWebsocket {
             this.lastEndChats[conversationId] === participant.id;
           if (!lastEndChat) {
             this.lastEndChats[conversationId] = participant.id;
-
-            const chatText = 'Automated message: Agent has left the chat.';
             const message = {
               message: {
-                value: chatText,
+                value: agentLeftChatMessage,
                 type: MessageType.Text,
                 id: uuidv4(),
               },
@@ -180,10 +182,9 @@ export class GenesysWebsocket {
             this.lastJoinChats[conversationId] === participant.id;
           if (!lastJoinChat) {
             this.lastJoinChats[conversationId] = participant.id;
-            chatText = 'Automated message: Agent has joined the chat.';
             const message = {
               message: {
-                value: chatText,
+                value: agentJoinedChatMessage,
                 type: MessageType.Text,
                 id: uuidv4(),
               },

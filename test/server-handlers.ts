@@ -178,6 +178,20 @@ const handlers = [
     },
   ),
   rest.post(
+    'https://api.usw2.pure.cloud/api/v2/notifications/channels/streaming-4-ukr8up4nma82lhpci5kd2mi86t/subscriptions',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          entities: [
+            {
+              id: 'v2.routing.queues.0c54f616-50d6-43a0-9373-ecda0dc0f69c.conversations',
+            },
+          ],
+        }),
+      );
+    },
+  ),
+  rest.post(
     'https://login.usw2.pure.cloud/oauth/token',
     async (req, res, ctx) => {
       // do whatever other things you need to do with this shopping cart
@@ -187,6 +201,82 @@ const handlers = [
             'RxmaDSoqnKwh3q-kPJ3bAeciqqBIQmDecFyJ5ls34PQ9-lu3k6kK7Dzv33f3_2xeTvGo45uu8TZqFRsbK5tz1g',
           token_type: 'bearer',
           expires_in: 86399,
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf673s/Channels/:conversationId/Messages',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          body: 'Hey there',
+          index: 2,
+          channel_sid: 'CH42a90a7ddc474001981797db3b1e30c8',
+          from: 'PS User',
+          date_updated: '2022-04-20T08:09:51Z',
+          type: 'text',
+          account_sid: 'AC4534e2009d82c43795d4ae005b9b13aa',
+          to: 'CH42a90a7ddc474001981797db3b1e30c8',
+          last_updated_by: null,
+          date_created: '2022-04-20T08:09:51Z',
+          media: null,
+          sid: 'IMe1e770d917f74937aaac12fe87594b47',
+          url: 'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH42a90a7ddc474001981797db3b1e30c8/Messages/IMe1e770d917f74937aaac12fe87594b47',
+          attributes: '{}',
+          service_sid: 'IS3d2934585cab4fb59cc75a217bbf676a',
+          was_edited: false,
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://flex-api.twilio.com/v1/Channels',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          task_sid: 'WT5290e5945996343ed86d5c94b019eac5',
+          flex_flow_sid: 'FO7cfba21cbaa988e7d8d71ee0f4d41ec0',
+          account_sid: 'AC4534e2009d82c43795d4ae005b9bae91',
+          user_sid: 'USb31ceb7d19134e6a83d4e47c413300dc',
+          url: 'https://flex-api.twilio.com/v1/Channels/CH5e435e9bee814c0f852f998b93c747be',
+          date_updated: '2022-04-05T12:25:09Z',
+          sid: 'CH5e435e9bee814c0f852f998b93c747be',
+          date_created: '2022-04-05T12:25:09Z',
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf673s/Channels/CH5e435e9bee814c0f852f998b93c747be',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          unique_name: 'conv-2254',
+          members_count: 1,
+          date_updated: '2022-04-05T12:27:01Z',
+          friendly_name: 'PS User',
+          created_by: 'system',
+          account_sid: 'AC4534e2009d82c43795d4ae005b9b7c12',
+          url: 'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be',
+          date_created: '2022-04-05T12:25:09Z',
+          sid: 'CH5e435e9bee814c0f852f998b93c747be',
+          attributes:
+            '{"task_sid":"WT5290e5945996343ed86d5c94b019eac5","from":"PS User","channel_type":"web","status":"ACTIVE","long_lived":false}',
+          service_sid: 'IS3d2934585cab4fb59cc75a217bbf676a',
+          type: 'private',
+          messages_count: 0,
+          links: {
+            webhooks:
+              'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Webhooks',
+            messages:
+              'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Messages',
+            invites:
+              'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Invites',
+            members:
+              'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Members',
+            last_message: null,
+          },
         }),
       );
     },

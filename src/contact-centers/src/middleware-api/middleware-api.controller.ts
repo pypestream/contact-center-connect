@@ -26,6 +26,7 @@ import { MiddlewareApiService } from './middleware-api.service';
 
 import { Body } from '@nestjs/common';
 import { GenesysService } from '../genesys/genesys.service';
+import { FlexService } from '../flex/flex.service';
 import { AgentFactoryService } from '../agent-factory/agent-factory.service';
 import { UseInterceptors } from '@nestjs/common';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
@@ -74,7 +75,7 @@ export class MiddlewareApiController {
     }
     const agentService: AgentServices =
       this.agentFactoryService.getAgentService();
-    const isAvailable = agentService.isAvailable(query.skill);
+    const isAvailable = await agentService.isAvailable(query.skill);
     return {
       available: isAvailable,
       estimatedWaitTime: 30,
@@ -145,16 +146,18 @@ export class MiddlewareApiController {
           username: body.userId,
         },
       };
-      await agentService.startConversation(message);
+
+      const resp = await agentService.startConversation(message);
+
       const json: components['schemas']['EscalateResponse'] = {
         agentId: 'test-agent',
-        escalationId: conversationId,
+        escalationId: resp.data.escalationId,
         /** Estimated wait time in seconds */
         estimatedWaitTime: 0,
         /** The user position in the chat queue. */
         queuePosition: 0,
         /** (accepted, queued) */
-        status: 'queued',
+        status: 'accepted',
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
@@ -175,7 +178,12 @@ export class MiddlewareApiController {
   ) {
     const agentService: AgentServices =
       this.agentFactoryService.getAgentService();
-    if (!(agentService instanceof GenesysService)) {
+    if (
+      !(
+        agentService instanceof GenesysService ||
+        agentService instanceof FlexService
+      )
+    ) {
       await agentService
         .sendTyping(conversationId, body.typing)
         .catch((err) =>
@@ -203,7 +211,12 @@ export class MiddlewareApiController {
     const agentService: AgentServices =
       this.agentFactoryService.getAgentService();
 
-    if (!(agentService instanceof GenesysService)) {
+    if (
+      !(
+        agentService instanceof GenesysService ||
+        agentService instanceof FlexService
+      )
+    ) {
       this.logger.log('set typing indicator to false');
       await agentService.sendTyping(conversationId, false);
     }
@@ -223,7 +236,9 @@ export class MiddlewareApiController {
     @Res() res: Response,
   ) {
     const service: AgentServices = this.agentFactoryService.getAgentService();
-    if (!(service instanceof GenesysService)) {
+    if (
+      !(service instanceof GenesysService || service instanceof FlexService)
+    ) {
       this.logger.log('conversation end: set typing indicator to false');
       await service
         .sendTyping(conversationId, false)

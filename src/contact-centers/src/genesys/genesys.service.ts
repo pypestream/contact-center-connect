@@ -2,6 +2,7 @@ import {
   CccMessage,
   MessageType,
   SendMessageResponse,
+  StartConversationResponse,
 } from './../common/types';
 import { Service, AgentService } from '../common/interfaces';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -18,6 +19,9 @@ import { Scope } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { GenesysWebsocket } from './genesys.websocket';
+
+import { userLeftChatMessage } from '../common/messages-templates';
+import { IntegrationName } from '../common/types/agent-services';
 
 /* eslint-disable */
 const qs = require('qs');
@@ -44,16 +48,16 @@ export class GenesysService
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
     const integration = this.request.headers['x-pypestream-integration'];
-    if (integration !== 'Genesys' || typeof base64Customer !== 'string') {
+    if (
+      integration !== IntegrationName.Genesys ||
+      typeof base64Customer !== 'string'
+    ) {
       return;
     }
 
     const customer: GenesysCustomer = getCustomer(base64Customer);
     this.customer = customer;
 
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
     this.genesysWebsocket
       .addConnection({
         grantType: customer.grantType,
@@ -173,7 +177,7 @@ export class GenesysService
         time: new Date().toISOString(),
       },
       type: 'Text',
-      text: 'Automated message: User has left the chat',
+      text: userLeftChatMessage,
       direction: 'Inbound',
     };
     return res;
@@ -262,7 +266,7 @@ export class GenesysService
    */
   async startConversation(
     message: CccMessage,
-  ): Promise<AxiosResponse<SendMessageResponse>> {
+  ): Promise<AxiosResponse<StartConversationResponse>> {
     const token = await this.getAccessToken();
 
     const domain = this.customer.instanceUrl;
@@ -273,7 +277,14 @@ export class GenesysService
         Authorization: `Bearer ${token}`,
       },
     };
-    return this.httpService.post(url, body, config).toPromise();
+    const res = await this.httpService.post(url, body, config).toPromise();
+    return {
+      ...res,
+      data: {
+        message: res.data.message,
+        escalationId: res.data.channel.id,
+      },
+    };
   }
 
   /**
@@ -310,8 +321,8 @@ export class GenesysService
    * Determine if agent is available to receive new message
    * @param message
    */
-  isAvailable(skill: string): boolean {
-    return !!skill;
+  isAvailable(skill: string): Promise<boolean> {
+    return Promise.resolve(!!skill);
   }
 
   /**

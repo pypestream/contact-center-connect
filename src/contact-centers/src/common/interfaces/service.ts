@@ -39,7 +39,7 @@ export interface Service<T, Y, Z> {
    * Determine if user/agent is available to receive new message
    * @param message
    */
-  isAvailable(skill: string): boolean;
+  isAvailable(skill: string): Promise<boolean>;
 
   /**
    * Return estimated wait time in seconds
