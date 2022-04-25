@@ -110,7 +110,18 @@ export class MiddlewareApiController {
       });
     const history: string = historyResponse.data.messages
       .reverse()
-      .map((m) => `[${m.side}] ${m.content ? m.content : ''}`)
+      .filter((m) => m.content && m.content.text)
+      .map((m) => {
+        let side = '';
+        if (m.side === 'anonymous_consumer') {
+          side = 'microapp user';
+        } else if (m.side === 'bot') {
+          side = 'microapp bot';
+        } else {
+          side = m.side;
+        }
+        return `[side:${side}] ${m.content.text}`;
+      })
       .join('\r\n');
     return history;
   }
@@ -161,7 +172,9 @@ export class MiddlewareApiController {
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
-      this.logger.error('error in start new conversation ' + ex.message);
+      this.logger.error(
+        `Start new conversation: ${ex.message}, stack: ${ex.stack}`,
+      );
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         errors: [ex.message],
         message: ex.message,
@@ -187,7 +200,9 @@ export class MiddlewareApiController {
       await agentService
         .sendTyping(conversationId, body.typing)
         .catch((err) =>
-          this.logger.error('error in sync typing indicator: ' + err.message),
+          this.logger.error(
+            `Sync typing indicator: ${err.message} stack:${err.stack}`,
+          ),
         );
     } else {
       this.logger.log('sync typing indicator is not supported');
@@ -224,7 +239,9 @@ export class MiddlewareApiController {
       await agentService.sendMessage(cccMessage);
       return res.status(HttpStatus.NO_CONTENT).end();
     } catch (err) {
-      this.logger.error(`error in send message to agent: ${err.message}`);
+      this.logger.error(
+        `Send message to agent: ${err.message}, stack:${err.stack}`,
+      );
       return res.status(HttpStatus.BAD_REQUEST).end();
     }
   }
@@ -244,7 +261,7 @@ export class MiddlewareApiController {
         .sendTyping(conversationId, false)
         .catch((err) =>
           this.logger.error(
-            'error in set typing indicator to false, Error: ' + err.message,
+            `Set typing indicator: ${err.message}, stack: ${err.stack}`,
           ),
         );
     }
@@ -252,8 +269,7 @@ export class MiddlewareApiController {
       await service.endConversation(conversationId);
       return res.status(HttpStatus.NO_CONTENT).end();
     } catch (err) {
-      this.logger.error('error in: end-conversation action:');
-      this.logger.error(err.message);
+      this.logger.error(`end-conversation error:${err.message}, ${err.stack}`);
       return res.status(HttpStatus.BAD_REQUEST).end();
     }
   }
