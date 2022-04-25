@@ -15,6 +15,10 @@ import { Request, Response } from 'express';
 import { PostBody } from './dto';
 import { Body } from '@nestjs/common';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
+import {
+  agentJoinedChatMessage,
+  agentLeftChatMessage,
+} from '../common/messages-templates/agent-messages';
 
 @UseInterceptors(BodyInterceptor)
 @Controller('flex')
@@ -35,10 +39,9 @@ export class FlexController {
     const requests = [];
 
     if (this.flexService.hasAgentJoinedChat(body as FlexWebhookBody)) {
-      const chatText = 'Automated message: Agent has joined the chat.';
       const message = {
         message: {
-          value: chatText,
+          value: agentJoinedChatMessage,
           type: MessageType.Text,
           id: uuidv4(),
         },
@@ -51,10 +54,9 @@ export class FlexController {
     }
 
     if (this.flexService.hasAgentLeftChat(body as FlexWebhookBody)) {
-      const chatText = 'Automated message: Agent has left the chat.';
       const message = {
         message: {
-          value: chatText,
+          value: agentLeftChatMessage,
           type: MessageType.Text,
           id: uuidv4(),
         },

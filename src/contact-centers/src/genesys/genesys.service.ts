@@ -20,6 +20,9 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { GenesysWebsocket } from './genesys.websocket';
 
+import { userLeftChatMessage } from '../common/messages-templates/user-messages';
+import { IntegrationName } from '../common/types/agent-services';
+
 /* eslint-disable */
 const qs = require('qs');
 /* eslint-disable */
@@ -45,16 +48,16 @@ export class GenesysService
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
     const integration = this.request.headers['x-pypestream-integration'];
-    if (integration !== 'Genesys' || typeof base64Customer !== 'string') {
+    if (
+      integration !== IntegrationName.Genesys ||
+      typeof base64Customer !== 'string'
+    ) {
       return;
     }
 
     const customer: GenesysCustomer = getCustomer(base64Customer);
     this.customer = customer;
 
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
     this.genesysWebsocket
       .addConnection({
         grantType: customer.grantType,
@@ -174,7 +177,7 @@ export class GenesysService
         time: new Date().toISOString(),
       },
       type: 'Text',
-      text: 'Automated message: User has left the chat',
+      text: userLeftChatMessage,
       direction: 'Inbound',
     };
     return res;

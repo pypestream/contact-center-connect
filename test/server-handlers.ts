@@ -178,6 +178,20 @@ const handlers = [
     },
   ),
   rest.post(
+    'https://api.usw2.pure.cloud/api/v2/notifications/channels/streaming-4-ukr8up4nma82lhpci5kd2mi86t/subscriptions',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          entities: [
+            {
+              id: 'v2.routing.queues.0c54f616-50d6-43a0-9373-ecda0dc0f69c.conversations',
+            },
+          ],
+        }),
+      );
+    },
+  ),
+  rest.post(
     'https://login.usw2.pure.cloud/oauth/token',
     async (req, res, ctx) => {
       // do whatever other things you need to do with this shopping cart

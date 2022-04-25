@@ -23,6 +23,9 @@ import { Scope } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 
+import { userLeftChatMessage } from '../common/messages-templates/user-messages';
+import { IntegrationName } from '../common/types/agent-services';
+
 /* eslint-disable */
 const axiosRetry = require('axios-retry');
 const qs = require('qs');
@@ -50,16 +53,15 @@ export class FlexService
     const base64Customer = this.request.headers['x-pypestream-customer'];
 
     const integration = this.request.headers['x-pypestream-integration'];
-    if (integration !== 'Flex' || typeof base64Customer !== 'string') {
+    if (
+      integration !== IntegrationName.Flex ||
+      typeof base64Customer !== 'string'
+    ) {
       return null;
     }
 
     const customer: FlexCustomer = getCustomer(base64Customer);
     this.customer = customer;
-
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
   }
 
   /**
@@ -77,7 +79,7 @@ export class FlexService
    */
   private getEndConversationRequestBody() {
     const res = {
-      Body: 'Automated message: User has left the chat.',
+      Body: userLeftChatMessage,
       From: 'PS User',
     };
     return res;
