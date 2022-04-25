@@ -20,7 +20,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { GenesysWebsocket } from './genesys.websocket';
 
-import { userLeftChatMessage } from '../common/messages-templates/user-messages';
+import { userLeftChatMessage } from '../common/messages-templates';
 import { IntegrationName } from '../common/types/agent-services';
 
 /* eslint-disable */

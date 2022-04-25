@@ -15,7 +15,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   agentJoinedChatMessage,
   agentLeftChatMessage,
-} from '../common/messages-templates/agent-messages';
+} from '../common/messages-templates';
 
 @Injectable()
 export class GenesysWebsocket {

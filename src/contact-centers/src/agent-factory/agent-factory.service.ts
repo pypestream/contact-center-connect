@@ -10,6 +10,8 @@ import { Request } from 'express';
 import { InjectMiddlewareApi } from '../middleware-api/decorators';
 import { MiddlewareApi } from '../middleware-api/middleware-api';
 
+import { IntegrationName } from '../common/types/agent-services';
+
 /**
  * MiddlewareApi service
  */
@@ -26,23 +28,23 @@ export class AgentFactoryService {
   ) {}
 
   getAgentService(): AgentServices {
-    const integrationName = this.request.headers['x-pypestream-integration'];
-    if (!integrationName) {
+    const integration = this.request.headers['x-pypestream-integration'];
+    if (!integration) {
       throw new HttpException(
         'x-pypestream-integration header is null',
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    if (integrationName === 'ServiceNow') {
+    if (integration === IntegrationName.ServiceNow) {
       return this.serviceNowService;
     }
 
-    if (integrationName === 'Genesys') {
+    if (integration === IntegrationName.Genesys) {
       return this.genesysService;
     }
 
-    if (integrationName === 'Flex') {
+    if (integration === IntegrationName.Flex) {
       return this.flexService;
     }
 

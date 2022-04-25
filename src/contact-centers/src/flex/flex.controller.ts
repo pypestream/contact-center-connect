@@ -18,7 +18,7 @@ import { BodyInterceptor } from '../common/interceptors/body.interceptor';
 import {
   agentJoinedChatMessage,
   agentLeftChatMessage,
-} from '../common/messages-templates/agent-messages';
+} from '../common/messages-templates';
 
 @UseInterceptors(BodyInterceptor)
 @Controller('flex')

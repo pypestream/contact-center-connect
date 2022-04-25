@@ -23,7 +23,7 @@ import { Scope } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 
-import { userLeftChatMessage } from '../common/messages-templates/user-messages';
+import { userLeftChatMessage } from '../common/messages-templates';
 import { IntegrationName } from '../common/types/agent-services';
 
 /* eslint-disable */
