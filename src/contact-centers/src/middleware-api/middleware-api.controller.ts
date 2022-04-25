@@ -107,11 +107,6 @@ export class MiddlewareApiController {
           data: { messages: [] },
         };
       });
-    this.logger.log(
-      `History response for conversation-id: ${conversationId} : ${JSON.stringify(
-        historyResponse.data.messages,
-      )}`,
-    );
     const history: string = historyResponse.data.messages
       .reverse()
       .filter((m) => m.content && m.content.text)
