@@ -12,6 +12,7 @@ describe('CccModule', () => {
       return {
         url: '',
         token: '',
+        basicToken: '',
       };
     }
   }
@@ -29,6 +30,7 @@ describe('CccModule', () => {
           CccModule.forRoot({
             url: '',
             token: '',
+            basicToken: '',
           }),
         ],
       }).compile();
@@ -48,6 +50,7 @@ describe('CccModule', () => {
               useFactory: () => ({
                 url: '',
                 token: '',
+                basicToken: '',
               }),
             }),
           ],

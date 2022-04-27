@@ -1,41 +1,39 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MiddlewareApiController } from './middleware-api.controller';
 import { CccModule } from '../../ccc-module';
-import { forwardRef, INestApplication } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { components } from './types';
 import { PutSettingsBody } from './dto';
-import { APP_PIPE } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { MiddlewareApiCoreModule } from './middleware-api-core.module';
-import { MiddlewareApiModule } from './middleware-api.module';
-import { AgentFactoryModule } from '../agent-factory/agent-factory.module';
-import { HttpModule } from '@nestjs/common';
+import * as LaunchDarkly from 'launchdarkly-node-server-sdk';
+import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 
 describe('MiddlewareApiController', () => {
   let app: INestApplication;
   const serviceNowCustomerHeader =
     'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vbW9jay1zZXJ2ZXIuc2VydmljZS1ub3cuY29tIn0=';
   const genesysCustomerHeader =
-    'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vYXBpLnVzdzIucHVyZS5jbG91ZCIsIm9BdXRoVXJsIjoiaHR0cHM6Ly9sb2dpbi51c3cyLnB1cmUuY2xvdWQiLCJjbGllbnRJZCI6ImNlZTIwYjBmLTE4ODEtNGI4ZS1iZWExLTRmYTYyNWVjMGM3MiIsImNsaWVudFNlY3JldCI6Il9wbmdwUXk4Q0dwRjY5ZFZnT2xuV1p1Q3dSakdOMUVqS3Fwdi1HcEFjWVEiLCJncmFudFR5cGUiOiJjbGllbnRfY3JlZGVudGlhbHMiLCJPTUludGVncmF0aW9uSWQiOiJhMjE3MTc0Mi03MzU5LTQxY2YtYWE2OC1hZDUwNDkyNTA4MDYiLCJPTVF1ZXVlSWQiOiIwYzU0ZjYxNi01MGQ2LTQzYTAtOTM3My1lY2RhMGRjMGY2OWIifQ==';
+    'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vYXBpLnVzdzIucHVyZS5jbG91ZCIsIm9BdXRoVXJsIjoiaHR0cHM6Ly9sb2dpbi51c3cyLnB1cmUuY2xvdWQiLCJjbGllbnRJZCI6ImNlZTIwYjBmLTE4ODEtNGI4ZS1iZWExLTRmYTYyNWVjMGM3MiIsImNsaWVudFNlY3JldCI6Il94YWJjZGVmIiwiZ3JhbnRUeXBlIjoiY2xpZW50X2NyZWRlbnRpYWxzIiwiT01JbnRlZ3JhdGlvbklkIjoiYTIxNzE3NDItNzM1OS00MWNmLWFhNjgtYWQ1MDQ5MjUwODA2IiwiT01RdWV1ZUlkIjoiMGM1NGY2MTYtNTBkNi00M2EwLTkzNzMtZWNkYTBkYzBmNjliIn0=';
+  const flexCustomerHeader =
+    'eyJhY2NvdW50U2lkIjoiQUM0NTM0ZTIwMDlkODJjNDM3OTVkNGFlMDA1YjlidDQ4NCIsImF1dGhUb2tlbiI6IngxMjN4YWJjIiwic2VydmljZVNpZCI6IklTM2QyOTM0NTg1Y2FiNGZiNTljYzc1YTIxN2JiZjY3M3MiLCJ3b3Jrc3BhY2VTaWQiOiJXU2E1Nzg3ZTYzOGY2MjFlMzM0MWRmNmM4YTBkNGMwbjFpIiwiZmxleEZsb3dTaWQiOiJGTzdjZmJhMjFjYmFhOTg4ZWFkOGQ3MWVlMGY0ZDQxYTg5In0=';
 
   beforeEach(async () => {
+    // @ts-ignore
+    LaunchDarkly.__mockFlags({
+      [FeatureFlagEnum.PE_19853]: true,
+      [FeatureFlagEnum.PE_19446]: false,
+      [FeatureFlagEnum.History]: true,
+    });
     let moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [MiddlewareApiController],
+      controllers: [],
       imports: [
-        MiddlewareApiModule.forRoot({
+        CccModule.forRoot({
           url: 'https://mock-server.middleware.com',
           token: 'fake token',
+          basicToken: 'fake basic token',
         }),
-        forwardRef(() => AgentFactoryModule),
-        HttpModule,
       ],
-      providers: [
-        {
-          provide: APP_PIPE,
-          useClass: ValidationPipe,
-        },
-      ],
+      providers: [],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -197,6 +195,20 @@ describe('MiddlewareApiController', () => {
       expect(response.statusCode).toEqual(204);
     });
 
+    it('Flex: OK', async () => {
+      const body: components['schemas']['Message'] = {
+        content: 'I am new message',
+        senderId: 'user-123',
+        side: 'user',
+      };
+      const response = await putMessage()
+        .set('x-pypestream-customer', flexCustomerHeader)
+        .set('x-pypestream-integration', 'Flex')
+        .send(JSON.stringify(body));
+
+      expect(response.statusCode).toEqual(204);
+    });
+
     it('Bad Request: No customer headers', async () => {
       const body: components['schemas']['Message'] = {
         content: 'I am new message',
@@ -281,6 +293,33 @@ describe('MiddlewareApiController', () => {
       expect(response.statusCode).toEqual(500);
     });
 
+    it('Escalate to Flex agent', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', flexCustomerHeader)
+        .set('x-pypestream-integration', 'Flex')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(201);
+    });
+
+    it('Escalate to Flex agent with bad body', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', flexCustomerHeader)
+        .set('x-pypestream-integration', 'Flex')
+        .send(
+          JSON.stringify({
+            foo: 'bar',
+          }),
+        );
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Escalate to Flex agent without x-pypestream-customer header', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-integration', 'Flex')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(500);
+    });
+
     it('Escalate to Unknown agent', async () => {
       const response = await postEscalate()
         .set('x-pypestream-customer', genesysCustomerHeader)
@@ -311,6 +350,18 @@ describe('MiddlewareApiController', () => {
         .set('Content-Type', 'application/octet-stream')
         .set('x-pypestream-customer', genesysCustomerHeader)
         .set('x-pypestream-integration', 'Genesys')
+        .send();
+
+      expect(response.statusCode).toEqual(204);
+    });
+    it('Flex agent: End chat', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/contactCenter/v1/conversations/conversation-123/end')
+        .set('Content-Type', 'application/json')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream')
+        .set('x-pypestream-customer', flexCustomerHeader)
+        .set('x-pypestream-integration', 'Flex')
         .send();
 
       expect(response.statusCode).toEqual(204);

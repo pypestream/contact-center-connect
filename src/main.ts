@@ -7,7 +7,6 @@ import { join } from 'path';
 
 async function bootstrap() {
   require('axios-debug-log/enable');
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
     logger: ['error', 'log', 'warn', 'verbose'],

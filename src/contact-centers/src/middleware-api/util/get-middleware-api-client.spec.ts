@@ -6,6 +6,7 @@ describe('getCccClient', () => {
   const config: MiddlewareApiConfig = {
     url: '',
     token: '',
+    basicToken: '',
   };
 
   it('should return the ccc client', () => {

@@ -20,6 +20,7 @@ describe('InjectCcc', () => {
         MiddlewareApiModule.forRoot({
           url: '',
           token: '',
+          basicToken: '',
         }),
       ],
       providers: [TestService],
