@@ -94,14 +94,37 @@ export class GenesysService
     return res.data.access_token;
   }
 
-  private async getAgentOnQueueTotal(accessToken: string) {
+  private async isIdleAgentOnQueues(): Promise<boolean> {
+    const token = await this.getAccessToken();
     const headers = {
-      Authorization: 'Bearer ' + accessToken,
+      Authorization: 'Bearer ' + token,
     };
     const domain = this.customer.instanceUrl;
-    const url = `${domain}/api/v2/routing/queues/${this.customer.OMQueueId}/users?presence=ON%20QUEUE`;
-    const res = await axios.get(url, { headers: headers });
-    return res.data.total;
+    const url = `${domain}/api/v2/analytics/queues/observations/query`;
+    const reqBody = {
+      filter: {
+        type: 'or',
+        clauses: [
+          {
+            type: 'or',
+            predicates: [
+              {
+                type: 'dimension',
+                dimension: 'queueId',
+                operator: 'matches',
+                value: this.customer.OMQueueId,
+              },
+            ],
+          },
+        ],
+      },
+      metrics: ['oOnQueueUsers'],
+    };
+    const res = await axios.post(url, reqBody, { headers: headers });
+    return (
+      -1 !==
+      res.data.results[0].data?.findIndex((item) => item.qualifier === 'IDLE')
+    );
   }
 
   /**
@@ -333,8 +356,8 @@ export class GenesysService
    * Determine if agent is available to receive new message
    * @param message
    */
-  isAvailable(skill: string): Promise<boolean> {
-    return Promise.resolve(!!skill);
+  async isAvailable(skill: string): Promise<boolean> {
+    return await this.isIdleAgentOnQueues();
   }
 
   /**
