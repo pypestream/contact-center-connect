@@ -36,7 +36,12 @@ export class GenesysWebsocket {
 
   async addConnection(customer: GenesysWsConfig) {
     const connection = this.connections[customer.clientId];
-    if (!connection || !connection.ws || !connection.isConnect) {
+    if (
+      !connection ||
+      !connection.ws ||
+      !connection.isConnect ||
+      differenceInMilliseconds(connection.expireAt, new Date()) < 0
+    ) {
       const newConnection = {
         customer,
         isConnect: false,
