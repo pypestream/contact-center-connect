@@ -4,6 +4,10 @@ import {
   SendMessageResponse,
   StartConversationResponse,
 } from './../common/types';
+import {
+  OnQueueMetric,
+  QueryObservationsResponse,
+} from './types/query-observations-response';
 import { Service, AgentService } from '../common/interfaces';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
@@ -121,10 +125,14 @@ export class GenesysService
       metrics: ['oOnQueueUsers'],
     };
     const res = await axios.post(url, reqBody, { headers: headers });
-    return (
-      -1 !==
-      res.data.results[0].data?.findIndex((item) => item.qualifier === 'IDLE')
-    );
+
+    const data: QueryObservationsResponse = res.data;
+    if (!!data && !!data.results) {
+      return data.results[0].data?.some(
+        (item: OnQueueMetric) => item.qualifier === 'IDLE',
+      );
+    }
+    return false;
   }
 
   /**
