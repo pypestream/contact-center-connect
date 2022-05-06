@@ -4,6 +4,10 @@ import {
   SendMessageResponse,
   StartConversationResponse,
 } from './../common/types';
+import {
+  OnQueueMetric,
+  QueryObservationsResponse,
+} from './types/query-observations-response';
 import { Service, AgentService } from '../common/interfaces';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
@@ -19,6 +23,7 @@ import { Scope } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { GenesysWebsocket } from './genesys.websocket';
+import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
 import { userLeftChatMessage } from '../common/messages-templates';
 import { IntegrationName } from '../common/types/agent-services';
@@ -45,6 +50,7 @@ export class GenesysService
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
     private readonly genesysWebsocket: GenesysWebsocket,
     private httpService: HttpService,
+    private readonly middlewareApiService: MiddlewareApiService,
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
     const integration = this.request.headers['x-pypestream-integration'];
@@ -90,6 +96,41 @@ export class GenesysService
       .post(oAuthUrl, qs.stringify(reqBody))
       .toPromise();
     return res.data.access_token;
+  }
+
+  private async isIdleAgentOnQueues(): Promise<boolean> {
+    const token = await this.getAccessToken();
+    const headers = {
+      Authorization: 'Bearer ' + token,
+    };
+    const domain = this.customer.instanceUrl;
+    const url = `${domain}/api/v2/analytics/queues/observations/query`;
+    const reqBody = {
+      filter: {
+        type: 'or',
+        clauses: [
+          {
+            type: 'or',
+            predicates: [
+              {
+                type: 'dimension',
+                dimension: 'queueId',
+                operator: 'matches',
+                value: this.customer.OMQueueId,
+              },
+            ],
+          },
+        ],
+      },
+      metrics: ['oOnQueueUsers'],
+    };
+    const res = await axios.post<QueryObservationsResponse>(url, reqBody, {
+      headers: headers,
+    });
+
+    return res.data?.results?.[0].data?.some(
+      (item: OnQueueMetric) => item.qualifier === 'IDLE',
+    );
   }
 
   /**
@@ -321,8 +362,8 @@ export class GenesysService
    * Determine if agent is available to receive new message
    * @param message
    */
-  isAvailable(skill: string): Promise<boolean> {
-    return Promise.resolve(!!skill);
+  async isAvailable(skill: string): Promise<boolean> {
+    return await this.isIdleAgentOnQueues();
   }
 
   /**

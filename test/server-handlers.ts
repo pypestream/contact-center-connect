@@ -154,6 +154,32 @@ const handlers = [
       );
     },
   ),
+  rest.post(
+    'https://api.usw2.pure.cloud/api/v2/analytics/queues/observations/query',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          results: [
+            {
+              group: {
+                queueId: '464c104b-7375-4bd2-b9d3-047b18d66ccf',
+              },
+              data: [
+                {
+                  metric: 'oOnQueueUsers',
+                  qualifier: 'INTERACTING',
+                  stats: {
+                    count: 4,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      );
+    },
+  ),
   rest.get(
     'https://api.usw2.pure.cloud/api/v2/conversations/messages/:id/details',
     async (req, res, ctx) => {
