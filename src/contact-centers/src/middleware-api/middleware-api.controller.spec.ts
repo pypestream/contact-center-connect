@@ -104,7 +104,7 @@ describe('MiddlewareApiController', () => {
         .set('User-Agent', 'supertest')
         .set('Content-Type', 'application/octet-stream');
 
-    it('OK', async () => {
+    it('ServiceNow: OK', async () => {
       const response = await getAgentAvailability()
         .query({ skill: 'Test1' })
         .set(
@@ -121,19 +121,41 @@ describe('MiddlewareApiController', () => {
       expect(response.body.queueDepth).toBeDefined();
     });
 
+    it('Genesys: OK', async () => {
+      const response = await getAgentAvailability()
+        .query({ skill: 'Test1' })
+        .set('x-pypestream-customer', genesysCustomerHeader)
+        .set('x-pypestream-integration', 'Genesys');
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.available).toBeDefined();
+      expect(response.body.estimatedWaitTime).toBeDefined();
+      expect(response.body.status).toBeDefined();
+      expect(response.body.hoursOfOperation).toBeDefined();
+      expect(response.body.queueDepth).toBeDefined();
+    });
+
     it('Bad Request no headers', async () => {
       const response = await getAgentAvailability().query({ skill: 'Test1' });
 
       expect(response.statusCode).toEqual(400);
     });
 
-    it('Bad request: skill param is required', async () => {
+    it('ServiceNow: Bad request: skill param is required', async () => {
       const response = await getAgentAvailability()
         .set(
           'x-pypestream-customer',
           'eyJVUkwiOiJodHRwczovL21vY2stc2VydmVyLnNlcnZpY2Utbm93LmNvbSJ9',
         )
         .set('x-pypestream-integration', 'ServiceNow');
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Genesys: Bad request: skill param is required', async () => {
+      const response = await getAgentAvailability()
+        .set('x-pypestream-customer', genesysCustomerHeader)
+        .set('x-pypestream-integration', 'Genesys');
 
       expect(response.statusCode).toEqual(400);
     });

@@ -124,15 +124,13 @@ export class GenesysService
       },
       metrics: ['oOnQueueUsers'],
     };
-    const res = await axios.post(url, reqBody, { headers: headers });
+    const res = await axios.post<QueryObservationsResponse>(url, reqBody, {
+      headers: headers,
+    });
 
-    const data: QueryObservationsResponse = res.data;
-    if (!!data && !!data.results) {
-      return data.results[0].data?.some(
-        (item: OnQueueMetric) => item.qualifier === 'IDLE',
-      );
-    }
-    return false;
+    return res.data?.results?.[0].data?.some(
+      (item: OnQueueMetric) => item.qualifier === 'IDLE',
+    );
   }
 
   /**
