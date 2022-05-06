@@ -120,7 +120,7 @@ export class MiddlewareApiController {
         } else {
           side = m.side;
         }
-        return `[side:${side}] ${m.content.text}`;
+        return `[${side}] ${m.content.text}`;
       })
       .join('\r\n');
     return history;
