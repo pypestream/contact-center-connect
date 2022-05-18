@@ -3,7 +3,7 @@ import { MiddlewareApiController } from './middleware-api.controller';
 import { CccModule } from '../../ccc-module';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { components } from './types';
+import { publicComponents, privateComponents } from './types';
 import { PutSettingsBody } from './dto';
 import * as LaunchDarkly from 'launchdarkly-node-server-sdk';
 import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
@@ -190,7 +190,7 @@ describe('MiddlewareApiController', () => {
         .set('Content-Type', 'application/octet-stream');
 
     it('ServiceNow: OK', async () => {
-      const body: components['schemas']['Message'] = {
+      const body: publicComponents['schemas']['Message'] = {
         content: 'I am new message',
         senderId: 'user-123',
         side: 'user',
@@ -204,7 +204,7 @@ describe('MiddlewareApiController', () => {
     });
 
     it('Genesys: OK', async () => {
-      const body: components['schemas']['Message'] = {
+      const body: publicComponents['schemas']['Message'] = {
         content: 'I am new message',
         senderId: 'user-123',
         side: 'user',
@@ -218,7 +218,7 @@ describe('MiddlewareApiController', () => {
     });
 
     it('Flex: OK', async () => {
-      const body: components['schemas']['Message'] = {
+      const body: publicComponents['schemas']['Message'] = {
         content: 'I am new message',
         senderId: 'user-123',
         side: 'user',
@@ -232,7 +232,7 @@ describe('MiddlewareApiController', () => {
     });
 
     it('Bad Request: No customer headers', async () => {
-      const body: components['schemas']['Message'] = {
+      const body: publicComponents['schemas']['Message'] = {
         content: 'I am new message',
         senderId: 'user-123',
         side: 'user',
@@ -275,7 +275,7 @@ describe('MiddlewareApiController', () => {
         .set('User-Agent', 'supertest')
         .set('Content-Type', 'application/octet-stream');
 
-    const body: components['schemas']['Escalate'] = {
+    const body: privateComponents['schemas']['Escalate'] = {
       skill: 'general',
       userId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     };
