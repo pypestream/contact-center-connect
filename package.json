@@ -55,6 +55,7 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.4.0",
+    "sleep-promise": "^9.1.0",
     "typedoc": "^0.22.5",
     "uuid": "^8.3.2",
     "ws": "^7.5.5"

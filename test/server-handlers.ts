@@ -8,6 +8,13 @@ const handlers = [
   rest.post(
     'https://mock-server.service-now.com/api/sn_va_as_service/bot/integration',
     async (req, res, ctx) => {
+      if (req.body['action'] === 'AGENT') {
+        const contextVariables: any = req.body['contextVariables'];
+        const { language, liveagent_deviceType } = contextVariables;
+        if (!language || liveagent_deviceType || !req.body['emailId']) {
+          ctx.status(301);
+        }
+      }
       return res(
         ctx.json({
           status: 'success',
@@ -76,7 +83,7 @@ const handlers = [
     },
   ),
   rest.get(
-    'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/history',
+    'https://mock-server.middleware.com/contactCenter/v2/conversations/:conversationId/history',
     async (req, res, ctx) => {
       // do whatever other things you need to do with this shopping cart
       return res(
@@ -93,6 +100,35 @@ const handlers = [
           pagination: {
             page: 0,
             totalPages: 0,
+          },
+        }),
+      );
+    },
+  ),
+  rest.get(
+    'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/metadata',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          agent: {},
+          bot: {
+            email: 'undefined',
+            extra_data: 'undefined',
+            phone: 'undefined',
+          },
+          user: {
+            browser_language: 'en-US,en;q=0.9,ar;q=0.8',
+            first_name: '',
+            ip_address: 'DoNotTrack',
+            last_name: 'Visitor',
+            last_viewed_url:
+              'https://web.claybox.usa.pype.engineering/preview.html?id=61e48f75-eac8-41c0-8319-66811e3e575e',
+            passthrough: '',
+            platform: 'Mac OS X10_15_7',
+            referring_site: 'https://platform.claybox.usa.pype.engineering/',
+            screen_resolution: '1920 x 1080',
+            user_browser: 'Chrome 101.0.4951.64',
           },
         }),
       );

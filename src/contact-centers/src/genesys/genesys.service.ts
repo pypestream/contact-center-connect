@@ -27,6 +27,7 @@ import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
 import { userLeftChatMessage } from '../common/messages-templates';
 import { IntegrationName } from '../common/types/agent-services';
+import { publicComponents } from '../middleware-api/types';
 
 /* eslint-disable */
 const qs = require('qs');
@@ -307,6 +308,7 @@ export class GenesysService
    */
   async startConversation(
     message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<StartConversationResponse>> {
     const token = await this.getAccessToken();
 
