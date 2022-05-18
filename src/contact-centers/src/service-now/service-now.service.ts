@@ -23,10 +23,11 @@ import {
 } from './types';
 import { Inject, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
-import { InjectMiddlewareApi } from '../middleware-api/decorators';
-import { MiddlewareApi } from '../middleware-api/middleware-api';
+import sleep from 'sleep-promise';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
+import { InjectMiddlewareApi } from '../middleware-api/decorators';
+import { MiddlewareApi } from '../middleware-api/middleware-api';
 import { getCustomer } from '../common/utils/get-customer';
 import { HttpService } from '@nestjs/axios';
 import { publicComponents } from '../middleware-api/types';
@@ -117,8 +118,7 @@ export class ServiceNowService
   /**
    * @ignore
    */
-  private;
-  startConversationRequestBody(
+  private startConversationRequestBody(
     message: CccMessage,
     metadata: publicComponents['schemas']['Metadata'],
   ) {
@@ -225,7 +225,7 @@ export class ServiceNowService
       this.startConversationRequestBody(message, metadata),
     );
     await startConversation.toPromise();
-
+    await sleep(5000);
     const res = await this.httpService
       .post(this.url, this.switchToAgentRequestBody(message, metadata))
       .toPromise();
