@@ -21,7 +21,11 @@ import {
 
 import { Response, Request } from 'express';
 import { MessageType, AgentServices } from '../common/types';
-import { components, operations } from './types/openapi-types';
+import {
+  publicComponents,
+  privateOperations,
+  privateComponents,
+} from './types';
 import { MiddlewareApiService } from './middleware-api.service';
 
 import { Body } from '@nestjs/common';
@@ -47,7 +51,7 @@ export class MiddlewareApiController {
   @Put('settings')
   async putSettings(
     @Body() body: PutSettingsBody,
-  ): Promise<components['schemas']['Setting']> {
+  ): Promise<publicComponents['schemas']['Setting']> {
     const sendMessageRes = await this.middlewareApiService.putSettings({
       callbackToken: body.callbackToken,
       callbackURL: body.callbackURL,
@@ -58,15 +62,16 @@ export class MiddlewareApiController {
   }
 
   @Get('settings')
-  async settings(): Promise<components['schemas']['Setting']> {
+  async settings(): Promise<publicComponents['schemas']['Setting']> {
     const sendMessageRes = await this.middlewareApiService.getSettings();
     return sendMessageRes.data;
   }
 
   @Get('/agents/availability')
   async availability(
-    @Query() query: operations['checkAgentAvailability']['parameters']['query'],
-  ): Promise<components['schemas']['AgentAvailability']> {
+    @Query()
+    query: privateOperations['checkAgentAvailability']['parameters']['query'],
+  ): Promise<privateComponents['schemas']['AgentAvailability']> {
     if (!query.skill) {
       throw new HttpException(
         'Skill param is required parameter',
@@ -87,8 +92,8 @@ export class MiddlewareApiController {
 
   @Get('/agents/waitTime')
   async waitTime(
-    @Query() query: operations['agentWaitTime']['parameters']['query'],
-  ): Promise<components['schemas']['WaitTime']> {
+    @Query() query: privateOperations['agentWaitTime']['parameters']['query'],
+  ): Promise<privateComponents['schemas']['WaitTime']> {
     if (!query.skill) {
       throw new HttpException(
         'Skill param is required parameter',
@@ -98,6 +103,57 @@ export class MiddlewareApiController {
     return {
       estimatedWaitTime: 60,
     };
+  }
+
+  private async getMetadata(
+    conversationId: string,
+  ): Promise<publicComponents['schemas']['Metadata']> {
+    // response from middleware
+    // {
+    //   "agent": {},
+    //   "bot": {
+    //     "email": "undefined",
+    //     "extra_data": "undefined",
+    //     "phone": "undefined"
+    // },
+    //   "user": {
+    //     "browser_language": "en-US,en;q=0.9,ar;q=0.8",
+    //     "first_name": "",
+    //     "ip_address": "DoNotTrack",
+    //     "last_name": "Visitor",
+    //     "last_viewed_url": "https://web.claybox.usa.pype.engineering/preview.html?id=61e48f75-eac8-41c0-8319-66811e3e575e",
+    //     "passthrough": "",
+    //     "platform": "Mac OS X10_15_7",
+    //     "referring_site": "https://platform.claybox.usa.pype.engineering/",
+    //     "screen_resolution": "1920 x 1080",
+    //     "user_browser": "Chrome 101.0.4951.64"
+    // }
+    // }
+    const metadataResponse = await this.middlewareApiService
+      .metadata(conversationId)
+      .then((res) => res.data)
+      .catch(() => {
+        return {
+          agent: {},
+          bot: {
+            email: '',
+            extra_data: '',
+            phone: '',
+          },
+          user: {
+            first_name: '',
+            ip_address: 'DoNotTrack',
+            last_name: 'Visitor',
+            last_viewed_url: '',
+            passthrough: '',
+            platform: '',
+            referring_site: '',
+            screen_resolution: '',
+            user_browser: '',
+          },
+        };
+      });
+    return metadataResponse;
   }
 
   private async getHistory(conversationId: string): Promise<string> {
@@ -139,9 +195,21 @@ export class MiddlewareApiController {
       const isHistoryFlagEnabled = await this.featureFlagService.isFlagEnabled(
         FeatureFlagEnum.History,
       );
-      const history = isHistoryFlagEnabled
+      const isMetadataFlagEnabled = await this.featureFlagService.isFlagEnabled(
+        FeatureFlagEnum.Metadata,
+      );
+      const history: string = isHistoryFlagEnabled
         ? await this.getHistory(conversationId)
         : 'Escalated from chat';
+
+      const metadata: publicComponents['schemas']['Metadata'] =
+        isMetadataFlagEnabled
+          ? await this.getMetadata(conversationId)
+          : {
+              user: {},
+              bot: {},
+              agent: {},
+            };
 
       const messageId = uuidv4();
       const message = {
@@ -158,9 +226,9 @@ export class MiddlewareApiController {
         },
       };
 
-      const resp = await agentService.startConversation(message);
+      const resp = await agentService.startConversation(message, metadata);
 
-      const json: components['schemas']['EscalateResponse'] = {
+      const json: privateComponents['schemas']['EscalateResponse'] = {
         agentId: 'test-agent',
         escalationId: resp.data.escalationId,
         /** Estimated wait time in seconds */

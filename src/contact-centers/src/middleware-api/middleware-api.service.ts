@@ -3,6 +3,7 @@ import { CccMessage, MessageType, SendMessageResponse } from '../common/types';
 import {
   ContactCenterProApiWebhookBody,
   MiddlewareApiConfig,
+  privateComponents,
   SettingsObject,
 } from './types';
 import { components } from './types/openapi-types';
@@ -14,7 +15,6 @@ import { MiddlewareApi } from './middleware-api';
 import { AxiosResponse } from 'axios';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
-import qs from 'qs';
 
 /**
  * MiddlewareApi service
@@ -201,9 +201,30 @@ export class MiddlewareApiService
   }
 
   /**
+   * Get metadata of conversation
+   * @param conversationId
+   */
+  async metadata(
+    conversationId: string,
+  ): Promise<AxiosResponse<components['schemas']['Metadata']>> {
+    if (!this.config.url) {
+      throw new Error('MiddlewareApi instance-url must has value');
+    }
+    const headers = await this.getHeaders();
+    const response = this.httpService.get(
+      `${this.config.url}/contactCenter/v2/conversations/${conversationId}/history`,
+      { headers, params: { pageSize: 1000 } },
+    );
+
+    return response.toPromise();
+  }
+
+  /**
    * Get history of conversation
    */
-  async waitTime(): Promise<AxiosResponse<components['schemas']['WaitTime']>> {
+  async waitTime(): Promise<
+    AxiosResponse<privateComponents['schemas']['WaitTime']>
+  > {
     if (!this.config.url) {
       throw new Error('MiddlewareApi instance-url must has value');
     }
