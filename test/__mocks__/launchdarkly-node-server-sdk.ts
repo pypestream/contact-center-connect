@@ -4,7 +4,7 @@ const launchdarklyNodeServerSdk: any = jest.createMockFromModule(
 let mockFlags = Object.create({});
 
 function __mockFlags(flags) {
-  mockFlags = mockFlags;
+  mockFlags = flags;
 }
 
 function init(key: string) {
