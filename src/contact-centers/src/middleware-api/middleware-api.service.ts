@@ -212,8 +212,8 @@ export class MiddlewareApiService
     }
     const headers = await this.getHeaders();
     const response = this.httpService.get(
-      `${this.config.url}/contactCenter/v2/conversations/${conversationId}/history`,
-      { headers, params: { pageSize: 1000 } },
+      `${this.config.url}/contactCenter/v2/conversations/${conversationId}/metadata`,
+      { headers },
     );
 
     return response.toPromise();
