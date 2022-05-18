@@ -23,7 +23,7 @@ import {
 } from './types';
 import { Inject, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
-import sleep from 'sleep-promise';
+import * as sleep from 'sleep-promise';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { InjectMiddlewareApi } from '../middleware-api/decorators';
@@ -225,7 +225,7 @@ export class ServiceNowService
       this.startConversationRequestBody(message, metadata),
     );
     await startConversation.toPromise();
-    await sleep(5000);
+    await sleep(3000);
     const res = await this.httpService
       .post(this.url, this.switchToAgentRequestBody(message, metadata))
       .toPromise();
