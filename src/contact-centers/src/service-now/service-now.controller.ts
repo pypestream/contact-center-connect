@@ -50,16 +50,6 @@ export class ServiceNowController {
       }
     }
 
-    const hasChatEndedAction = this.serviceNowService.hasEndConversationAction(
-      body as ServiceNowWebhookBody,
-    );
-    if (hasChatEndedAction) {
-      const endConversationRequest = this.middlewareApiService.endConversation(
-        body.clientSessionId,
-      );
-      requests.push(endConversationRequest);
-    }
-
     const hasTypingIndicatorAction =
       this.serviceNowService.hasTypingIndicatorAction(
         body as ServiceNowWebhookBody,
@@ -75,13 +65,24 @@ export class ServiceNowController {
       requests.push(sendTypingRequest);
     }
 
-    Promise.all(requests)
-      .then((responses) => {
-        const data = responses.map((r) => r.data);
+    try {
+      const responses = await Promise.all(requests);
+      const data = responses.map((r) => r.data);
+      const hasChatEndedAction =
+        this.serviceNowService.hasEndConversationAction(
+          body as ServiceNowWebhookBody,
+        );
+      if (hasChatEndedAction) {
+        const endConversationResponse =
+          await this.middlewareApiService.endConversation(body.clientSessionId);
+        return res
+          .status(HttpStatus.OK)
+          .send([...data, endConversationResponse.data]);
+      } else {
         return res.status(HttpStatus.OK).send(data);
-      })
-      .catch((err) => {
-        return res.status(HttpStatus.BAD_REQUEST).send(err);
-      });
+      }
+    } catch (err) {
+      return res.status(HttpStatus.BAD_REQUEST).send(err);
+    }
   }
 }
