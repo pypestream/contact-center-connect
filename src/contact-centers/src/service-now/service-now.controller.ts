@@ -13,6 +13,8 @@ import { Request, Response } from 'express';
 import { PostBody } from './dto';
 import { Body } from '@nestjs/common';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
+import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
+import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 
 @UseInterceptors(BodyInterceptor)
 @Controller('service-now')
@@ -20,6 +22,7 @@ export class ServiceNowController {
   constructor(
     private readonly serviceNowService: ServiceNowService,
     private readonly middlewareApiService: MiddlewareApiService,
+    private readonly featureFlagService: FeatureFlagService,
   ) {}
 
   @Post('webhook')
@@ -50,16 +53,6 @@ export class ServiceNowController {
       }
     }
 
-    const hasChatEndedAction = this.serviceNowService.hasEndConversationAction(
-      body as ServiceNowWebhookBody,
-    );
-    if (hasChatEndedAction) {
-      const endConversationRequest = this.middlewareApiService.endConversation(
-        body.clientSessionId,
-      );
-      requests.push(endConversationRequest);
-    }
-
     const hasTypingIndicatorAction =
       this.serviceNowService.hasTypingIndicatorAction(
         body as ServiceNowWebhookBody,
@@ -75,13 +68,50 @@ export class ServiceNowController {
       requests.push(sendTypingRequest);
     }
 
-    Promise.all(requests)
-      .then((responses) => {
+    const isPE20890FlagEnabled = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.PE_20890,
+    );
+    if (isPE20890FlagEnabled) {
+      try {
+        const responses = await Promise.all(requests);
         const data = responses.map((r) => r.data);
-        return res.status(HttpStatus.OK).send(data);
-      })
-      .catch((err) => {
+        const hasChatEndedAction =
+          this.serviceNowService.hasEndConversationAction(
+            body as ServiceNowWebhookBody,
+          );
+        if (hasChatEndedAction) {
+          const endConversationResponse =
+            await this.middlewareApiService.endConversation(
+              body.clientSessionId,
+            );
+          return res
+            .status(HttpStatus.OK)
+            .send([...data, endConversationResponse.data]);
+        } else {
+          return res.status(HttpStatus.OK).send(data);
+        }
+      } catch (err) {
         return res.status(HttpStatus.BAD_REQUEST).send(err);
-      });
+      }
+    } else {
+      const hasChatEndedAction =
+        this.serviceNowService.hasEndConversationAction(
+          body as ServiceNowWebhookBody,
+        );
+      if (hasChatEndedAction) {
+        const endConversationRequest =
+          this.middlewareApiService.endConversation(body.clientSessionId);
+        requests.push(endConversationRequest);
+      }
+
+      Promise.all(requests)
+        .then((responses) => {
+          const data = responses.map((r) => r.data);
+          return res.status(HttpStatus.OK).send(data);
+        })
+        .catch((err) => {
+          return res.status(HttpStatus.BAD_REQUEST).send(err);
+        });
+    }
   }
 }
