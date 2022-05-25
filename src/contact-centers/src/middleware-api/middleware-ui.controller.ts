@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
+  Logger,
   Post,
   Render,
   Res,
@@ -16,6 +18,8 @@ import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 @UseInterceptors(BodyInterceptor)
 @Controller()
 export class MiddlewareUiController {
+  private readonly logger = new Logger(MiddlewareUiController.name);
+
   constructor(
     private readonly middlewareApiService: MiddlewareApiService,
     private readonly featureFlagService: FeatureFlagService,
@@ -80,7 +84,13 @@ export class MiddlewareUiController {
       await this.middlewareApiService.addIntegration(integration);
       return res.redirect('/integrations');
     } catch (ex) {
-      return { error: ex.message };
+      if (ex.response.data.errors) {
+        this.logger.error(JSON.stringify(ex.response.data.errors));
+        return res.status(HttpStatus.BAD_REQUEST).send(ex.response.data.errors);
+      } else {
+        this.logger.error(JSON.stringify(ex.message), ex.stack);
+        return res.status(HttpStatus.BAD_REQUEST).send(ex.message);
+      }
     }
   }
 

@@ -192,7 +192,7 @@ export class MiddlewareApiService
     const result = this.httpService.post(
       `${this.config.url}/contactCenter/v2/integrations`,
       data,
-      headers,
+      { headers },
     );
     return result.toPromise();
   }
