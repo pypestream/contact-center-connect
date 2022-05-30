@@ -236,7 +236,7 @@ export class MiddlewareApiController {
         /** The user position in the chat queue. */
         queuePosition: 0,
         /** (accepted, queued) */
-        status: 'accepted',
+        status: 'queued',
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {

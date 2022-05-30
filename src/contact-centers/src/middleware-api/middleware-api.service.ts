@@ -238,6 +238,35 @@ export class MiddlewareApiService
   }
 
   /**
+   * change conversation to accepted when agent accent escalation
+   * @param conversationId
+   * @param isTyping
+   */
+  async agentAcceptedEscalation(
+    conversationId: string,
+  ): Promise<AxiosResponse<SendMessageResponse>> {
+    if (!this.config.url) {
+      throw new Error('MiddlewareApi instance-url must has value');
+    }
+    if (!conversationId) {
+      throw new Error(
+        'MiddlewareApi.sendTyping conversationId param is required parameter',
+      );
+      return null;
+    }
+    const headers = await this.getHeaders();
+    const response = this.httpService.post(
+      `${this.config.url}/contactCenter/v1/conversations/${conversationId}/escalate`,
+      {
+        escalationId: conversationId,
+        agentId: 'pypestream-agent',
+      },
+      { headers },
+    );
+    return response.toPromise();
+  }
+
+  /**
    * Send is typing indicator to service
    * @param conversationId
    * @param isTyping

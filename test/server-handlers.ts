@@ -34,6 +34,16 @@ const handlers = [
     },
   ),
   rest.post(
+    'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/escalate',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          status: 'success',
+        }),
+      );
+    },
+  ),
+  rest.post(
     'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/type',
     async (req, res, ctx) => {
       return res(

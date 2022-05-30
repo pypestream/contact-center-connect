@@ -20,7 +20,8 @@ export type ServiceNowWebhookBodyItem =
   | EndWaitTimeSpinnerType
   | StartWaitTimeSpinnerType
   | EndProcessingSpinnerType
-  | TopicPickerControlType;
+  | TopicPickerControlType
+  | SwitchToLiveAgentType;
 
 export type EndTypingIndicatorType = {
   uiType: 'ActionMsg';
@@ -71,6 +72,11 @@ type EndProcessingSpinnerType = {
   uiType: 'ActionMsg';
   actionType: 'EndSpinner';
   spinnerType: 'processing';
+};
+
+type SwitchToLiveAgentType = {
+  uiType: 'ActionMsg';
+  actionType: 'SwitchToLiveAgent';
 };
 
 type TopicPickerControlType = {
