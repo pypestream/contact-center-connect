@@ -1,5 +1,6 @@
 import { AxiosResponse } from 'axios';
-import { CccMessage, SendMessageResponse } from '../types';
+import { CccMessage, StartConversationResponse } from '../types';
+import { publicComponents } from '../../middleware-api/types';
 
 /**
  * Service should implement this interface for core features interface
@@ -12,5 +13,6 @@ export interface AgentService {
    */
   startConversation(
     message: CccMessage,
-  ): Promise<AxiosResponse<SendMessageResponse>>;
+    metadata: publicComponents['schemas']['Metadata'],
+  ): Promise<AxiosResponse<StartConversationResponse>>;
 }

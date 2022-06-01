@@ -8,6 +8,13 @@ const handlers = [
   rest.post(
     'https://mock-server.service-now.com/api/sn_va_as_service/bot/integration',
     async (req, res, ctx) => {
+      if (req.body['action'] === 'AGENT') {
+        const contextVariables: any = req.body['contextVariables'];
+        const { language, liveagent_deviceType } = contextVariables;
+        if (!language || liveagent_deviceType || !req.body['emailId']) {
+          ctx.status(301);
+        }
+      }
       return res(
         ctx.json({
           status: 'success',
@@ -76,7 +83,7 @@ const handlers = [
     },
   ),
   rest.get(
-    'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/history',
+    'https://mock-server.middleware.com/contactCenter/v2/conversations/:conversationId/history',
     async (req, res, ctx) => {
       // do whatever other things you need to do with this shopping cart
       return res(
@@ -93,6 +100,35 @@ const handlers = [
           pagination: {
             page: 0,
             totalPages: 0,
+          },
+        }),
+      );
+    },
+  ),
+  rest.get(
+    'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/metadata',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          agent: {},
+          bot: {
+            email: 'undefined',
+            extra_data: 'undefined',
+            phone: 'undefined',
+          },
+          user: {
+            browser_language: 'en-US,en;q=0.9,ar;q=0.8',
+            first_name: '',
+            ip_address: 'DoNotTrack',
+            last_name: 'Visitor',
+            last_viewed_url:
+              'https://web.claybox.usa.pype.engineering/preview.html?id=61e48f75-eac8-41c0-8319-66811e3e575e',
+            passthrough: '',
+            platform: 'Mac OS X10_15_7',
+            referring_site: 'https://platform.claybox.usa.pype.engineering/',
+            screen_resolution: '1920 x 1080',
+            user_browser: 'Chrome 101.0.4951.64',
           },
         }),
       );
@@ -154,6 +190,32 @@ const handlers = [
       );
     },
   ),
+  rest.post(
+    'https://api.usw2.pure.cloud/api/v2/analytics/queues/observations/query',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          results: [
+            {
+              group: {
+                queueId: '464c104b-7375-4bd2-b9d3-047b18d66ccf',
+              },
+              data: [
+                {
+                  metric: 'oOnQueueUsers',
+                  qualifier: 'INTERACTING',
+                  stats: {
+                    count: 4,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      );
+    },
+  ),
   rest.get(
     'https://api.usw2.pure.cloud/api/v2/conversations/messages/:id/details',
     async (req, res, ctx) => {
@@ -178,6 +240,20 @@ const handlers = [
     },
   ),
   rest.post(
+    'https://api.usw2.pure.cloud/api/v2/notifications/channels/streaming-4-ukr8up4nma82lhpci5kd2mi86t/subscriptions',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          entities: [
+            {
+              id: 'v2.routing.queues.0c54f616-50d6-43a0-9373-ecda0dc0f69c.conversations',
+            },
+          ],
+        }),
+      );
+    },
+  ),
+  rest.post(
     'https://login.usw2.pure.cloud/oauth/token',
     async (req, res, ctx) => {
       // do whatever other things you need to do with this shopping cart
@@ -187,6 +263,82 @@ const handlers = [
             'RxmaDSoqnKwh3q-kPJ3bAeciqqBIQmDecFyJ5ls34PQ9-lu3k6kK7Dzv33f3_2xeTvGo45uu8TZqFRsbK5tz1g',
           token_type: 'bearer',
           expires_in: 86399,
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf673s/Channels/:conversationId/Messages',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          body: 'Hey there',
+          index: 2,
+          channel_sid: 'CH42a90a7ddc474001981797db3b1e30c8',
+          from: 'PS User',
+          date_updated: '2022-04-20T08:09:51Z',
+          type: 'text',
+          account_sid: 'AC4534e2009d82c43795d4ae005b9b13aa',
+          to: 'CH42a90a7ddc474001981797db3b1e30c8',
+          last_updated_by: null,
+          date_created: '2022-04-20T08:09:51Z',
+          media: null,
+          sid: 'IMe1e770d917f74937aaac12fe87594b47',
+          url: 'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH42a90a7ddc474001981797db3b1e30c8/Messages/IMe1e770d917f74937aaac12fe87594b47',
+          attributes: '{}',
+          service_sid: 'IS3d2934585cab4fb59cc75a217bbf676a',
+          was_edited: false,
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://flex-api.twilio.com/v1/Channels',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          task_sid: 'WT5290e5945996343ed86d5c94b019eac5',
+          flex_flow_sid: 'FO7cfba21cbaa988e7d8d71ee0f4d41ec0',
+          account_sid: 'AC4534e2009d82c43795d4ae005b9bae91',
+          user_sid: 'USb31ceb7d19134e6a83d4e47c413300dc',
+          url: 'https://flex-api.twilio.com/v1/Channels/CH5e435e9bee814c0f852f998b93c747be',
+          date_updated: '2022-04-05T12:25:09Z',
+          sid: 'CH5e435e9bee814c0f852f998b93c747be',
+          date_created: '2022-04-05T12:25:09Z',
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf673s/Channels/CH5e435e9bee814c0f852f998b93c747be',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          unique_name: 'conv-2254',
+          members_count: 1,
+          date_updated: '2022-04-05T12:27:01Z',
+          friendly_name: 'PS User',
+          created_by: 'system',
+          account_sid: 'AC4534e2009d82c43795d4ae005b9b7c12',
+          url: 'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be',
+          date_created: '2022-04-05T12:25:09Z',
+          sid: 'CH5e435e9bee814c0f852f998b93c747be',
+          attributes:
+            '{"task_sid":"WT5290e5945996343ed86d5c94b019eac5","from":"PS User","channel_type":"web","status":"ACTIVE","long_lived":false}',
+          service_sid: 'IS3d2934585cab4fb59cc75a217bbf676a',
+          type: 'private',
+          messages_count: 0,
+          links: {
+            webhooks:
+              'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Webhooks',
+            messages:
+              'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Messages',
+            invites:
+              'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Invites',
+            members:
+              'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Members',
+            last_message: null,
+          },
         }),
       );
     },

@@ -2,6 +2,7 @@ import {
   CccMessage,
   MessageType,
   SendMessageResponse,
+  StartConversationResponse,
 } from './../common/types';
 import {
   Service,
@@ -22,12 +23,14 @@ import {
 } from './types';
 import { Inject, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
-import { InjectMiddlewareApi } from '../middleware-api/decorators';
-import { MiddlewareApi } from '../middleware-api/middleware-api';
+import * as sleep from 'sleep-promise';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
+import { InjectMiddlewareApi } from '../middleware-api/decorators';
+import { MiddlewareApi } from '../middleware-api/middleware-api';
 import { getCustomer } from '../common/utils/get-customer';
-import { HttpService } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { publicComponents } from '../middleware-api/types';
 
 @Injectable({
   scope: Scope.REQUEST,
@@ -115,7 +118,10 @@ export class ServiceNowService
   /**
    * @ignore
    */
-  private startConversationRequestBody(message: CccMessage) {
+  private startConversationRequestBody(
+    message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
+  ) {
     const requestId = uuidv4();
     const clientMessageId = uuidv4();
     const res = {
@@ -124,6 +130,8 @@ export class ServiceNowService
       action: 'AGENT',
       contextVariables: {
         LiveAgent_mandatory_skills: message.skill,
+        liveagent_deviceType: metadata.user.platform,
+        language: metadata.user.browser_language,
       },
       message: {
         text: message.message.value,
@@ -131,6 +139,7 @@ export class ServiceNowService
         clientMessageId,
       },
       userId: message.conversationId,
+      emailId: metadata.bot.email,
       clientVariables: this.serviceNowConfig,
     };
     return res;
@@ -138,7 +147,10 @@ export class ServiceNowService
   /**
    * @ignore
    */
-  private switchToAgentRequestBody(message: CccMessage) {
+  private switchToAgentRequestBody(
+    message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
+  ) {
     const requestId = uuidv4();
     const res = {
       requestId,
@@ -146,6 +158,8 @@ export class ServiceNowService
       action: 'AGENT',
       contextVariables: {
         LiveAgent_mandatory_skills: message.skill,
+        liveagent_deviceType: metadata.user.platform,
+        language: metadata.user.browser_language,
       },
       message: {
         text: 'Switch to live agent',
@@ -153,6 +167,7 @@ export class ServiceNowService
         clientMessageId: message.message.id,
       },
       userId: message.conversationId,
+      emailId: metadata.bot.email,
       clientVariables: this.serviceNowConfig,
     };
     return res;
@@ -197,7 +212,8 @@ export class ServiceNowService
    */
   async startConversation(
     message: CccMessage,
-  ): Promise<AxiosResponse<SendMessageResponse>> {
+    metadata: publicComponents['schemas']['Metadata'],
+  ): Promise<AxiosResponse<StartConversationResponse>> {
     if (!this.serviceNowConfig.instanceUrl) {
       throw new Error(
         'Servicenow.startConversation instance-url must has value',
@@ -206,16 +222,22 @@ export class ServiceNowService
 
     const startConversation = this.httpService.post(
       this.url,
-      this.startConversationRequestBody(message),
+      this.startConversationRequestBody(message, metadata),
     );
     await startConversation.toPromise();
-
-    const res = this.httpService.post(
-      this.url,
-      this.switchToAgentRequestBody(message),
-    );
-    return res.toPromise();
+    await sleep(3000);
+    const res = await this.httpService
+      .post(this.url, this.switchToAgentRequestBody(message, metadata))
+      .toPromise();
+    return {
+      ...res,
+      data: {
+        ...res.data,
+        escalationId: uuidv4(),
+      },
+    };
   }
+
   /**
    * @ignore
    */
@@ -379,8 +401,8 @@ export class ServiceNowService
    * Determine if agent is available to receive new message
    * @param message
    */
-  isAvailable(skill: string): boolean {
-    return !!skill;
+  isAvailable(skill: string): Promise<boolean> {
+    return Promise.resolve(!!skill);
   }
 
   /**

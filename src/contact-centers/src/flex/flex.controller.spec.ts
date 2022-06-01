@@ -1,10 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GenesysController } from './genesys.controller';
+import { FlexController } from './flex.controller';
 import { CccModule } from '../../ccc-module';
-import { INestApplication } from '@nestjs/common';
+import { forwardRef, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { APP_PIPE } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { FlexModule } from './flex.module';
+import { HttpModule } from '@nestjs/axios';
+import { MiddlewareApiModule } from '../middleware-api/middleware-api.module';
+import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
-describe('GenesysController', () => {
+describe('FlexController', () => {
   let app: INestApplication;
   let body;
 
@@ -23,32 +29,26 @@ describe('GenesysController', () => {
 
     app = moduleFixture.createNestApplication();
     body = {
-      id: '36e4d8d92b071f15116d01d111bb8802',
-      channel: {
-        id: 'a2171742-7359-41cf-aa68-ad5049250806',
-        platform: 'Open',
-        type: 'Private',
-        to: { id: '5608add1-7b77-460b-a7f0-97a8d8f2b6db' },
-        from: {
-          nickname: 'PS testing OM Integration',
-          id: 'a2171742-7359-41cf-aa68-ad5049250806',
-          idType: 'Opaque',
-        },
-        time: '2021-11-25T09:42:16.302Z',
-        messageId: '36e4d8d92b071f15116d01d111bb8802',
-      },
-      type: 'Text',
-      text: 'Hello there!',
-      originatingEntity: 'Human',
-      direction: 'Outbound',
+      ChannelSid: 'CH20af96abd9884e74a67999a39555b695',
+      ClientIdentity: 'si',
+      RetryCount: '0',
+      EventType: 'onMessageSend',
+      InstanceSid: 'IS3d2934585cab4fb59cc75a217bbf676a',
+      Attributes: '{}',
+      DateCreated: '2022-04-12T11:37:27.844Z',
+      From: 'si',
+      To: 'CH20af96abd9884e74a67999a39555b695',
+      Body: 'ok ok',
+      AccountSid: 'AC4534e2009d82c43795d4ae005b9b72e4',
+      Source: 'SDK',
     };
     await app.init();
   });
 
-  describe('/genesys/webhook (POST)', () => {
+  describe('/flex/webhook (POST)', () => {
     let postAction = () =>
       request(app.getHttpServer())
-        .post('/genesys/webhook')
+        .post('/flex/webhook')
         .set('User-Agent', 'supertest')
         .set('Content-Type', 'application/octet-stream');
 
@@ -73,7 +73,7 @@ describe('GenesysController', () => {
 
     it('Bad body', async () => {
       const response = await postAction().send(
-        JSON.stringify({ ...body, id: null }),
+        JSON.stringify({ ...body, EventType: null }),
       );
 
       expect(response.statusCode).toEqual(400);
