@@ -192,15 +192,11 @@ export class MiddlewareApiController {
     try {
       const agentService: AgentServices =
         this.agentFactoryService.getAgentService();
-      const isHistoryFlagEnabled = await this.featureFlagService.isFlagEnabled(
-        FeatureFlagEnum.History,
-      );
+
       const isMetadataFlagEnabled = await this.featureFlagService.isFlagEnabled(
         FeatureFlagEnum.Metadata,
       );
-      const history: string = isHistoryFlagEnabled
-        ? await this.getHistory(conversationId)
-        : 'Escalated from chat';
+      const history: string = await this.getHistory(conversationId);
 
       const metadata: publicComponents['schemas']['Metadata'] =
         isMetadataFlagEnabled

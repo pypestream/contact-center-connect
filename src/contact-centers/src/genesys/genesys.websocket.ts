@@ -140,9 +140,6 @@ export class GenesysWebsocket {
       this.destroyConnection(this.connections[key]);
     });
 
-    const isPE19853FlagEnabled = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.PE_19853,
-    );
     // eslint-disable-next-line
     // @ts-ignore
     this.connections[key].ws.on('message', async (stringifyMessage) => {
@@ -153,7 +150,7 @@ export class GenesysWebsocket {
         const conversationId = await this.getConversationId(
           message.eventBody.participants,
         );
-        if (!conversationId && isPE19853FlagEnabled) {
+        if (!conversationId) {
           this.logger.warn(
             `Not able to find conversation id for this message: ${JSON.stringify(
               message,
@@ -245,15 +242,12 @@ export class GenesysWebsocket {
   }
 
   async getConversationId(participants) {
-    const isPE19853FlagEnabled = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.PE_19853,
-    );
     // Looking the participant has attributes which includes conversation id
-    if (isEmpty(participants) && isPE19853FlagEnabled) {
+    if (isEmpty(participants)) {
       return null;
     }
     const endUser = participants.find((p) => p.attributes.conversationId);
-    if (!endUser && isPE19853FlagEnabled) {
+    if (!endUser) {
       return null;
     }
     return endUser.attributes.conversationId;

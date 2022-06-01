@@ -40,19 +40,10 @@ export class MiddlewareUiController {
 
   @Get('feature-flags')
   async flags() {
-    const history = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.History,
-    );
-    const PE_19853 = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.PE_19853,
-    );
-    const PE_19446 = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.PE_19446,
-    );
     const test = await this.featureFlagService.isFlagEnabled(
       FeatureFlagEnum.Test,
     );
-    return { history, PE_19853, test, PE_19446 };
+    return { test };
   }
 
   @Post('settings')

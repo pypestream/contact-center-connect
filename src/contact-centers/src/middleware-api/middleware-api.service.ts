@@ -33,22 +33,14 @@ export class MiddlewareApiService
   constructor(
     @InjectMiddlewareApi() middlewareApi: MiddlewareApi,
     private httpService: HttpService,
-    private readonly featureFlagService: FeatureFlagService,
   ) {
     this.config = middlewareApi.config;
   }
 
   private async getHeaders(): Promise<AxiosRequestHeaders> {
-    const isPE19446FlagEnabled = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.PE_19446,
-    );
-    return isPE19446FlagEnabled
-      ? {
-          Authorization: `Basic ${this.config.basicToken}`,
-        }
-      : {
-          'x-pypestream-token': this.config.token,
-        };
+    return {
+      Authorization: `Basic ${this.config.basicToken}`,
+    };
   }
   /**
    * End conversation
