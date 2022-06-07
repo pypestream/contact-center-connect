@@ -13,5 +13,5 @@ export enum IntegrationName {
   ServiceNow = 'ServiceNow',
   Genesys = 'Genesys',
   Flex = 'Flex',
-  AmazonConnectService = 'AmazonConnectService',
+  AmazonConnect = 'AmazonConnect',
 }

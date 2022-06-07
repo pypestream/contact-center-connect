@@ -50,7 +50,7 @@ export class AgentFactoryService {
       return this.flexService;
     }
 
-    if (integration === IntegrationName.AmazonConnectService) {
+    if (integration === IntegrationName.AmazonConnect) {
       return this.amazonConnectService;
     }
 

@@ -220,6 +220,28 @@ export class MiddlewareApiService
   }
 
   /**
+   * Patch metadata of conversation
+   * @param conversationId
+   * @param agentMetadata
+   */
+  async updateAgentMetadata(
+    conversationId: string,
+    agentMetadata: any,
+  ): Promise<AxiosResponse<components['schemas']['Metadata']>> {
+    if (!this.config.url) {
+      throw new Error('MiddlewareApi instance-url must has value');
+    }
+    const headers = await this.getHeaders();
+    const response = this.httpService.patch(
+      `${this.config.url}/contactCenter/v1/conversations/${conversationId}/metadata`,
+      { agent: agentMetadata },
+      { headers },
+    );
+
+    return response.toPromise();
+  }
+
+  /**
    * Get history of conversation
    */
   async waitTime(): Promise<

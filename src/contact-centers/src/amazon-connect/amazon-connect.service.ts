@@ -2,8 +2,13 @@ import {
   CccMessage,
   MessageType,
   SendMessageResponse,
+  StartConversationResponse,
 } from './../common/types';
-import { Service, AgentService } from '../common/interfaces';
+import {
+  Service,
+  GenericWebhookInterpreter,
+  AgentService,
+} from '../common/interfaces';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -11,11 +16,17 @@ import { AmazonConnectWebhookBody, AmazonConnectCustomer } from './types';
 import { getCustomer } from '../common/utils/get-customer';
 import { InjectMiddlewareApi } from '../middleware-api/decorators';
 import { MiddlewareApi } from '../middleware-api/middleware-api';
+import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 import { Request } from 'express';
 import { Inject, Logger } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { Scope, HttpService } from '@nestjs/common';
+import { Scope } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
+
+import { userLeftChatMessage } from '../common/messages-templates';
+import { IntegrationName } from '../common/types/agent-services';
+import { publicComponents } from '../middleware-api/types';
 
 import {
   ConnectClient,
@@ -43,6 +54,7 @@ export class AmazonConnectService
       AmazonConnectWebhookBody,
       AmazonConnectWebhookBody
     >,
+    GenericWebhookInterpreter<AmazonConnectWebhookBody>,
     AgentService
 {
   /**
@@ -55,19 +67,18 @@ export class AmazonConnectService
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
     private httpService: HttpService,
+    private readonly middlewareApiService: MiddlewareApiService,
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
     const integration = this.request.headers['x-pypestream-integration'];
-    if (integration !== 'Genesys' || typeof base64Customer !== 'string') {
+    if (
+      integration !== IntegrationName.AmazonConnect ||
+      typeof base64Customer !== 'string'
+    ) {
       return;
     }
-
     const customer: AmazonConnectCustomer = getCustomer(base64Customer);
     this.customer = customer;
-
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
   }
 
   /**
@@ -158,7 +169,8 @@ export class AmazonConnectService
    */
   async startConversation(
     message: CccMessage,
-  ): Promise<AxiosResponse<SendMessageResponse>> {
+    metadata: publicComponents['schemas']['Metadata'],
+  ): Promise<AxiosResponse<StartConversationResponse>> {
     // Start a Chat Contact
 
     const contactClient = new ConnectClient(this.getAWSConfig());
@@ -188,11 +200,18 @@ export class AmazonConnectService
       startChatContactResp.ParticipantToken,
       'text/plain',
     );
+    const resp = await this.middlewareApiService.updateAgentMetadata(
+      message.conversationId,
+      {
+        awsToken: startChatContactResp.ParticipantToken,
+      },
+    );
 
     return Promise.resolve({
       data: {
         status: 201,
         message: `Mapping:${startChatContactResp.ContactId}`,
+        escalationId: startChatContactResp.ContactId,
       },
       statusText: 'ok',
       status: 201,
@@ -312,7 +331,7 @@ export class AmazonConnectService
    * Determine if agent is available to receive new message
    * @param message
    */
-  isAvailable(skill: string): boolean {
+  async isAvailable(skill: string): Promise<boolean> {
     return !!skill;
   }
 
