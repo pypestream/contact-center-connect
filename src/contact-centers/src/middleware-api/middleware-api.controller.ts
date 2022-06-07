@@ -31,6 +31,7 @@ import { MiddlewareApiService } from './middleware-api.service';
 import { Body } from '@nestjs/common';
 import { GenesysService } from '../genesys/genesys.service';
 import { FlexService } from '../flex/flex.service';
+import { LivePersonService } from '../liveperson/liveperson.service';
 import { AgentFactoryService } from '../agent-factory/agent-factory.service';
 import { UseInterceptors } from '@nestjs/common';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';

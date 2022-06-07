@@ -6,9 +6,14 @@ import { LivePersonService } from './liveperson.service';
 import { MiddlewareApiModule } from '../middleware-api/middleware-api.module';
 import { forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
+import { FeatureFlagModule } from '../feature-flag/feature-flag.module';
 
 @Module({
-  imports: [forwardRef(() => MiddlewareApiModule), HttpModule],
+  imports: [
+    forwardRef(() => MiddlewareApiModule),
+    HttpModule,
+    FeatureFlagModule,
+  ],
   providers: [LivePersonService],
   controllers: [LivePersonController],
   exports: [LivePersonService],

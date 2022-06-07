@@ -2,6 +2,7 @@ import { AgentServices } from '../common/types';
 import { ServiceNowService } from '../service-now/service-now.service';
 import { GenesysService } from '../genesys/genesys.service';
 import { FlexService } from '../flex/flex.service';
+import { LivePersonService } from '../liveperson/liveperson.service';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
@@ -23,6 +24,7 @@ export class AgentFactoryService {
     private readonly serviceNowService: ServiceNowService,
     private readonly genesysService: GenesysService,
     private readonly flexService: FlexService,
+    private readonly livePersonService: LivePersonService,
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
   ) {}
@@ -46,6 +48,10 @@ export class AgentFactoryService {
 
     if (integration === IntegrationName.Flex) {
       return this.flexService;
+    }
+
+    if (integration === IntegrationName.LivePerson) {
+      return this.livePersonService;
     }
 
     return null;

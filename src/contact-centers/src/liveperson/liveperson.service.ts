@@ -9,7 +9,7 @@ import {
   GenericWebhookInterpreter,
   AgentService,
 } from '../common/interfaces';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
 import { LivePersonWebhookBody, LivePersonCustomer } from './types';
@@ -72,6 +72,46 @@ export class LivePersonService
   /**
    * @ignore
    */
+  private async getTokens() {
+    // Get AppJWT
+    const sentinelUrl = `https://${this.customer.sentinelBaseUri}/sentinel/api/account/${this.customer.accountNumber}/app/token?v=1.0&grant_type=client_credentials`;
+    const reqBody = {
+      client_id: this.customer.clientId,
+      client_secret: this.customer.clientSecret,
+    };
+
+    const res = await this.httpService
+      .post(sentinelUrl, qs.stringify(reqBody))
+      .toPromise();
+    const access_token = res.data.access_token;
+
+    // Get ConsumerJWT
+    const idpUrl = `https://${this.customer.idpBaseUri}/api/account/${this.customer.accountNumber}/consumer?v=1.0`;
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: access_token,
+    };
+    const config: AxiosRequestConfig = {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: access_token,
+      },
+    };
+    const reqBody2 = {
+      ext_consumer_id: 'pypestream',
+    };
+    const res2 = await this.httpService
+      .post(idpUrl, reqBody2, config)
+      .toPromise();
+
+    const token = res2.data.token;
+
+    return [access_token, token];
+  }
+
+  /**
+   * @ignore
+   */
   private getMessageRequestBody(message: CccMessage) {
     const res = {
       Body: message.message.value,
@@ -92,13 +132,40 @@ export class LivePersonService
   /**
    * @ignore
    */
-  private startConversationRequestBody(message: CccMessage) {
-    const res = {
-      FlexFlowSid: this.customer.flexFlowSid,
-      Identity: message.conversationId,
-      ChatUserFriendlyName: 'PS User',
-      ChatFriendlyName: 'PS User',
-    };
+  private startConversationRequestBody(
+    message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
+  ) {
+    const res = [
+      {
+        kind: 'req',
+        id: '1,',
+        type: 'userprofile.SetUserProfile',
+        body: {
+          authenticatedData: {
+            lp_sdes: [
+              {
+                type: 'personal',
+                personal: {
+                  firstname: metadata.bot.first_name || 'PS',
+                  lastname: metadata.bot.last_name || 'User',
+                  email: metadata.bot.email,
+                  phone: metadata.bot.phone,
+                },
+              },
+            ],
+          },
+        },
+      },
+      {
+        kind: 'req',
+        id: '2,',
+        type: 'cm.ConsumerRequestConversation',
+        body: {
+          brandId: 'pypestream',
+        },
+      },
+    ];
 
     return res;
   }
@@ -151,41 +218,25 @@ export class LivePersonService
     message: CccMessage,
     metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<StartConversationResponse>> {
-    const auth = {
-      username: this.customer.accountSid,
-      password: this.customer.authToken,
+    const [access_token, token] = this.getTokens();
+    const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation?v=3`;
+    const headers = {
+      Authorization: access_token,
+      'X-LP-ON-BEHALF': token,
     };
-
     // Create a channel to start conversation
     const res = await axios.post(
-      flexChannelUrl,
-      qs.stringify(this.startConversationRequestBody(message)),
-      { auth: auth },
+      url,
+      qs.stringify(this.startConversationRequestBody(message, metadata)),
+      { headers: headers },
     );
-    const channelId = res.data.sid;
-
-    // Send chat history
-    const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}/Messages`;
-    this.httpService
-      .post(url, qs.stringify(this.getMessageRequestBody(message)), {
-        auth: auth,
-      })
-      .toPromise();
-
-    // Update channel to use conversationID as unniqueName
-    const reqUrl = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${channelId}`;
-
-    const startConversationRes = await this.httpService
-      .post(reqUrl, qs.stringify({ UniqueName: message.conversationId }), {
-        auth: auth,
-      })
-      .toPromise();
+    const livePersionConversationId = res.data[2].body.conversationId;
 
     return {
-      ...startConversationRes,
+      ...res,
       data: {
-        ...startConversationRes.data,
-        escalationId: channelId,
+        ...res.data,
+        escalationId: livePersionConversationId,
       },
     };
   }
