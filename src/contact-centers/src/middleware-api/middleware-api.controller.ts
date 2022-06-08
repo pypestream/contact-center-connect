@@ -263,7 +263,8 @@ export class MiddlewareApiController {
     if (
       !(
         agentService instanceof GenesysService ||
-        agentService instanceof FlexService
+        agentService instanceof FlexService ||
+        agentService instanceof LivePersonService
       )
     ) {
       await agentService
@@ -298,7 +299,8 @@ export class MiddlewareApiController {
     if (
       !(
         agentService instanceof GenesysService ||
-        agentService instanceof FlexService
+        agentService instanceof FlexService ||
+        agentService instanceof LivePersonService
       )
     ) {
       this.logger.log('set typing indicator to false');
@@ -323,7 +325,11 @@ export class MiddlewareApiController {
   ) {
     const service: AgentServices = this.agentFactoryService.getAgentService();
     if (
-      !(service instanceof GenesysService || service instanceof FlexService)
+      !(
+        service instanceof GenesysService ||
+        service instanceof FlexService ||
+        service instanceof LivePersonService
+      )
     ) {
       this.logger.log('conversation end: set typing indicator to false');
       await service

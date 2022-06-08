@@ -87,10 +87,6 @@ export class LivePersonService
 
     // Get ConsumerJWT
     const idpUrl = `https://${this.customer.idpBaseUri}/api/account/${this.customer.accountNumber}/consumer?v=1.0`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: access_token,
-    };
     const config: AxiosRequestConfig = {
       headers: {
         'Content-Type': 'application/json',
@@ -98,7 +94,7 @@ export class LivePersonService
       },
     };
     const reqBody2 = {
-      ext_consumer_id: 'pypestream',
+      ext_consumer_id: 'pypestream' + uuidv4(),
     };
     const res2 = await this.httpService
       .post(idpUrl, reqBody2, config)
@@ -149,8 +145,12 @@ export class LivePersonService
                 personal: {
                   firstname: metadata.bot.first_name || 'PS',
                   lastname: metadata.bot.last_name || 'User',
-                  email: metadata.bot.email,
-                  phone: metadata.bot.phone,
+                  contacts: [
+                    {
+                      email: metadata.bot.email || '',
+                      phone: metadata.bot.phone || '',
+                    },
+                  ],
                 },
               },
             ],
@@ -162,11 +162,11 @@ export class LivePersonService
         id: '2,',
         type: 'cm.ConsumerRequestConversation',
         body: {
-          brandId: 'pypestream',
+          brandId: this.customer.accountNumber,
         },
       },
     ];
-
+    console.log('req body: ', JSON.stringify(res));
     return res;
   }
 
@@ -178,11 +178,13 @@ export class LivePersonService
     message: CccMessage,
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const auth = {
-      username: this.customer.accountSid,
-      password: this.customer.authToken,
+      username: 'this.customer.accountSid',
+      password: 'this.customer.authToken',
     };
     // console.log('MEssage: ', message)
-    const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${message.conversationId}/Messages`;
+    const url = `${chatServiceUrl}/${'this.customer.serviceSid'}/Channels/${
+      message.conversationId
+    }/Messages`;
     const res = this.httpService.post(
       url,
       qs.stringify(this.getMessageRequestBody(message)),
@@ -197,12 +199,12 @@ export class LivePersonService
    */
   async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
     const auth = {
-      username: this.customer.accountSid,
-      password: this.customer.authToken,
+      username: 'this.customer.accountSid',
+      password: 'this.customer.authToken',
     };
 
     // Send message to notifiy agent
-    const url = `${chatServiceUrl}/${this.customer.serviceSid}/Channels/${conversationId}/Messages`;
+    const url = `${chatServiceUrl}/${'this.customer.serviceSid'}/Channels/${conversationId}/Messages`;
     return this.httpService
       .post(url, qs.stringify(this.getEndConversationRequestBody()), {
         auth: auth,
@@ -218,19 +220,20 @@ export class LivePersonService
     message: CccMessage,
     metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<StartConversationResponse>> {
-    const [access_token, token] = this.getTokens();
+    const [access_token, token] = await this.getTokens();
     const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation?v=3`;
-    const headers = {
-      Authorization: access_token,
-      'X-LP-ON-BEHALF': token,
+    const config: AxiosRequestConfig = {
+      headers: {
+        Authorization: access_token,
+        'X-LP-ON-BEHALF': token,
+        'Content-Type': 'application/json',
+      },
     };
-    // Create a channel to start conversation
-    const res = await axios.post(
-      url,
-      qs.stringify(this.startConversationRequestBody(message, metadata)),
-      { headers: headers },
-    );
-    const livePersionConversationId = res.data[2].body.conversationId;
+    const res = await this.httpService
+      .post(url, this.startConversationRequestBody(message, metadata), config)
+      .toPromise();
+
+    const livePersionConversationId = res.data[1].body.conversationId;
 
     return {
       ...res,
@@ -316,16 +319,7 @@ export class LivePersonService
    * @param message
    */
   async isAvailable(skill: string): Promise<boolean> {
-    const auth = {
-      username: this.customer.accountSid,
-      password: this.customer.authToken,
-    };
-
-    const url = `https://taskrouter.twilio.com/v1/Workspaces/${this.customer.workspaceSid}/Workers`;
-
-    // Create a channel to start conversation
-    const res = await axios.get(url, { auth: auth });
-    return res.data.workers.some((worker) => worker.available);
+    return true;
   }
 
   escalate(): boolean {
