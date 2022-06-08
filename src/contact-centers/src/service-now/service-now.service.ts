@@ -178,6 +178,7 @@ export class ServiceNowService
    */
   sendMessage(
     message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
     if (!this.serviceNowConfig.instanceUrl) {
       throw new Error('Servicenow.sendMessage instance-url must has value');

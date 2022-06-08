@@ -267,6 +267,7 @@ export class GenesysService
    */
   async sendMessage(
     message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const token = await this.getAccessToken();
     const headers = {

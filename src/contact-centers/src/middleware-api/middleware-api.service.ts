@@ -15,7 +15,7 @@ import { MiddlewareApi } from './middleware-api';
 import { AxiosResponse } from 'axios';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
-
+import { publicComponents } from '../middleware-api/types';
 /**
  * MiddlewareApi service
  */
@@ -118,6 +118,7 @@ export class MiddlewareApiService
    */
   async sendMessage(
     message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const headers = await this.getHeaders();
     return this.httpService
@@ -213,6 +214,28 @@ export class MiddlewareApiService
     const headers = await this.getHeaders();
     const response = this.httpService.get(
       `${this.config.url}/contactCenter/v1/conversations/${conversationId}/metadata`,
+      { headers },
+    );
+
+    return response.toPromise();
+  }
+
+  /**
+   * Patch metadata of conversation
+   * @param conversationId
+   * @param agentMetadata
+   */
+  async updateAgentMetadata(
+    conversationId: string,
+    agentMetadata: any,
+  ): Promise<AxiosResponse<components['schemas']['Metadata']>> {
+    if (!this.config.url) {
+      throw new Error('MiddlewareApi instance-url must has value');
+    }
+    const headers = await this.getHeaders();
+    const response = this.httpService.patch(
+      `${this.config.url}/contactCenter/v1/conversations/${conversationId}/metadata`,
+      { agent: agentMetadata },
       { headers },
     );
 

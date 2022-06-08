@@ -16,6 +16,7 @@ import { LivePersonWebhookBody, LivePersonCustomer } from './types';
 import { getCustomer } from '../common/utils/get-customer';
 import { InjectMiddlewareApi } from '../middleware-api/decorators';
 import { MiddlewareApi } from '../middleware-api/middleware-api';
+import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 import { Request } from 'express';
 import { Inject } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
@@ -54,6 +55,7 @@ export class LivePersonService
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
     private httpService: HttpService,
+    private readonly middlewareApiService: MiddlewareApiService,
   ) {
     const base64Customer = this.request.headers['x-pypestream-customer'];
 
@@ -108,10 +110,19 @@ export class LivePersonService
   /**
    * @ignore
    */
-  private getMessageRequestBody(message: CccMessage) {
+  private getMessageRequestBody(message: CccMessage, livePersonConvId: string) {
     const res = {
-      Body: message.message.value,
-      From: 'PS User',
+      kind: 'req',
+      id: '1',
+      type: 'ms.PublishEvent',
+      body: {
+        dialogId: livePersonConvId,
+        event: {
+          type: 'ContentEvent',
+          contentType: 'text/plain',
+          message: message.message.value,
+        },
+      },
     };
     return res;
   }
@@ -176,22 +187,28 @@ export class LivePersonService
    */
   async sendMessage(
     message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    const auth = {
-      username: 'this.customer.accountSid',
-      password: 'this.customer.authToken',
+    const accessToken = metadata.agent.accessToken as string;
+    const token = metadata.agent.token as string;
+    const livePersonConversationId = metadata.agent
+      .livePersionConversationId as string;
+    const config: AxiosRequestConfig = {
+      headers: {
+        Authorization: accessToken,
+        'X-LP-ON-BEHALF': token,
+        'Content-Type': 'application/json',
+      },
     };
-    // console.log('MEssage: ', message)
-    const url = `${chatServiceUrl}/${'this.customer.serviceSid'}/Channels/${
-      message.conversationId
-    }/Messages`;
-    const res = this.httpService.post(
-      url,
-      qs.stringify(this.getMessageRequestBody(message)),
-      { auth: auth },
-    );
+    const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation/send?v=3`;
 
-    return res.toPromise();
+    return this.httpService
+      .post(
+        url,
+        this.getMessageRequestBody(message, livePersonConversationId),
+        config,
+      )
+      .toPromise();
   }
   /**
    * End conversation
@@ -220,11 +237,11 @@ export class LivePersonService
     message: CccMessage,
     metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<StartConversationResponse>> {
-    const [access_token, token] = await this.getTokens();
+    const [accessToken, token] = await this.getTokens();
     const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation?v=3`;
     const config: AxiosRequestConfig = {
       headers: {
-        Authorization: access_token,
+        Authorization: accessToken,
         'X-LP-ON-BEHALF': token,
         'Content-Type': 'application/json',
       },
@@ -234,7 +251,11 @@ export class LivePersonService
       .toPromise();
 
     const livePersionConversationId = res.data[1].body.conversationId;
-
+    this.middlewareApiService.updateAgentMetadata(message.conversationId, {
+      accessToken: accessToken,
+      token: token,
+      livePersonConversationId: livePersionConversationId,
+    });
     return {
       ...res,
       data: {
