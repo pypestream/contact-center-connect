@@ -14,7 +14,7 @@ export interface Service<T, Y, Z> {
    */
   sendMessage(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>>;
 
   /**
@@ -23,7 +23,7 @@ export interface Service<T, Y, Z> {
    */
   endConversation(
     conversationId: string,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<any>>;
 
   /**

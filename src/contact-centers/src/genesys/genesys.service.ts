@@ -267,7 +267,7 @@ export class GenesysService
    */
   async sendMessage(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const token = await this.getAccessToken();
     const headers = {
@@ -309,7 +309,7 @@ export class GenesysService
    */
   async startConversation(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<StartConversationResponse>> {
     const token = await this.getAccessToken();
 

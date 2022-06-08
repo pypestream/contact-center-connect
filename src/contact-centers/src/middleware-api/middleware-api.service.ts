@@ -118,7 +118,7 @@ export class MiddlewareApiService
    */
   async sendMessage(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const headers = await this.getHeaders();
     return this.httpService

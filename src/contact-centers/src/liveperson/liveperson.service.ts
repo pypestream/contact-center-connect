@@ -141,7 +141,7 @@ export class LivePersonService
    */
   private startConversationRequestBody(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ) {
     const res = [
       {
@@ -187,7 +187,7 @@ export class LivePersonService
    */
   async sendMessage(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const accessToken = metadata.agent.accessToken as string;
     const token = metadata.agent.token as string;
@@ -214,7 +214,10 @@ export class LivePersonService
    * End conversation
    * @param conversationId
    */
-  async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
+  async endConversation(
+    conversationId: string,
+    metadata?,
+  ): Promise<AxiosResponse<any>> {
     const auth = {
       username: 'this.customer.accountSid',
       password: 'this.customer.authToken',
@@ -235,7 +238,7 @@ export class LivePersonService
    */
   async startConversation(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<StartConversationResponse>> {
     const [accessToken, token] = await this.getTokens();
     const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation?v=3`;

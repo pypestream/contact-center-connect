@@ -145,7 +145,7 @@ export class FlexService
    */
   async startConversation(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<StartConversationResponse>> {
     const auth = {
       username: this.customer.accountSid,
