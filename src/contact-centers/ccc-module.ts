@@ -5,6 +5,7 @@ import { MiddlewareApiModule } from './src/middleware-api/middleware-api.module'
 import { GenesysModule } from './src/genesys/genesys.module';
 import { FlexModule } from './src/flex/flex.module';
 import { ServiceNowModule } from './src/service-now/service-now.module';
+import { LivePersonModule } from './src/liveperson/liveperson.module';
 import { MiddlewareApiConfig } from './src/middleware-api/types';
 import { MiddlewareApiAsyncOptions } from './src/middleware-api/interfaces';
 
@@ -19,6 +20,7 @@ export class CccModule {
         GenesysModule,
         FlexModule,
         ServiceNowModule,
+        LivePersonModule,
       ],
       providers: [
         {
@@ -41,6 +43,7 @@ export class CccModule {
         GenesysModule,
         FlexModule,
         ServiceNowModule,
+        LivePersonModule,
       ],
       providers: [
         {
