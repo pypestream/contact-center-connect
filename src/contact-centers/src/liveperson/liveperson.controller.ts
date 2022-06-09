@@ -34,14 +34,16 @@ export class LivePersonController {
     @Res() res: Response,
     @Body() body: PostBody,
   ) {
-    const chatId = this.livePersonService.getChatId(
-      body as LivePersonWebhookBody,
-    );
+    const chatId =
+      body.body.changes[0].result?.convId ||
+      body.body.changes[0].conversationId;
 
     const requests = [];
 
     if (
-      this.livePersonService.hasAgentJoinedChat(body as LivePersonWebhookBody)
+      await this.livePersonService.hasAgentJoinedChat(
+        body as LivePersonWebhookBody,
+      )
     ) {
       const message = {
         message: {

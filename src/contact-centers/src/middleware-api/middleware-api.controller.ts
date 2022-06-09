@@ -288,6 +288,19 @@ export class MiddlewareApiController {
     @Res() res: Response,
     @Body() body: PutMessageBody,
   ) {
+    const isMetadataFlagEnabled = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.Metadata,
+    );
+
+    const metadata: publicComponents['schemas']['Metadata'] =
+      isMetadataFlagEnabled
+        ? await this.getMetadata(conversationId)
+        : {
+            user: {},
+            bot: {},
+            agent: {},
+          };
+
     const cccMessage = this.middlewareApiService.mapToCccMessage(body, {
       conversationId,
       messageId,
@@ -307,7 +320,7 @@ export class MiddlewareApiController {
       await agentService.sendTyping(conversationId, false);
     }
     try {
-      await agentService.sendMessage(cccMessage);
+      await agentService.sendMessage(cccMessage, metadata);
       return res.status(HttpStatus.NO_CONTENT).end();
     } catch (err) {
       this.logger.error(
@@ -323,6 +336,19 @@ export class MiddlewareApiController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
+    const isMetadataFlagEnabled = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.Metadata,
+    );
+
+    const metadata: publicComponents['schemas']['Metadata'] =
+      isMetadataFlagEnabled
+        ? await this.getMetadata(conversationId)
+        : {
+            user: {},
+            bot: {},
+            agent: {},
+          };
+
     const service: AgentServices = this.agentFactoryService.getAgentService();
     if (
       !(
@@ -341,7 +367,7 @@ export class MiddlewareApiController {
         );
     }
     try {
-      await service.endConversation(conversationId);
+      await service.endConversation(conversationId, metadata);
       return res.status(HttpStatus.NO_CONTENT).end();
     } catch (err) {
       this.logger.error(`end-conversation error:${err.message}, ${err.stack}`);

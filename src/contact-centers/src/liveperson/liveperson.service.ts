@@ -129,10 +129,18 @@ export class LivePersonService
   /**
    * @ignore
    */
-  private getEndConversationRequestBody() {
+  private getEndConversationRequestBody(livePersonConvId: string) {
     const res = {
-      Body: userLeftChatMessage,
-      From: 'PS User',
+      kind: 'req',
+      id: 1,
+      body: {
+        conversationId: livePersonConvId,
+        conversationField: {
+          field: 'ConversationStateField',
+          conversationState: 'CLOSE',
+        },
+      },
+      type: 'cm.UpdateConversationField',
     };
     return res;
   }
@@ -192,7 +200,7 @@ export class LivePersonService
     const accessToken = metadata.agent.accessToken as string;
     const token = metadata.agent.token as string;
     const livePersonConversationId = metadata.agent
-      .livePersionConversationId as string;
+      .livePersonConversationId as string;
     const config: AxiosRequestConfig = {
       headers: {
         Authorization: accessToken,
@@ -200,6 +208,7 @@ export class LivePersonService
         'Content-Type': 'application/json',
       },
     };
+
     const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation/send?v=3`;
 
     return this.httpService
@@ -216,19 +225,28 @@ export class LivePersonService
    */
   async endConversation(
     conversationId: string,
-    metadata?,
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<any>> {
-    const auth = {
-      username: 'this.customer.accountSid',
-      password: 'this.customer.authToken',
+    const accessToken = metadata.agent.accessToken as string;
+    const token = metadata.agent.token as string;
+    const livePersonConversationId = metadata.agent
+      .livePersonConversationId as string;
+    const config: AxiosRequestConfig = {
+      headers: {
+        Authorization: accessToken,
+        'X-LP-ON-BEHALF': token,
+        'Content-Type': 'application/json',
+      },
     };
 
-    // Send message to notifiy agent
-    const url = `${chatServiceUrl}/${'this.customer.serviceSid'}/Channels/${conversationId}/Messages`;
+    const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation/send?v=3`;
+
     return this.httpService
-      .post(url, qs.stringify(this.getEndConversationRequestBody()), {
-        auth: auth,
-      })
+      .post(
+        url,
+        this.getEndConversationRequestBody(livePersonConversationId),
+        config,
+      )
       .toPromise();
   }
   /**
@@ -278,7 +296,7 @@ export class LivePersonService
 
     return {
       message: {
-        value: body.Body,
+        value: body.body.changes[0].event?.message,
         type: MessageType.Text,
         id: messageId,
       },
@@ -291,35 +309,28 @@ export class LivePersonService
   }
 
   /**
-   * Get chat ID
-   * @param message
-   */
-  getChatId(message: LivePersonWebhookBody): string {
-    if (message.ChannelSid) return message.ChannelSid;
-    if (message.TaskAttributes) {
-      const attributes = JSON.parse(message.TaskAttributes);
-      return attributes.channelSid;
-    }
-    return null;
-  }
-
-  /**
-   * Determine if Agent reject the chat
-   * @param message
-   */
-  hasAgentRejectedChat(message: LivePersonWebhookBody): boolean {
-    return (
-      message.EventType === 'reservation.rejected' ||
-      message.TaskReEvaluatedReason === 'reservation_rejected'
-    );
-  }
-
-  /**
    * Determine if Agent has joined the chat
    * @param message
    */
-  hasAgentJoinedChat(message: LivePersonWebhookBody): boolean {
-    return message.EventType === 'reservation.accepted';
+  async hasAgentJoinedChat(message: LivePersonWebhookBody): Promise<boolean> {
+    if (
+      message.body.changes[0].result?.conversationDetails?.participants[0]
+        .role === 'MANAGER' &&
+      message.body.changes[0].result?.conversationDetails?.state === 'OPEN' &&
+      message.body.changes[0].result?.effectiveTTR < 0 &&
+      message.type === 'cqm.ExConversationChangeNotification'
+    ) {
+      //console.log('joined_ ', JSON.stringify(message))
+      return true;
+      // const metadata = await this.middlewareApiService.metadata(message.body.changes[0].result.convId);
+      // if (!metadata.data.agent.chatStarted) {
+      //   const chatStarted = { chatStarted: true }
+      //   this.middlewareApiService.updateAgentMetadata(message.body.changes[0].result.convId,
+      //     { ...metadata.data.agent, ...chatStarted })
+      //   return true;
+      // }
+      return false;
+    }
   }
 
   /**
@@ -327,7 +338,12 @@ export class LivePersonService
    * @param message
    */
   hasAgentLeftChat(message: LivePersonWebhookBody): boolean {
-    return message.EventType === 'reservation.wrapup';
+    return (
+      message.body.changes[0].result?.conversationDetails?.state === 'CLOSE' &&
+      message.body.changes[0].result?.conversationDetails?.closeReason ===
+        'AGENT' &&
+      message.type === 'cqm.ExConversationChangeNotification'
+    );
   }
 
   /**
@@ -335,7 +351,11 @@ export class LivePersonService
    * @param message
    */
   hasNewMessageAction(message: LivePersonWebhookBody): boolean {
-    return message.Source === 'SDK' && !!message.Body;
+    return (
+      ['MANAGER'].includes(message.body.changes[0].originatorMetadata?.role) &&
+      message.body.changes[0].event?.type === 'ContentEvent' &&
+      message.body.changes[0].event?.contentType === 'text/plain'
+    );
   }
 
   /**
