@@ -25,6 +25,7 @@ COPY --from=build-dev /ccc/node_modules ./node_modules
 COPY --from=build-dev /ccc/dist ./dist
 COPY --from=build-dev /ccc/views ./views
 COPY --from=build-dev /ccc/public ./public
+COPY --from=build-dev /ccc/package.json ./package.json
 
 EXPOSE 3000 8082
 
