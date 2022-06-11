@@ -2,7 +2,7 @@ FROM node:16.6-alpine As build-dev
 
 WORKDIR /ccc
 
-COPY package*.json lerna.json ./
+COPY package*.json lerna.json health-check.js ./
 COPY ./src ./src
 COPY ./config ./config
 COPY ./test ./test
@@ -26,6 +26,7 @@ COPY --from=build-dev /ccc/dist ./dist
 COPY --from=build-dev /ccc/views ./views
 COPY --from=build-dev /ccc/public ./public
 COPY --from=build-dev /ccc/package.json ./package.json
+COPY --from=build-dev /ccc/health-check.js ./health-check.js
 
 EXPOSE 3000 8082
 
