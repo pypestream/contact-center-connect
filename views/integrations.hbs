@@ -27,22 +27,22 @@
 <br>
 <br>
 <h4>
-  Settings
+  Integrations
 </h4>
 <p>
   <br>
-  <code>/contactCenter/v1/settings</code> <br>
+  <code>/contactCenter/v2/integrations</code> <br>
   <br>
 </p>
-<form action="/settings" method="post" >
+<form action="/integrations" method="post" >
   <input type="hidden" name="callbackURL" id="serviceNow_callbackURL" value="xxxx">
   <input type="hidden" name="integrationName" id="integrationName" value="ServiceNow">
-  <button type="submit">Use ServiceNow integration</button>
+  <button type="submit">Add ServiceNow integration</button>
 </form>
-<form action="/settings" method="post" >
+<form action="/integrations" method="post" >
   <input type="hidden" name="callbackURL" id="genesys_callbackURL" value="xxxx">
   <input type="hidden" name="integrationName" id="integrationName" value="Genesys">
-  <button type="submit">Use Genesys integration</button>
+  <button type="submit">Add Genesys integration</button>
 </form>
 <pre id="json-renderer"></pre>
 </body>
