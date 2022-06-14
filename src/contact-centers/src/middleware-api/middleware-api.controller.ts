@@ -170,9 +170,9 @@ export class MiddlewareApiController {
       .map((m) => {
         let side = '';
         if (m.side === 'anonymous_consumer') {
-          side = 'microapp user';
+          side = 'User';
         } else if (m.side === 'bot') {
-          side = 'microapp bot';
+          side = 'Microapp';
         } else {
           side = m.side;
         }
