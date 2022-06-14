@@ -147,6 +147,9 @@ export class MiddlewareApiService
     return message.completed;
   }
 
+  /**
+   * @deprecated The method should not be used, use getIntegrations instead
+   */
   async getSettings(): Promise<
     AxiosResponse<components['schemas']['Setting']>
   > {
@@ -159,6 +162,36 @@ export class MiddlewareApiService
       .toPromise();
   }
 
+  async getIntegrations(): Promise<
+    AxiosResponse<components['schemas']['IntegrationList']>
+  > {
+    if (!this.config.url) {
+      throw new Error('MiddlewareApi instance-url must has value');
+    }
+    const headers = await this.getHeaders();
+    return this.httpService
+      .get(`${this.config.url}/contactCenter/v2/integrations`, { headers })
+      .toPromise();
+  }
+
+  async addIntegration(
+    data: components['schemas']['IntegrationCreate'],
+  ): Promise<AxiosResponse<components['schemas']['Integration']>> {
+    if (!this.config.url) {
+      throw new Error('MiddlewareApi instance-url must has value');
+    }
+    const headers = await this.getHeaders();
+    const result = this.httpService.post(
+      `${this.config.url}/contactCenter/v2/integrations`,
+      data,
+      { headers },
+    );
+    return result.toPromise();
+  }
+
+  /**
+   * @deprecated The method should not be used, use addIntegrations instead
+   */
   async putSettings(
     data: SettingsObject,
   ): Promise<AxiosResponse<components['schemas']['Setting']>> {
