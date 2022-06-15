@@ -1,6 +1,7 @@
 import { AxiosResponse } from 'axios';
 import { SendMessageResponse } from './../types/send-message-response';
 import { CccMessage } from './../types/ccs-message';
+import { publicComponents } from '../../middleware-api/types';
 
 /**
  * Service should implement this interface for core features interface
@@ -11,13 +12,19 @@ export interface Service<T, Y, Z> {
    * Send message to service
    * @param message
    */
-  sendMessage(message: CccMessage): Promise<AxiosResponse<SendMessageResponse>>;
+  sendMessage(
+    message: CccMessage,
+    metadata?: publicComponents['schemas']['Metadata'],
+  ): Promise<AxiosResponse<SendMessageResponse>>;
 
   /**
    * End conversation
    * @param conversationId
    */
-  endConversation(conversationId: string): Promise<AxiosResponse<any>>;
+  endConversation(
+    conversationId: string,
+    metadata?: publicComponents['schemas']['Metadata'],
+  ): Promise<AxiosResponse<any>>;
 
   /**
    * Convert posted body to CCC message
@@ -55,5 +62,6 @@ export interface Service<T, Y, Z> {
   sendTyping?(
     conversationId: string,
     isTyping: boolean,
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>>;
 }

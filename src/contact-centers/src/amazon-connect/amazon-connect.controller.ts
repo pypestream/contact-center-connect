@@ -17,6 +17,11 @@ import { PostBody } from './dto';
 import { Body } from '@nestjs/common';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
 
+import {
+  agentJoinedChatMessage,
+  agentLeftChatMessage,
+} from '../common/messages-templates';
+
 @UseInterceptors(BodyInterceptor)
 @Controller('amazon-connect')
 export class AmazonConnectController {
@@ -53,10 +58,19 @@ export class AmazonConnectController {
         body as AmazonConnectWebhookBody,
       );
     if (hasChatEndedAction) {
-      const endConversationRequest = this.middlewareApiService.endConversation(
-        body.InitialContactId,
-      );
-      requests.push(endConversationRequest);
+      const message = {
+        message: {
+          value: agentLeftChatMessage,
+          type: MessageType.Text,
+          id: uuidv4(),
+        },
+        sender: {
+          username: 'test-agent',
+        },
+        conversationId: body.InitialContactId,
+      };
+      await this.middlewareApiService.sendMessage(message);
+      await this.middlewareApiService.endConversation(body.InitialContactId);
     }
 
     const isTyping = this.amazonConnectService.isTyping(
@@ -74,10 +88,9 @@ export class AmazonConnectController {
       body as AmazonConnectWebhookBody,
     );
     if (hasAgentJoined) {
-      const chatText = 'Automated message: Agent has joined the chat.';
       const message = {
         message: {
-          value: chatText,
+          value: agentJoinedChatMessage,
           type: MessageType.Text,
           id: uuidv4(),
         },

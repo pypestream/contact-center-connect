@@ -34,6 +34,9 @@ import {
   StartChatContactCommand,
   StartContactStreamingCommand,
   StartContactStreamingCommandInput,
+  DescribeAgentStatusCommand,
+  DescribeAgentStatusCommandInput,
+  DescribeAgentStatusCommandOutput,
 } from '@aws-sdk/client-connect';
 
 import {
@@ -44,6 +47,9 @@ import {
   SendMessageCommand,
   SendMessageCommandInput,
   SendMessageCommandOutput,
+  SendEventCommand,
+  SendEventCommandInput,
+  SendEventCommandOutput,
 } from '@aws-sdk/client-connectparticipant';
 
 @Injectable({ scope: Scope.REQUEST })
@@ -95,8 +101,8 @@ export class AmazonConnectService
   }
 
   private async performSendMessage(
-    message: CccMessage,
     participantToken: string,
+    message: CccMessage,
     contentType: string,
   ): Promise<SendMessageCommandOutput> {
     const participantClient = new ConnectParticipantClient(this.getAWSConfig());
@@ -110,17 +116,49 @@ export class AmazonConnectService
     const CPCCommand = new CreateParticipantConnectionCommand(cPCCInput);
     const cPResp = await participantClient.send(CPCCommand);
     //console.log(cPResp)
-
     const messageCommandInput: SendMessageCommandInput = {
       Content: message.message.value,
       ContentType: contentType,
       ConnectionToken: cPResp.ConnectionCredentials.ConnectionToken,
     };
-
     const messageCommand = new SendMessageCommand(messageCommandInput);
 
     return participantClient.send(messageCommand);
   }
+
+  private async performSendEvent(
+    participantToken: string,
+    eventType: string,
+  ): Promise<SendEventCommandOutput> {
+    const participantClient = new ConnectParticipantClient(this.getAWSConfig());
+
+    const cPCCInput: CreateParticipantConnectionCommandInput = {
+      ConnectParticipant: true,
+      ParticipantToken: participantToken,
+      Type: [ConnectionType.CONNECTION_CREDENTIALS],
+    };
+
+    const CPCCommand = new CreateParticipantConnectionCommand(cPCCInput);
+    const cPResp = await participantClient.send(CPCCommand);
+    //console.log(cPResp)
+    const eventCommandInput: SendEventCommandInput = {
+      ContentType: 'application/vnd.amazonaws.connect.event.' + eventType,
+      ConnectionToken: cPResp.ConnectionCredentials.ConnectionToken,
+    };
+    const eventCommand = new SendEventCommand(eventCommandInput);
+
+    return participantClient.send(eventCommand);
+  }
+
+  // private async describeAgentStatus(
+  //   participantToken: string,
+  //   eventType: string,
+  // ): Promise<DescribeAgentStatusCommandOutput> {
+  //   const client = new ConnectClient(this.getAWSConfig());
+  //   const command = new DescribeAgentStatusCommand(input);
+  //   return client.send(command);
+
+  // }
 
   /**
    * Send message to Amazon Connect
@@ -128,12 +166,10 @@ export class AmazonConnectService
    */
   async sendMessage(
     message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    this.performSendMessage(
-      message,
-      'NEED_TO_USE_PARTICIPANT_TOKEN_FROM_STARTCONVERSATION',
-      'text/plain',
-    );
+    const awsToken = metadata.agent.awsToken as string;
+    this.performSendMessage(awsToken, message, 'text/plain');
 
     return Promise.resolve({
       data: {
@@ -150,17 +186,38 @@ export class AmazonConnectService
    * End conversation
    * @param conversationId
    */
-  async endConversation(conversationId: string): Promise<AxiosResponse<any>> {
-    const token = await 'this.getAccessToken()';
-    const config: AxiosRequestConfig = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    const domain = 'this.customer.instanceUrl';
-    const messageSent = this.httpService.post(domain, conversationId, config);
+  async endConversation(
+    conversationId: string,
+    metadata: publicComponents['schemas']['Metadata'],
+  ): Promise<AxiosResponse<any>> {
+    const awsToken = metadata.agent.awsToken as string;
 
-    return messageSent.toPromise();
+    const messageId = uuidv4();
+    const message: CccMessage = {
+      message: {
+        value: userLeftChatMessage,
+        type: MessageType.Text,
+        id: messageId,
+      },
+      sender: {
+        username: 'test-agent',
+        // username: item.agentInfo.agentName,
+      },
+      conversationId: conversationId,
+    };
+
+    this.performSendMessage(awsToken, message, 'text/plain');
+
+    return Promise.resolve({
+      data: {
+        status: 201,
+        message: 'success',
+      },
+      statusText: 'ok',
+      status: 201,
+      headers: {},
+      config: {},
+    });
   }
   /**
    * Start new conversation with initial message
@@ -178,7 +235,10 @@ export class AmazonConnectService
       InstanceId: this.customer.instanceId,
       ContactFlowId: this.customer.contactFlowId,
       ParticipantDetails: {
-        DisplayName: 'PS User',
+        DisplayName:
+          ((metadata.bot.first_name as string) || 'Pypestream') +
+          ' ' +
+          ((metadata.bot.last_name as string) || 'User'),
       },
     };
     const sCCCommand = new StartChatContactCommand(sCCInput);
@@ -196,8 +256,8 @@ export class AmazonConnectService
     contactClient.send(sCSCommand);
 
     this.performSendMessage(
-      message,
       startChatContactResp.ParticipantToken,
+      message,
       'text/plain',
     );
     const resp = await this.middlewareApiService.updateAgentMetadata(
@@ -221,20 +281,6 @@ export class AmazonConnectService
   }
 
   /**
-   * @ignore
-   */
-  private getTypingRequestBody(conversationId: string, isTyping: boolean) {
-    const requestId = uuidv4();
-
-    const res = {
-      requestId,
-      clientSessionId: conversationId,
-      action: isTyping ? 'TYPING' : 'VIEWING',
-      userId: conversationId,
-    };
-    return res;
-  }
-  /**
    * Update Typing indicator in agent side
    * @param message
    */
@@ -242,23 +288,22 @@ export class AmazonConnectService
   sendTyping(
     conversationId: string,
     isTyping: boolean,
+    metadata: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
-    if (!'this.customer.instanceUrl') {
-      throw new Error('AmazonConnect.sendTyping instance-url must has value');
+    if (isTyping) {
+      const awsToken = metadata.agent.awsToken as string;
+      this.performSendEvent(awsToken, 'typing');
     }
-
-    if (!conversationId) {
-      throw new Error(
-        'AmazonConnect.sendTyping conversationId param is required parameter',
-      );
-    }
-
-    const res = this.httpService.post(
-      'this.customer.instanceUrl',
-      this.getTypingRequestBody(conversationId, isTyping),
-    );
-
-    return res.toPromise();
+    return Promise.resolve({
+      data: {
+        status: 201,
+        message: 'success',
+      },
+      statusText: 'ok',
+      status: 201,
+      headers: {},
+      config: {},
+    });
   }
 
   /**
@@ -271,7 +316,7 @@ export class AmazonConnectService
 
     return {
       message: {
-        value: body.ContentType,
+        value: body.Content,
         type: MessageType.Text,
         id: messageId,
       },
