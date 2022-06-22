@@ -150,15 +150,15 @@ export class AmazonConnectService
     return participantClient.send(eventCommand);
   }
 
-  // private async describeAgentStatus(
-  //   participantToken: string,
-  //   eventType: string,
-  // ): Promise<DescribeAgentStatusCommandOutput> {
-  //   const client = new ConnectClient(this.getAWSConfig());
-  //   const command = new DescribeAgentStatusCommand(input);
-  //   return client.send(command);
-
-  // }
+  private async describeAgentStatus(): Promise<DescribeAgentStatusCommandOutput> {
+    const client = new ConnectClient(this.getAWSConfig());
+    const input: DescribeAgentStatusCommandInput = {
+      AgentStatusId: 'ROUTABLE',
+      InstanceId: 'e3ef3a3f-2af5-4556-8e01-90bb0a4c6b89',
+    };
+    const command = new DescribeAgentStatusCommand(input);
+    return client.send(command);
+  }
 
   /**
    * Send message to Amazon Connect
@@ -266,6 +266,9 @@ export class AmazonConnectService
         awsToken: startChatContactResp.ParticipantToken,
       },
     );
+
+    const resp2 = await this.describeAgentStatus();
+    //console.log('agent: ', JSON.stringify(resp2))
 
     return Promise.resolve({
       data: {
