@@ -138,11 +138,25 @@ export class ServiceNowService
         typed: true,
         clientMessageId,
       },
-      userId: message.conversationId,
+      userId: this.getUserName(metadata),
       emailId: metadata.bot.email,
       clientVariables: this.serviceNowConfig,
     };
+    // eslint-disable-next-line
+    console.log('metadata: ', JSON.stringify(metadata));
+    // eslint-disable-next-line
+    console.log('send to servicenow: ', JSON.stringify(res));
     return res;
+  }
+  /**
+   * @ignore
+   */
+  private getUserName(metadata: publicComponents['schemas']['Metadata']) {
+    const firstName =
+      metadata.user.first_name || metadata.bot.first_name || 'Pypestream';
+    const lastName =
+      metadata.user.last_name || metadata.bot.last_name || 'User';
+    return `${firstName}.${lastName}`;
   }
   /**
    * @ignore
@@ -166,7 +180,7 @@ export class ServiceNowService
         typed: true,
         clientMessageId: message.message.id,
       },
-      userId: message.conversationId,
+      userId: this.getUserName(metadata),
       emailId: metadata.bot.email,
       clientVariables: this.serviceNowConfig,
     };
