@@ -128,8 +128,8 @@ export class GenesysService
     const res = await axios.post<QueryObservationsResponse>(url, reqBody, {
       headers: headers,
     });
-
-    return res.data?.results?.[0].data?.some((item: OnQueueMetric) =>
+    console.log('agent status: ', JSON.stringify(res.data));
+    return !!res.data?.results?.[0].data?.some((item: OnQueueMetric) =>
       ['IDLE', 'INTERACTING'].includes(item.qualifier),
     );
   }
