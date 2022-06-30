@@ -175,24 +175,23 @@ export class GenesysWebsocket {
             await this.middlewareApiService.endConversation(conversationId);
           }
         } else if (this.didAgentRejectChat(participant)) {
-          const token = await this.getAccessToken(customer);
-          const { access_token, token_type } = token.data;
-          const messageId =
-            message.eventBody.participants[0].messages[0].message.id;
-          const genesysConversationId = await this.getGenesysConversationId(
-            messageId,
-            token_type,
-            access_token,
-            customer.instanceUrl,
-          );
-          await this.disconnectGenesysConversation(
-            genesysConversationId,
-            token_type,
-            access_token,
-            customer.instanceUrl,
-          );
-
-          await this.middlewareApiService.endConversation(conversationId);
+          // const token = await this.getAccessToken(customer);
+          // const { access_token, token_type } = token.data;
+          // const messageId =
+          //   message.eventBody.participants[0].messages[0].message.id;
+          // const genesysConversationId = await this.getGenesysConversationId(
+          //   messageId,
+          //   token_type,
+          //   access_token,
+          //   customer.instanceUrl,
+          // );
+          // // await this.disconnectGenesysConversation(
+          // //   genesysConversationId,
+          // //   token_type,
+          // //   access_token,
+          // //   customer.instanceUrl,
+          // // );
+          // // await this.middlewareApiService.endConversation(conversationId);
         } else if (this.isAgentConnected(participant)) {
           const lastJoinChat =
             this.lastJoinChats[conversationId] === participant.id;
