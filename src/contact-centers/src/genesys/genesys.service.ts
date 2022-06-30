@@ -307,12 +307,6 @@ export class GenesysService
       },
     };
     const res = await this.httpService.post(url, body, config).toPromise();
-    console.log(
-      'res.data.channel.id',
-      res.data.channel.id,
-      'message.conversationId',
-      message.conversationId,
-    );
     return {
       ...res,
       data: {
