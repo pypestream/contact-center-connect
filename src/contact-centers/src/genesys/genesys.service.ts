@@ -129,8 +129,8 @@ export class GenesysService
       headers: headers,
     });
 
-    return res.data?.results?.[0].data?.some(
-      (item: OnQueueMetric) => item.qualifier === 'IDLE',
+    return res.data?.results?.[0].data?.some((item: OnQueueMetric) =>
+      ['IDLE', 'INTERACTING'].includes(item.qualifier),
     );
   }
 
@@ -307,11 +307,17 @@ export class GenesysService
       },
     };
     const res = await this.httpService.post(url, body, config).toPromise();
+    console.log(
+      'res.data.channel.id',
+      res.data.channel.id,
+      'message.conversationId',
+      message.conversationId,
+    );
     return {
       ...res,
       data: {
         message: res.data.message,
-        escalationId: res.data.channel.id,
+        escalationId: message.conversationId,
       },
     };
   }
