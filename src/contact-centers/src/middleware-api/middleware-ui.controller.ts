@@ -2,13 +2,15 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
+  Logger,
   Post,
   Render,
   Res,
   UseInterceptors,
 } from '@nestjs/common';
 import { MiddlewareApiService } from './middleware-api.service';
-import { SettingsObject } from './types';
+import { privateComponents, publicComponents, SettingsObject } from './types';
 import { BodyInterceptor } from '../common/interceptors/body.interceptor';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
@@ -16,6 +18,8 @@ import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
 @UseInterceptors(BodyInterceptor)
 @Controller()
 export class MiddlewareUiController {
+  private readonly logger = new Logger(MiddlewareUiController.name);
+
   constructor(
     private readonly middlewareApiService: MiddlewareApiService,
     private readonly featureFlagService: FeatureFlagService,
@@ -27,35 +31,26 @@ export class MiddlewareUiController {
     return {};
   }
 
-  @Get('settings')
-  @Render('settings')
+  @Get('integrations')
+  @Render('integrations')
   async settings() {
     try {
-      const sendMessageRes = await this.middlewareApiService.getSettings();
+      const sendMessageRes = await this.middlewareApiService.getIntegrations();
       return { message: JSON.stringify(sendMessageRes.data) };
     } catch (ex) {
       return { message: JSON.stringify({}) };
     }
   }
 
-  @Get('feature-flags')
+  @Get('ff')
   async flags() {
-    const history = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.History,
-    );
-    const PE_19853 = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.PE_19853,
-    );
-    const PE_19446 = await this.featureFlagService.isFlagEnabled(
-      FeatureFlagEnum.PE_19446,
-    );
     const test = await this.featureFlagService.isFlagEnabled(
       FeatureFlagEnum.Test,
     );
-    return { history, PE_19853, test, PE_19446 };
+    return { test };
   }
 
-  @Post('settings')
+  @Post('integrations')
   async post(@Body() body, @Res() res) {
     let integrationFields;
     switch (body.integrationName) {
@@ -73,17 +68,23 @@ export class MiddlewareUiController {
           OMQueueId: 'string',
         };
     }
-    const settings: SettingsObject = {
+    const integration: publicComponents['schemas']['IntegrationCreate'] = {
       callbackToken: 'random-token',
       callbackURL: body.callbackURL,
       integrationName: body.integrationName,
       integrationFields: integrationFields,
     };
     try {
-      await this.middlewareApiService.putSettings(settings);
-      return res.redirect('/settings');
+      await this.middlewareApiService.addIntegration(integration);
+      return res.redirect('/integrations');
     } catch (ex) {
-      return { error: ex.message };
+      if (ex.response.data.errors) {
+        this.logger.error(JSON.stringify(ex.response.data.errors));
+        return res.status(HttpStatus.BAD_REQUEST).send(ex.response.data.errors);
+      } else {
+        this.logger.error(JSON.stringify(ex.message), ex.stack);
+        return res.status(HttpStatus.BAD_REQUEST).send(ex.message);
+      }
     }
   }
 
