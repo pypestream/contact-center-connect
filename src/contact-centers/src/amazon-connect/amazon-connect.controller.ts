@@ -8,6 +8,8 @@ import {
   UseInterceptors,
   Get,
 } from '@nestjs/common';
+import axios from 'axios';
+
 import { MessageType } from './../common/types';
 import { AmazonConnectService } from './amazon-connect.service';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
@@ -31,12 +33,16 @@ export class AmazonConnectController {
   ) {}
 
   @Post('webhook')
-  async message(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Body() body: PostBody,
-  ) {
+  async message(@Req() req: Request, @Res() res: Response, @Body() body: any) {
     const requests = [];
+
+    if (body.Type === 'SubscriptionConfirmation') {
+      //Verification the webhook url
+      axios.get(body.SubscribeURL).catch(function (error) {
+        // already verify?
+      });
+      return res.status(HttpStatus.OK).send({ message: 'Verify OK' });
+    }
 
     const hasNewMessageAction = this.amazonConnectService.hasNewMessageAction(
       body as AmazonConnectWebhookBody,
@@ -99,6 +105,9 @@ export class AmazonConnectController {
         },
         conversationId: body.InitialContactId,
       };
+      await this.middlewareApiService.agentAcceptedEscalation(
+        body.InitialContactId,
+      );
 
       const hasAgentJoinedMessage =
         this.middlewareApiService.sendMessage(message);

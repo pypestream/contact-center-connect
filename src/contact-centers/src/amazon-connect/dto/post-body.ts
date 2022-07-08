@@ -11,4 +11,5 @@ export class PostBody {
   DisplayName: string;
   ParticipantRole: string;
   ContactId: string;
+  SubscribeURL?: string;
 }

@@ -9,4 +9,5 @@ export type AmazonConnectWebhookBody = {
   DisplayName: string;
   ParticipantRole: string;
   ContactId: string;
+  SubscribeURL?: string;
 };

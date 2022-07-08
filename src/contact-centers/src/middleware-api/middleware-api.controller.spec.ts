@@ -16,7 +16,8 @@ describe('MiddlewareApiController', () => {
     'eyJpbnN0YW5jZVVybCI6Imh0dHBzOi8vYXBpLnVzdzIucHVyZS5jbG91ZCIsIm9BdXRoVXJsIjoiaHR0cHM6Ly9sb2dpbi51c3cyLnB1cmUuY2xvdWQiLCJjbGllbnRJZCI6ImNlZTIwYjBmLTE4ODEtNGI4ZS1iZWExLTRmYTYyNWVjMGM3MiIsImNsaWVudFNlY3JldCI6Il94YWJjZGVmIiwiZ3JhbnRUeXBlIjoiY2xpZW50X2NyZWRlbnRpYWxzIiwiT01JbnRlZ3JhdGlvbklkIjoiYTIxNzE3NDItNzM1OS00MWNmLWFhNjgtYWQ1MDQ5MjUwODA2IiwiT01RdWV1ZUlkIjoiMGM1NGY2MTYtNTBkNi00M2EwLTkzNzMtZWNkYTBkYzBmNjliIn0=';
   const flexCustomerHeader =
     'eyJhY2NvdW50U2lkIjoiQUM0NTM0ZTIwMDlkODJjNDM3OTVkNGFlMDA1YjlidDQ4NCIsImF1dGhUb2tlbiI6IngxMjN4YWJjIiwic2VydmljZVNpZCI6IklTM2QyOTM0NTg1Y2FiNGZiNTljYzc1YTIxN2JiZjY3M3MiLCJ3b3Jrc3BhY2VTaWQiOiJXU2E1Nzg3ZTYzOGY2MjFlMzM0MWRmNmM4YTBkNGMwbjFpIiwiZmxleEZsb3dTaWQiOiJGTzdjZmJhMjFjYmFhOTg4ZWFkOGQ3MWVlMGY0ZDQxYTg5In0=';
-
+  const amazonConnectCustomerHeader =
+    'eyAiYWNjZXNzS2V5SWQiOiAiWFhYWFhYWCIsCiAgICAgICAgICAgICJzZWNyZXRBY2Vzc0tleSI6ICJYWFhYWFhYWFhYWFhYWFhYWFgiLAogICAgICAgICAgICAicmVnaW9uIjoidXMtZWFzdC0xIiwKICAgICAgICAgICAgImluc3RhbmNlSWQiOiJlM2VmM2EzZi0yYWY1LTQ1NTYtOGUwMS05MGJieHhkZjMzMzQiLAogICAgICAgICAgICAiY29udGFjdEZsb3dJZCI6IjI5ZTZiZDJjLWE5ODctNDk4MC14ZTk5My0zNzIxNzFjZGY4N2YiLAogICAgICAgICAgICAiU05TVG9waWNBUk4iOiJhcm46YXdzOnNuczp1cy1lYXN0LTE6MTIzNDQ1NjY2Onh4eHh4eCIsCiAgICAgICAgICAgICJxdWV1ZXMiOiI0NTI2MGE5MC12dnNzZC14eHh4LWE2MjEtYjkxYTg0YjgxYTIyIn0=';
   beforeEach(async () => {
     // @ts-ignore
     LaunchDarkly.__mockFlags({
@@ -133,6 +134,20 @@ describe('MiddlewareApiController', () => {
       expect(response.body.queueDepth).toBeDefined();
     });
 
+    it('AmazonConnect: OK', async () => {
+      const response = await getAgentAvailability()
+        .query({ skill: 'Test1' })
+        .set('x-pypestream-customer', amazonConnectCustomerHeader)
+        .set('x-pypestream-integration', 'AmazonConnect');
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.available).toBeDefined();
+      expect(response.body.estimatedWaitTime).toBeDefined();
+      expect(response.body.status).toBeDefined();
+      expect(response.body.hoursOfOperation).toBeDefined();
+      expect(response.body.queueDepth).toBeDefined();
+    });
+
     it('Bad Request no headers', async () => {
       const response = await getAgentAvailability().query({ skill: 'Test1' });
 
@@ -154,6 +169,13 @@ describe('MiddlewareApiController', () => {
       const response = await getAgentAvailability()
         .set('x-pypestream-customer', genesysCustomerHeader)
         .set('x-pypestream-integration', 'Genesys');
+
+      expect(response.statusCode).toEqual(400);
+    });
+    it('AmazonConnect: Bad request: skill param is required', async () => {
+      const response = await getAgentAvailability()
+        .set('x-pypestream-customer', amazonConnectCustomerHeader)
+        .set('x-pypestream-integration', 'AmazonConnect');
 
       expect(response.statusCode).toEqual(400);
     });
@@ -210,6 +232,20 @@ describe('MiddlewareApiController', () => {
       const response = await putMessage()
         .set('x-pypestream-customer', genesysCustomerHeader)
         .set('x-pypestream-integration', 'Genesys')
+        .send(JSON.stringify(body));
+
+      expect(response.statusCode).toEqual(204);
+    });
+
+    it('AmazonConnect: OK', async () => {
+      const body: publicComponents['schemas']['Message'] = {
+        content: 'I am new message',
+        senderId: 'user-123',
+        side: 'user',
+      };
+      const response = await putMessage()
+        .set('x-pypestream-customer', amazonConnectCustomerHeader)
+        .set('x-pypestream-integration', 'AmazonConnect')
         .send(JSON.stringify(body));
 
       expect(response.statusCode).toEqual(204);
@@ -340,6 +376,33 @@ describe('MiddlewareApiController', () => {
       expect(response.statusCode).toEqual(500);
     });
 
+    it('Escalate to AmazonConnect agent', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', amazonConnectCustomerHeader)
+        .set('x-pypestream-integration', 'AmazonConnect')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(201);
+    });
+
+    it('Escalate to AmazonConnect agent with bad body', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', amazonConnectCustomerHeader)
+        .set('x-pypestream-integration', 'AmazonConnect')
+        .send(
+          JSON.stringify({
+            foo: 'bar',
+          }),
+        );
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Escalate to AmazonConnect agent without x-pypestream-customer header', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-integration', 'AmazonConnect')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(500);
+    });
+
     it('Escalate to Unknown agent', async () => {
       const response = await postEscalate()
         .set('x-pypestream-customer', genesysCustomerHeader)
@@ -370,6 +433,18 @@ describe('MiddlewareApiController', () => {
         .set('Content-Type', 'application/octet-stream')
         .set('x-pypestream-customer', genesysCustomerHeader)
         .set('x-pypestream-integration', 'Genesys')
+        .send();
+
+      expect(response.statusCode).toEqual(204);
+    });
+    it('AmazonConnect agent: End chat', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/contactCenter/v1/conversations/conversation-123/end')
+        .set('Content-Type', 'application/json')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream')
+        .set('x-pypestream-customer', amazonConnectCustomerHeader)
+        .set('x-pypestream-integration', 'AmazonConnect')
         .send();
 
       expect(response.statusCode).toEqual(204);

@@ -34,9 +34,12 @@ import {
   StartChatContactCommand,
   StartContactStreamingCommand,
   StartContactStreamingCommandInput,
-  DescribeAgentStatusCommand,
-  DescribeAgentStatusCommandInput,
-  DescribeAgentStatusCommandOutput,
+  CurrentMetric,
+  Filters,
+  GetCurrentMetricDataCommand,
+  GetCurrentMetricDataCommandInput,
+  GetCurrentMetricDataCommandOutput,
+  GetCurrentMetricDataResponse,
 } from '@aws-sdk/client-connect';
 
 import {
@@ -51,6 +54,7 @@ import {
   SendEventCommandInput,
   SendEventCommandOutput,
 } from '@aws-sdk/client-connectparticipant';
+import { filter } from 'rxjs';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AmazonConnectService
@@ -115,14 +119,12 @@ export class AmazonConnectService
 
     const CPCCommand = new CreateParticipantConnectionCommand(cPCCInput);
     const cPResp = await participantClient.send(CPCCommand);
-    //console.log(cPResp)
     const messageCommandInput: SendMessageCommandInput = {
       Content: message.message.value,
       ContentType: contentType,
       ConnectionToken: cPResp.ConnectionCredentials.ConnectionToken,
     };
     const messageCommand = new SendMessageCommand(messageCommandInput);
-
     return participantClient.send(messageCommand);
   }
 
@@ -150,13 +152,23 @@ export class AmazonConnectService
     return participantClient.send(eventCommand);
   }
 
-  private async describeAgentStatus(): Promise<DescribeAgentStatusCommandOutput> {
+  private async isAgentAvailable(): Promise<GetCurrentMetricDataCommandOutput> {
     const client = new ConnectClient(this.getAWSConfig());
-    const input: DescribeAgentStatusCommandInput = {
-      AgentStatusId: 'ROUTABLE',
-      InstanceId: 'e3ef3a3f-2af5-4556-8e01-90bb0a4c6b89',
+    const metrics: CurrentMetric[] = [
+      {
+        Name: 'AGENTS_AVAILABLE',
+        Unit: 'COUNT',
+      },
+    ];
+    const filters: Filters = {
+      Queues: this.customer.queues.split(',').map((val) => val.trim()),
     };
-    const command = new DescribeAgentStatusCommand(input);
+    const input: GetCurrentMetricDataCommandInput = {
+      CurrentMetrics: metrics,
+      InstanceId: this.customer.instanceId,
+      Filters: filters,
+    };
+    const command = new GetCurrentMetricDataCommand(input);
     return client.send(command);
   }
 
@@ -266,9 +278,6 @@ export class AmazonConnectService
         awsToken: startChatContactResp.ParticipantToken,
       },
     );
-
-    const resp2 = await this.describeAgentStatus();
-    //console.log('agent: ', JSON.stringify(resp2))
 
     return Promise.resolve({
       data: {
@@ -380,7 +389,8 @@ export class AmazonConnectService
    * @param message
    */
   async isAvailable(skill: string): Promise<boolean> {
-    return !!skill;
+    const resp: GetCurrentMetricDataResponse = await this.isAgentAvailable();
+    return resp.MetricResults[0]?.Collections[0]?.Value > 0;
   }
 
   /**

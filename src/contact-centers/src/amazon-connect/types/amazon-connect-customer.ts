@@ -5,4 +5,5 @@ export type AmazonConnectCustomer = {
   instanceId: string;
   contactFlowId: string;
   SNSTopicARN: string;
+  queues: string;
 };
