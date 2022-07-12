@@ -9,6 +9,7 @@ import {
   GenericWebhookInterpreter,
   AgentService,
 } from '../common/interfaces';
+import { HttpStatus } from '@nestjs/common';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -185,11 +186,11 @@ export class AmazonConnectService
 
     return Promise.resolve({
       data: {
-        status: 201,
+        status: HttpStatus.CREATED,
         message: 'success',
       },
       statusText: 'ok',
-      status: 201,
+      status: HttpStatus.CREATED,
       headers: {},
       config: {},
     });
@@ -243,14 +244,14 @@ export class AmazonConnectService
     // Start a Chat Contact
 
     const contactClient = new ConnectClient(this.getAWSConfig());
+    const firstName: string =
+      (metadata.bot.first_name as string) || 'Pypestream';
+    const lastName: string = (metadata.bot.last_name as string) || 'User';
     const sCCInput: StartChatContactCommandInput = {
       InstanceId: this.customer.instanceId,
       ContactFlowId: this.customer.contactFlowId,
       ParticipantDetails: {
-        DisplayName:
-          ((metadata.bot.first_name as string) || 'Pypestream') +
-          ' ' +
-          ((metadata.bot.last_name as string) || 'User'),
+        DisplayName: `${firstName} ${lastName}`,
       },
     };
     const sCCCommand = new StartChatContactCommand(sCCInput);
