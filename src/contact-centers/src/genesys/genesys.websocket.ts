@@ -174,24 +174,6 @@ export class GenesysWebsocket {
             await this.middlewareApiService.sendMessage(message);
             await this.middlewareApiService.endConversation(conversationId);
           }
-        } else if (this.didAgentRejectChat(participant)) {
-          // const token = await this.getAccessToken(customer);
-          // const { access_token, token_type } = token.data;
-          // const messageId =
-          //   message.eventBody.participants[0].messages[0].message.id;
-          // const genesysConversationId = await this.getGenesysConversationId(
-          //   messageId,
-          //   token_type,
-          //   access_token,
-          //   customer.instanceUrl,
-          // );
-          // // await this.disconnectGenesysConversation(
-          // //   genesysConversationId,
-          // //   token_type,
-          // //   access_token,
-          // //   customer.instanceUrl,
-          // // );
-          // // await this.middlewareApiService.endConversation(conversationId);
         } else if (this.isAgentConnected(participant)) {
           const lastJoinChat =
             this.lastJoinChats[conversationId] === participant.id;
@@ -248,28 +230,6 @@ export class GenesysWebsocket {
         headers: headers,
       })
       .toPromise();
-  }
-  async getGenesysConversationId(
-    messageId: string,
-    tokenType: string,
-    accessToken: string,
-    url: string,
-  ) {
-    const headers = {
-      Authorization: `${tokenType} ${accessToken}`,
-      'Content-Type': 'application/json',
-    };
-    try {
-      const res = await this.httpService
-        .get(`${url}/api/v2/conversations/messages/${messageId}/details`, {
-          headers: headers,
-        })
-        .toPromise();
-      return res.data.conversationId;
-    } catch (error) {
-      //console.log(error.response.status)
-      return '';
-    }
   }
 
   async disconnectGenesysConversation(
