@@ -1,12 +1,12 @@
 import { IsNotEmpty } from 'class-validator';
 
 export class PostBody {
-  @IsNotEmpty() InitialContactId: string;
+  InitialContactId: string;
   AbsoluteTime: string;
-  Content?: string;
+  Content: string;
   ContentType: string;
   Id: string;
-  Type: string;
+  @IsNotEmpty() Type: string;
   ParticipantId: string;
   DisplayName: string;
   ParticipantRole: string;

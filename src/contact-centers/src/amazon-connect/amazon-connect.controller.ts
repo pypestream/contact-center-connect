@@ -13,7 +13,11 @@ import axios from 'axios';
 import { MessageType } from './../common/types';
 import { AmazonConnectService } from './amazon-connect.service';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
-import { AmazonConnectWebhookBody } from './types';
+import {
+  AmazonConnectWebhookBody,
+  MessageBody,
+  VerificationBody,
+} from './types';
 import { Request, Response } from 'express';
 import { PostBody } from './dto';
 import { Body } from '@nestjs/common';
@@ -33,24 +37,30 @@ export class AmazonConnectController {
   ) {}
 
   @Post('webhook')
-  async message(@Req() req: Request, @Res() res: Response, @Body() body: any) {
+  async message(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body() body: PostBody,
+  ) {
     const requests = [];
 
     if (body.Type === 'SubscriptionConfirmation') {
       //Verification the webhook url
-      axios.get(body.SubscribeURL).catch(function (error) {
-        // already verify?
-      });
+      axios
+        .get((body as VerificationBody).SubscribeURL)
+        .catch(function (error) {
+          // already verify?
+        });
       return res.status(HttpStatus.OK).send({ message: 'Verify OK' });
     }
 
     const hasNewMessageAction = this.amazonConnectService.hasNewMessageAction(
-      body as AmazonConnectWebhookBody,
+      body as MessageBody,
     );
 
     if (hasNewMessageAction) {
       const message = this.amazonConnectService.mapToCccMessage(
-        body as AmazonConnectWebhookBody,
+        body as MessageBody,
       );
       if (message) {
         const sendMessageRequest =
@@ -60,9 +70,7 @@ export class AmazonConnectController {
     }
 
     const hasChatEndedAction =
-      this.amazonConnectService.hasEndConversationAction(
-        body as AmazonConnectWebhookBody,
-      );
+      this.amazonConnectService.hasEndConversationAction(body as MessageBody);
     if (hasChatEndedAction) {
       const message = {
         message: {
@@ -73,25 +81,25 @@ export class AmazonConnectController {
         sender: {
           username: 'test-agent',
         },
-        conversationId: body.InitialContactId,
+        conversationId: (body as MessageBody).InitialContactId,
       };
       await this.middlewareApiService.sendMessage(message);
-      await this.middlewareApiService.endConversation(body.InitialContactId);
+      await this.middlewareApiService.endConversation(
+        (body as MessageBody).InitialContactId,
+      );
     }
 
-    const isTyping = this.amazonConnectService.isTyping(
-      body as AmazonConnectWebhookBody,
-    );
+    const isTyping = this.amazonConnectService.isTyping(body as MessageBody);
     if (isTyping) {
       const sendTypingRequest = this.middlewareApiService.sendTyping(
-        body.InitialContactId,
+        (body as MessageBody).InitialContactId,
         isTyping,
       );
       requests.push(sendTypingRequest);
     }
 
     const hasAgentJoined = this.amazonConnectService.hasAgentJoined(
-      body as AmazonConnectWebhookBody,
+      body as MessageBody,
     );
     if (hasAgentJoined) {
       const message = {
@@ -103,10 +111,10 @@ export class AmazonConnectController {
         sender: {
           username: 'test-agent',
         },
-        conversationId: body.InitialContactId,
+        conversationId: (body as MessageBody).InitialContactId,
       };
       await this.middlewareApiService.agentAcceptedEscalation(
-        body.InitialContactId,
+        (body as MessageBody).InitialContactId,
       );
 
       const hasAgentJoinedMessage =

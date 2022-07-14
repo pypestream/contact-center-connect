@@ -13,7 +13,13 @@ import { HttpStatus } from '@nestjs/common';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
-import { AmazonConnectWebhookBody, AmazonConnectCustomer } from './types';
+import {
+  AmazonConnectWebhookBody,
+  MessageBody,
+  AmazonConnectCustomer,
+  AmazonContentTypes,
+  AmazonParticipantRoles,
+} from './types';
 import { getCustomer } from '../common/utils/get-customer';
 import { InjectMiddlewareApi } from '../middleware-api/decorators';
 import { MiddlewareApi } from '../middleware-api/middleware-api';
@@ -223,11 +229,11 @@ export class AmazonConnectService
 
     return Promise.resolve({
       data: {
-        status: 201,
+        status: HttpStatus.CREATED,
         message: 'success',
       },
       statusText: 'ok',
-      status: 201,
+      status: HttpStatus.CREATED,
       headers: {},
       config: {},
     });
@@ -282,12 +288,12 @@ export class AmazonConnectService
 
     return Promise.resolve({
       data: {
-        status: 201,
+        status: HttpStatus.CREATED,
         message: `Mapping:${startChatContactResp.ContactId}`,
         escalationId: startChatContactResp.ContactId,
       },
       statusText: 'ok',
-      status: 201,
+      status: HttpStatus.CREATED,
       headers: {},
       config: {},
     });
@@ -309,11 +315,11 @@ export class AmazonConnectService
     }
     return Promise.resolve({
       data: {
-        status: 201,
+        status: HttpStatus.CREATED,
         message: 'success',
       },
       statusText: 'ok',
-      status: 201,
+      status: HttpStatus.CREATED,
       headers: {},
       config: {},
     });
@@ -324,7 +330,7 @@ export class AmazonConnectService
    * @param body
    * @param params
    */
-  mapToCccMessage(body: AmazonConnectWebhookBody): CccMessage {
+  mapToCccMessage(body: MessageBody): CccMessage {
     const messageId = uuidv4();
 
     return {
@@ -345,7 +351,7 @@ export class AmazonConnectService
    * Determine if request body is new message from Agent
    * @param message
    */
-  hasNewMessageAction(message: AmazonConnectWebhookBody): boolean {
+  hasNewMessageAction(message: MessageBody): boolean {
     return !!message.Content && message.ParticipantRole === 'AGENT';
   }
 
@@ -353,11 +359,10 @@ export class AmazonConnectService
    * Determine if request body has `end conversation` action
    * @param message
    */
-  hasEndConversationAction(message: AmazonConnectWebhookBody): boolean {
+  hasEndConversationAction(message: MessageBody): boolean {
     return (
-      message.ContentType ===
-        'application/vnd.amazonaws.connect.event.participant.left' &&
-      message.ParticipantRole === 'AGENT'
+      message.ContentType === AmazonContentTypes.PARTICIPANT_LEFT &&
+      message.ParticipantRole === AmazonParticipantRoles.AGENT
     );
   }
 
@@ -365,11 +370,10 @@ export class AmazonConnectService
    * Determine if agent is typing
    * @param message
    */
-  isTyping(message: AmazonConnectWebhookBody): boolean {
+  isTyping(message: MessageBody): boolean {
     return (
-      message.ContentType ===
-        'application/vnd.amazonaws.connect.event.typing' &&
-      message.ParticipantRole === 'AGENT'
+      message.ContentType === AmazonContentTypes.IS_TYPING &&
+      message.ParticipantRole === AmazonParticipantRoles.AGENT
     );
   }
 
@@ -377,11 +381,10 @@ export class AmazonConnectService
    * Determine if agent has joined the chat
    * @param message
    */
-  hasAgentJoined(message: AmazonConnectWebhookBody): boolean {
+  hasAgentJoined(message: MessageBody): boolean {
     return (
-      message.ContentType ===
-        'application/vnd.amazonaws.connect.event.participant.joined' &&
-      message.ParticipantRole === 'AGENT'
+      message.ContentType === AmazonContentTypes.PARTICIPANT_JOINED &&
+      message.ParticipantRole === AmazonParticipantRoles.AGENT
     );
   }
 
