@@ -1,6 +1,7 @@
 import { AgentServices } from '../common/types';
 import { ServiceNowService } from '../service-now/service-now.service';
 import { GenesysService } from '../genesys/genesys.service';
+import { AmazonConnectService } from '../amazon-connect/amazon-connect.service';
 import { FlexService } from '../flex/flex.service';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
@@ -22,6 +23,7 @@ export class AgentFactoryService {
   constructor(
     private readonly serviceNowService: ServiceNowService,
     private readonly genesysService: GenesysService,
+    private readonly amazonConnectService: AmazonConnectService,
     private readonly flexService: FlexService,
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
@@ -46,6 +48,10 @@ export class AgentFactoryService {
 
     if (integration === IntegrationName.Flex) {
       return this.flexService;
+    }
+
+    if (integration === IntegrationName.AmazonConnect) {
+      return this.amazonConnectService;
     }
 
     return null;
