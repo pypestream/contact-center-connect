@@ -196,6 +196,8 @@ export class MiddlewareApiController {
       const isMetadataFlagEnabled = await this.featureFlagService.isFlagEnabled(
         FeatureFlagEnum.Metadata,
       );
+      const isChatAcceptedFlagEnabled =
+        await this.featureFlagService.isFlagEnabled(FeatureFlagEnum.PE_20878);
       const history: string = await this.getHistory(conversationId);
 
       const metadata: publicComponents['schemas']['Metadata'] =
@@ -232,7 +234,7 @@ export class MiddlewareApiController {
         /** The user position in the chat queue. */
         queuePosition: 0,
         /** (accepted, queued) */
-        status: 'queued',
+        status: isChatAcceptedFlagEnabled ? 'queued' : 'accepted',
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
