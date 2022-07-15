@@ -128,29 +128,26 @@ export class GenesysService
     const res = await axios.post<QueryObservationsResponse>(url, reqBody, {
       headers: headers,
     });
-
-    return res.data?.results?.[0].data?.some(
-      (item: OnQueueMetric) => item.qualifier === 'IDLE',
+    return !!res.data?.results?.[0].data?.some((item: OnQueueMetric) =>
+      ['IDLE', 'INTERACTING'].includes(item.qualifier),
     );
   }
 
   /**
    * @ignore
    */
-  private async getGenesysConversationId(messageId: string) {
-    const token = await this.getAccessToken();
-    const headers = {
-      Authorization: 'Bearer ' + token,
+  private getMetadataAttributes(
+    message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
+  ) {
+    let metadataAttributes = {
+      conversationId: message.conversationId,
     };
-    try {
-      const domain = this.customer.instanceUrl;
-      const url = `${domain}/api/v2/conversations/messages/${messageId}/details`;
-
-      const res = await axios.get(url, { headers: headers });
-      return res.data.conversationId;
-    } catch (error) {
-      return '';
+    if (metadata) {
+      const extra_data = metadata.bot.extra_data as Object;
+      metadataAttributes = { ...metadataAttributes, ...extra_data };
     }
+    return metadataAttributes;
   }
   /**
    * @ignore
@@ -170,15 +167,6 @@ export class GenesysService
           idType: 'Opaque',
           firstName: 'PS',
           lastName: 'User',
-        },
-        metadata: {
-          customAttributes: {
-            conversationId: message.conversationId,
-            customerAccountId: 'x123',
-            customerName: 'John Doe',
-            customerEmail: 'test@test.com',
-            customerPhoneNumber: '9123456789',
-          },
         },
         time: new Date().toISOString(),
       },
@@ -227,7 +215,10 @@ export class GenesysService
   /**
    * @ignore
    */
-  private startConversationRequestBody(message: CccMessage) {
+  private startConversationRequestBody(
+    message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
+  ) {
     const clientMessageId = uuidv4();
     const res = {
       channel: {
@@ -240,17 +231,11 @@ export class GenesysService
         from: {
           id: message.conversationId,
           idType: 'Opaque',
-          firstName: 'PS',
-          lastName: 'User',
+          firstName: metadata.bot.first_name || 'Pypestream',
+          lastName: metadata.bot.last_name || 'User',
         },
         metadata: {
-          customAttributes: {
-            conversationId: message.conversationId,
-            customerAccountId: 'x123',
-            customerName: 'John Doe',
-            customerEmail: 'test@test.com',
-            customerPhoneNumber: '9123456789',
-          },
+          customAttributes: this.getMetadataAttributes(message, metadata),
         },
         time: new Date().toISOString(),
       },
@@ -314,7 +299,7 @@ export class GenesysService
 
     const domain = this.customer.instanceUrl;
     const url = `${domain}${inboundUrl}`;
-    const body = this.startConversationRequestBody(message);
+    const body = this.startConversationRequestBody(message, metadata);
     const config: AxiosRequestConfig = {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -325,7 +310,7 @@ export class GenesysService
       ...res,
       data: {
         message: res.data.message,
-        escalationId: res.data.channel.id,
+        escalationId: message.conversationId,
       },
     };
   }
