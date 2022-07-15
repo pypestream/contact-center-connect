@@ -68,6 +68,16 @@ export class ServiceNowController {
       requests.push(sendTypingRequest);
     }
 
+    const hasAcceptedEscalationAction =
+      this.serviceNowService.hasAcceptedEscalationAction(
+        body as ServiceNowWebhookBody,
+      );
+    if (hasAcceptedEscalationAction) {
+      const agentAcceptedEscalationRequest =
+        this.middlewareApiService.agentAcceptedEscalation(body.clientSessionId);
+      requests.push(agentAcceptedEscalationRequest);
+    }
+
     const isPE20890FlagEnabled = await this.featureFlagService.isFlagEnabled(
       FeatureFlagEnum.PE_20890,
     );

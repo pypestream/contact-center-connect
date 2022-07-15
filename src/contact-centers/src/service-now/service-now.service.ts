@@ -381,6 +381,18 @@ export class ServiceNowService
   }
 
   /**
+   * Determine if request body has `agent accepted escalation` action
+   * @param message
+   */
+  hasAcceptedEscalationAction(message: ServiceNowWebhookBody): boolean {
+    const item = message.body.find(
+      (item) =>
+        item.uiType === 'ActionMsg' && item.actionType === 'SwitchToLiveAgent',
+    );
+    return !!item;
+  }
+
+  /**
    * Determine if request body has `typing indicator` action
    * @param message
    */

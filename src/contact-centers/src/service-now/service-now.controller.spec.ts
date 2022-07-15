@@ -110,6 +110,20 @@ describe('ServiceNowController', () => {
       expect(response.body.length).toEqual(1);
     });
 
+    it('with agent-accept-escalation body', async () => {
+      const newMessageBody = {
+        actionType: 'SwitchToLiveAgent',
+        uiType: 'ActionMsg',
+      };
+
+      const response = await postAction().send(
+        JSON.stringify({ ...body, body: [newMessageBody] }),
+      );
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.length).toEqual(1);
+    });
+
     it('Bad body', async () => {
       const response = await postAction().send(
         JSON.stringify({ ...body, score: null }),
