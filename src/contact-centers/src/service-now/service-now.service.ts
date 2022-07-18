@@ -426,7 +426,7 @@ export class ServiceNowService
   hasWaitTime(message: ServiceNowWebhookBody): boolean {
     const item: StartWaitTimeSpinnerType = message.body.find((item) => {
       const spinner = item as StartWaitTimeSpinnerType;
-      return spinner.spinnerType === 'wait_time';
+      return spinner.spinnerType === 'wait_time' && spinner.waitTime;
     }) as StartWaitTimeSpinnerType;
     return !!item;
   }
@@ -435,12 +435,13 @@ export class ServiceNowService
    * Return estimated wait time in seconds
    * @param message
    */
-  getWaitTime(message: ServiceNowWebhookBody): string {
+  getWaitTime(message: ServiceNowWebhookBody): number {
     const item: StartWaitTimeSpinnerType = message.body.find((item) => {
       const spinner = item as StartWaitTimeSpinnerType;
-      return spinner.spinnerType === 'wait_time';
+      return spinner.spinnerType === 'wait_time' && spinner.waitTime;
     }) as StartWaitTimeSpinnerType;
-    return item.waitTime;
+    const waitTimeString = item.waitTime.replace(/^\D+/g, '');
+    return parseInt(waitTimeString);
   }
 
   escalate(): boolean {

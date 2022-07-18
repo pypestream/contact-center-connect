@@ -45,7 +45,7 @@ export interface Service<T, Y, Z> {
    * Return estimated wait time in seconds
    * @param message
    */
-  getWaitTime?(body: Z): string;
+  getWaitTime?(body: Z): number;
 
   /**
    * Send is typing indicator to service

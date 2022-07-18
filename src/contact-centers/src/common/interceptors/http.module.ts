@@ -51,12 +51,23 @@ export class HttpModule implements OnModuleInit {
     );
 
     this.httpService.axiosRef.interceptors.request.use((req) => {
-      logger.debug('request', req);
+      logger.debug(
+        'Request:',
+        req.method,
+        req.url,
+        JSON.stringify(req.data),
+        JSON.stringify(req.headers),
+      );
+      logger.debug(
+        `Request: ${req.method} ${req.url}, Body: ${JSON.stringify(
+          req.data,
+        )}, Headers: ${JSON.stringify(req.headers)}`,
+      );
       return req;
     });
 
     this.httpService.axiosRef.interceptors.response.use((response) => {
-      logger.debug(`GET Response:\n${JSON.stringify(response.data)}`);
+      logger.debug(`GET Response: ${JSON.stringify(response.data)}`);
       return response;
     });
   }

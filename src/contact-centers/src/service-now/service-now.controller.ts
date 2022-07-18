@@ -68,6 +68,20 @@ export class ServiceNowController {
       requests.push(sendTypingRequest);
     }
 
+    const hasWaitTimeAction = this.serviceNowService.hasWaitTime(
+      body as ServiceNowWebhookBody,
+    );
+    if (hasWaitTimeAction) {
+      const waitTime: number = this.serviceNowService.getWaitTime(
+        body as ServiceNowWebhookBody,
+      );
+      const sendWaitTimeRequest = this.middlewareApiService.sendWaitTime(
+        body.clientSessionId,
+        waitTime,
+      );
+      requests.push(sendWaitTimeRequest);
+    }
+
     const isPE20890FlagEnabled = await this.featureFlagService.isFlagEnabled(
       FeatureFlagEnum.PE_20890,
     );

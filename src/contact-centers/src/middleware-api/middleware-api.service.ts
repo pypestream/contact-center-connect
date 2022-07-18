@@ -82,13 +82,8 @@ export class MiddlewareApiService
    * Return estimated wait time in seconds
    * @param message
    */
-  //eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getWaitTime(message: {
-    content: string;
-    senderId: string;
-    side: string;
-  }): string {
-    return '0';
+  getWaitTime(message): number {
+    return 0;
   }
 
   /**
@@ -313,6 +308,35 @@ export class MiddlewareApiService
       `${this.config.url}/contactCenter/v1/conversations/${conversationId}/type`,
       {
         typing: isTyping,
+      },
+      { headers },
+    );
+    return response.toPromise();
+  }
+
+  /**
+   * Send is typing indicator to service
+   * @param conversationId
+   * @param isTyping
+   */
+  async sendWaitTime(
+    conversationId: string,
+    estimatedWaitTime: number,
+  ): Promise<AxiosResponse<SendMessageResponse>> {
+    if (!this.config.url) {
+      throw new Error('MiddlewareApi instance-url must has value');
+    }
+    if (!conversationId) {
+      throw new Error(
+        'MiddlewareApi.sendTyping conversationId param is required parameter',
+      );
+      return null;
+    }
+    const headers = await this.getHeaders();
+    const response = this.httpService.post(
+      `${this.config.url}/contactCenter/v1/conversations/${conversationId}/waitTime`,
+      {
+        estimatedWaitTime,
       },
       { headers },
     );
