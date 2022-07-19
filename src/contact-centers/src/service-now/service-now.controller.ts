@@ -33,18 +33,24 @@ export class ServiceNowController {
   ) {
     const requests = [];
 
-    const hasWaitTimeAction = this.serviceNowService.hasWaitTime(
-      body as ServiceNowWebhookBody,
+    const isPE18317FlagEnabled = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.PE_18317,
     );
-    if (hasWaitTimeAction) {
-      const waitTime: number = this.serviceNowService.getWaitTime(
+
+    if (isPE18317FlagEnabled) {
+      const hasWaitTimeAction = this.serviceNowService.hasWaitTime(
         body as ServiceNowWebhookBody,
       );
-      const sendWaitTimeRequest = this.middlewareApiService.sendWaitTime(
-        body.clientSessionId,
-        waitTime,
-      );
-      requests.push(sendWaitTimeRequest);
+      if (hasWaitTimeAction) {
+        const waitTime: number = this.serviceNowService.getWaitTime(
+          body as ServiceNowWebhookBody,
+        );
+        const sendWaitTimeRequest = this.middlewareApiService.sendWaitTime(
+          body.clientSessionId,
+          waitTime,
+        );
+        requests.push(sendWaitTimeRequest);
+      }
     }
 
     const hasNewMessageAction = this.serviceNowService.hasNewMessageAction(
@@ -95,6 +101,7 @@ export class ServiceNowController {
     const isPE20890FlagEnabled = await this.featureFlagService.isFlagEnabled(
       FeatureFlagEnum.PE_20890,
     );
+
     if (isPE20890FlagEnabled) {
       try {
         const responses = await Promise.all(requests);
