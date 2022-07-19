@@ -240,24 +240,6 @@ export class MiddlewareApiService
   }
 
   /**
-   * Get history of conversation
-   */
-  async waitTime(): Promise<
-    AxiosResponse<privateComponents['schemas']['WaitTime']>
-  > {
-    if (!this.config.url) {
-      throw new Error('MiddlewareApi instance-url must has value');
-    }
-    const headers = await this.getHeaders();
-    const response = this.httpService.get(
-      `${this.config.url}/contactCenter/v1/agents/waitTime`,
-      { headers },
-    );
-
-    return response.toPromise();
-  }
-
-  /**
    * change conversation to accepted when agent accent escalation
    * @param conversationId
    */

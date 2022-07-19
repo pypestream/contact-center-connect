@@ -9,7 +9,7 @@ import {
   GenericWebhookInterpreter,
   AgentService,
 } from '../common/interfaces';
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
 import {

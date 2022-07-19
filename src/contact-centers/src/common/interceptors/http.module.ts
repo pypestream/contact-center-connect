@@ -52,13 +52,6 @@ export class HttpModule implements OnModuleInit {
 
     this.httpService.axiosRef.interceptors.request.use((req) => {
       logger.debug(
-        'Request:',
-        req.method,
-        req.url,
-        JSON.stringify(req.data),
-        JSON.stringify(req.headers),
-      );
-      logger.debug(
         `Request: ${req.method} ${req.url}, Body: ${JSON.stringify(
           req.data,
         )}, Headers: ${JSON.stringify(req.headers)}`,
