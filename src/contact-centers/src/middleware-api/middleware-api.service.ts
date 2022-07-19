@@ -297,7 +297,7 @@ export class MiddlewareApiService
   }
 
   /**
-   * Send is typing indicator to service
+   * Send end-user estimated wait time
    * @param conversationId
    * @param isTyping
    */
