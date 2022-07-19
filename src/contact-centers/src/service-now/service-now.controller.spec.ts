@@ -1,12 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServiceNowController } from './service-now.controller';
-import { forwardRef, INestApplication } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { APP_PIPE } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { ServiceNowModule } from './service-now.module';
 import { ServiceNowConfig } from './types';
 import { CccModule } from '../../ccc-module';
+import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
+import * as LaunchDarkly from 'launchdarkly-node-server-sdk';
 
 const serviceNowConfig: ServiceNowConfig = {
   instanceUrl: 'https://mock-server.service-now.com',
@@ -19,6 +18,10 @@ describe('ServiceNowController', () => {
   let body;
 
   beforeEach(async () => {
+    // @ts-ignore
+    LaunchDarkly.__mockFlags({
+      [FeatureFlagEnum.PE_18317]: true,
+    });
     let moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [],
       imports: [
@@ -100,6 +103,20 @@ describe('ServiceNowController', () => {
         uiType: 'OutputText',
         group: 'DefaultText',
         value: 'I am new message',
+      };
+
+      const response = await postAction().send(
+        JSON.stringify({ ...body, body: [newMessageBody] }),
+      );
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.length).toEqual(1);
+    });
+
+    it('with wait-time body', async () => {
+      const newMessageBody = {
+        spinnerType: 'wait_time',
+        waitTime: '7 seconds',
       };
 
       const response = await postAction().send(
