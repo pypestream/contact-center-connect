@@ -30,6 +30,7 @@ import { MiddlewareApiService } from './middleware-api.service';
 
 import { Body } from '@nestjs/common';
 import { GenesysService } from '../genesys/genesys.service';
+import { AmazonConnectService } from '../amazon-connect/amazon-connect.service';
 import { FlexService } from '../flex/flex.service';
 import { LivePersonService } from '../liveperson/liveperson.service';
 import { AgentFactoryService } from '../agent-factory/agent-factory.service';
@@ -197,6 +198,8 @@ export class MiddlewareApiController {
       const isMetadataFlagEnabled = await this.featureFlagService.isFlagEnabled(
         FeatureFlagEnum.Metadata,
       );
+      const isChatAcceptedFlagEnabled =
+        await this.featureFlagService.isFlagEnabled(FeatureFlagEnum.PE_20878);
       const history: string = await this.getHistory(conversationId);
 
       const metadata: publicComponents['schemas']['Metadata'] =
@@ -233,7 +236,7 @@ export class MiddlewareApiController {
         /** The user position in the chat queue. */
         queuePosition: 0,
         /** (accepted, queued) */
-        status: 'accepted',
+        status: isChatAcceptedFlagEnabled ? 'queued' : 'accepted',
       };
       return res.status(HttpStatus.CREATED).json(json);
     } catch (ex) {
@@ -254,6 +257,18 @@ export class MiddlewareApiController {
     @Res() res: Response,
     @Body() body: PostTypingBody,
   ) {
+    const isMetadataFlagEnabled = await this.featureFlagService.isFlagEnabled(
+      FeatureFlagEnum.Metadata,
+    );
+
+    const metadata: publicComponents['schemas']['Metadata'] =
+      isMetadataFlagEnabled
+        ? await this.getMetadata(conversationId)
+        : {
+            user: {},
+            bot: {},
+            agent: {},
+          };
     const agentService: AgentServices =
       this.agentFactoryService.getAgentService();
     if (
@@ -264,7 +279,7 @@ export class MiddlewareApiController {
       )
     ) {
       await agentService
-        .sendTyping(conversationId, body.typing)
+        .sendTyping(conversationId, body.typing, metadata)
         .catch((err) =>
           this.logger.error(
             `Sync typing indicator: ${err.message} stack:${err.stack}`,
@@ -313,7 +328,7 @@ export class MiddlewareApiController {
       )
     ) {
       this.logger.log('set typing indicator to false');
-      await agentService.sendTyping(conversationId, false);
+      await agentService.sendTyping(conversationId, false, metadata);
     }
     try {
       await agentService.sendMessage(cccMessage, metadata);
@@ -355,7 +370,7 @@ export class MiddlewareApiController {
     ) {
       this.logger.log('conversation end: set typing indicator to false');
       await service
-        .sendTyping(conversationId, false)
+        .sendTyping(conversationId, false, metadata)
         .catch((err) =>
           this.logger.error(
             `Set typing indicator: ${err.message}, stack: ${err.stack}`,

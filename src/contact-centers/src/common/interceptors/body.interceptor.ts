@@ -30,7 +30,7 @@ export class BodyInterceptor implements NestInterceptor {
       const body = stringifyBody ? JSON.parse(stringifyBody) : null;
       request.body = body;
     }
-    //console.log('webhook_message: ', JSON.stringify(request.body))
+    //console.log(request.body)
     return next.handle();
   }
 }

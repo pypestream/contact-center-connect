@@ -62,5 +62,6 @@ export interface Service<T, Y, Z> {
   sendTyping?(
     conversationId: string,
     isTyping: boolean,
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>>;
 }

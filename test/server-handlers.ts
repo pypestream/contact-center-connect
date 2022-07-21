@@ -34,6 +34,16 @@ const handlers = [
     },
   ),
   rest.post(
+    'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/escalate',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          status: 'success',
+        }),
+      );
+    },
+  ),
+  rest.post(
     'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/type',
     async (req, res, ctx) => {
       return res(
@@ -106,6 +116,35 @@ const handlers = [
     },
   ),
   rest.get(
+    'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/metadata',
+    async (req, res, ctx) => {
+      // do whatever other things you need to do with this shopping cart
+      return res(
+        ctx.json({
+          agent: {},
+          bot: {
+            email: 'undefined',
+            extra_data: 'undefined',
+            phone: 'undefined',
+          },
+          user: {
+            browser_language: 'en-US,en;q=0.9,ar;q=0.8',
+            first_name: '',
+            ip_address: 'DoNotTrack',
+            last_name: 'Visitor',
+            last_viewed_url:
+              'https://web.claybox.usa.pype.engineering/preview.html?id=61e48f75-eac8-41c0-8319-66811e3e575e',
+            passthrough: '',
+            platform: 'Mac OS X10_15_7',
+            referring_site: 'https://platform.claybox.usa.pype.engineering/',
+            screen_resolution: '1920 x 1080',
+            user_browser: 'Chrome 101.0.4951.64',
+          },
+        }),
+      );
+    },
+  ),
+  rest.patch(
     'https://mock-server.middleware.com/contactCenter/v1/conversations/:conversationId/metadata',
     async (req, res, ctx) => {
       // do whatever other things you need to do with this shopping cart
@@ -339,6 +378,86 @@ const handlers = [
               'https://chat.twilio.com/v2/Services/IS3d2934585cab4fb59cc75a217bbf676a/Channels/CH5e435e9bee814c0f852f998b93c747be/Members',
             last_message: null,
           },
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://connect.us-east-1.amazonaws.com/metrics/current/e3ef3a3f-2af5-4556-8e01-90bbxxdf3334',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          DataSnapshotTime: 1657289943,
+          MetricResults: [
+            {
+              Collections: [
+                {
+                  Metric: { Name: 'AGENTS_AVAILABLE', Unit: 'COUNT' },
+                  Value: 1,
+                },
+              ],
+            },
+          ],
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://participant.connect.us-east-1.amazonaws.com/participant/connection',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          $metadata: {
+            httpStatusCode: 200,
+            requestId: 'dbd92aff-266c-44d4-8e60-59a161216469',
+            attempts: 1,
+            totalRetryDelay: 0,
+          },
+          ConnectionCredentials: {
+            ConnectionToken:
+              'QVFJREFIamh2WWE1U0t5UnV6bElTRXIxTnZPMFRtaUk5Ky91UjFKWk0vWHdQMWRXcVFIUU11b0ZTczduczJLT0RseVNKcGhtQUFBQWJqQnNCZ2txaGtpRzl3MEJCd2FnWHpCZEFnRUFNRmdHQ1NxR1NJYjNEUUVIQVRBZUJnbGdoa2dCWlFNRUFTNHdFUVFNejVxYlkrZmFrWS8rY0RaVEFnRVFnQ3ROelNDREVlWmRUejRkeFlZbzdpVDdndWxDQzJIT3Zab1oyRm4zQ3RNQUdvaXBLcG1UTkZ4eGlBQ0M6OjA0Uk1CN1NmanFlQTNyZmg4OTc5RElOVm5ob05TK2NHUG9OSUZDeDBZUlArOU9WWklaT0dzdG9Cd2tTeFNKWGV6QjNSN1B4N2JwN1FKcTh1ZnVOM2I4UDQybC9TOEFXNWZIZ0gwcU1KNmN4NUNhQzlObDc5RlFEOEdudE0zVXNTMm40NEZPMGtESy9Ob2t3V2Q1TnJsaTBSbFdEaUZwZnlVcE13dmNWZjNpb1dxaURmSUVDOHMzMXZ6MWFFVFNyRmtKeC9YT2Z0ckRGYjhGNldyVzVDS1FVa2w0UXh4MUpVOTBUcG15aVB6cS9INnRuUUE3UjRsejIxeHBUMko1R1duSU1vUUZzMlBtcGFJOExrNUNibmtYbjE=',
+            Expiry: '2022-07-09T12:13:36.048Z',
+          },
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://connect.us-east-1.amazonaws.com/contact/start-streaming',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          StreamingId: 'e13f4afd-8f9e-4052-97b9-3b138318b8df',
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://participant.connect.us-east-1.amazonaws.com/participant/message',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          AbsoluteTime: '2022-07-08T12:16:00.047Z',
+          Id: 'e13f4afd-8f9e-4052-97b9-3b138318b8df',
+        }),
+      );
+    },
+  ),
+  rest.put(
+    'https://connect.us-east-1.amazonaws.com/contact/chat',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          $metadata: {
+            httpStatusCode: 200,
+            requestId: 'e13f4afd-8f9e-4052-97b9-3b138318b8df',
+            extendedRequestId: undefined,
+            cfId: undefined,
+            attempts: 1,
+            totalRetryDelay: 0,
+          },
+          AbsoluteTime: '2022-07-08T12:16:00.047Z',
+          Id: 'b1804e7d-4dab-4060-a772-143d671d846c',
         }),
       );
     },

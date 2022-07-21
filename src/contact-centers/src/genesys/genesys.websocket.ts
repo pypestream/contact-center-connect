@@ -1,5 +1,6 @@
 import { MessageType } from './../common/types';
 import { Injectable, Logger } from '@nestjs/common';
+import axios, { AxiosResponse } from 'axios';
 import * as WebSocket from 'ws';
 import { timer } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -56,13 +57,7 @@ export class GenesysWebsocket {
   }
 
   async setupConnection(customer: GenesysWsConfig) {
-    const params = new URLSearchParams();
-    params.append('grant_type', customer.grantType);
-    params.append('client_id', customer.clientId);
-    params.append('client_secret', customer.clientSecret);
-    const token = await this.httpService
-      .post(customer.getTokenUrl, params)
-      .toPromise();
+    const token = await this.getAccessToken(customer);
     const { access_token, token_type } = token.data;
     const getChannelUrl = `${customer.instanceUrl}/api/v2/notifications/channels`;
     const channel = await this.httpService
@@ -159,7 +154,7 @@ export class GenesysWebsocket {
           return;
         }
         const participant = message.eventBody.participants.pop();
-        let chatText;
+
         if (this.isAgentDisconnected(participant)) {
           const lastEndChat =
             this.lastEndChats[conversationId] === participant.id;
@@ -195,12 +190,22 @@ export class GenesysWebsocket {
               },
               conversationId: conversationId,
             };
-
+            await this.middlewareApiService.agentAcceptedEscalation(
+              conversationId,
+            );
             await this.middlewareApiService.sendMessage(message);
           }
         }
       }
     });
+  }
+
+  async getAccessToken(customer: GenesysWsConfig): Promise<AxiosResponse<any>> {
+    const params = new URLSearchParams();
+    params.append('grant_type', customer.grantType);
+    params.append('client_id', customer.clientId);
+    params.append('client_secret', customer.clientSecret);
+    return this.httpService.post(customer.getTokenUrl, params).toPromise();
   }
 
   async subscribeToChannel(
@@ -227,6 +232,25 @@ export class GenesysWebsocket {
       .toPromise();
   }
 
+  async disconnectGenesysConversation(
+    genesysConversationId: string,
+    tokenType: string,
+    accessToken: string,
+    url: string,
+  ): Promise<AxiosResponse<any>> {
+    const headers = {
+      Authorization: `${tokenType} ${accessToken}`,
+      'Content-Type': 'application/json',
+    };
+    return this.httpService
+      .patch(
+        `${url}/api/v2/conversations/chats/${genesysConversationId}`,
+        { state: 'disconnected' },
+        { headers: headers },
+      )
+      .toPromise();
+  }
+
   isAgentDisconnected(participant) {
     return (
       participant &&
@@ -234,6 +258,17 @@ export class GenesysWebsocket {
       participant.state === 'disconnected' &&
       participant.disconnectType === 'client' &&
       participant.startAcwTime
+    );
+  }
+
+  didAgentRejectChat(participant) {
+    return (
+      participant &&
+      participant.purpose === 'agent' &&
+      participant.state === 'disconnected' &&
+      participant.disconnectType === 'client' &&
+      !participant.connectedTime &&
+      !participant.wrapupRequired
     );
   }
 
