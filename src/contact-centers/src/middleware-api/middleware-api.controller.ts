@@ -200,7 +200,7 @@ export class MiddlewareApiController {
       );
       const isChatAcceptedFlagEnabled =
         await this.featureFlagService.isFlagEnabled(FeatureFlagEnum.PE_20878);
-      const history: string = await this.getHistory(conversationId);
+      //const history: string = await this.getHistory(conversationId);
 
       const metadata: publicComponents['schemas']['Metadata'] =
         isMetadataFlagEnabled
@@ -217,7 +217,7 @@ export class MiddlewareApiController {
         skill: body.skill,
         message: {
           id: messageId,
-          value: history,
+          value: 'history',
           type: MessageType.Text,
         },
         sender: {
