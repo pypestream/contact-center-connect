@@ -126,6 +126,28 @@ export class LivePersonService
     };
     return res;
   }
+
+  /**
+   * @ignore
+   */
+  private getSendTypingRequestBody(
+    livePersonConvId: string,
+    isTyping: boolean,
+  ) {
+    const res = {
+      kind: 'req',
+      id: '1',
+      type: 'ms.PublishEvent',
+      body: {
+        dialogId: livePersonConvId,
+        event: {
+          type: 'ChatStateEvent',
+          chatState: isTyping ? 'COMPOSING' : 'ACTIVE',
+        },
+      },
+    };
+    return res;
+  }
   /**
    * @ignore
    */
@@ -211,6 +233,15 @@ export class LivePersonService
 
     const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation/send?v=3`;
 
+    // Send stop typing
+    this.httpService
+      .post(
+        url,
+        this.getSendTypingRequestBody(livePersonConversationId, false),
+        config,
+      )
+      .toPromise();
+
     return this.httpService
       .post(
         url,
@@ -287,6 +318,39 @@ export class LivePersonService
   }
 
   /**
+   * Update Typing indicator in agent side
+   * @param message
+   */
+
+  sendTyping(
+    conversationId: string,
+    isTyping: boolean,
+    metadata: publicComponents['schemas']['Metadata'],
+  ): Promise<AxiosResponse<SendMessageResponse>> {
+    const accessToken = metadata.agent.accessToken as string;
+    const token = metadata.agent.token as string;
+    const livePersonConversationId = metadata.agent
+      .livePersonConversationId as string;
+    const config: AxiosRequestConfig = {
+      headers: {
+        Authorization: accessToken,
+        'X-LP-ON-BEHALF': token,
+        'Content-Type': 'application/json',
+      },
+    };
+
+    const url = `https://${this.customer.asyncMessagingEntBaseUri}/api/account/${this.customer.accountNumber}/messaging/consumer/conversation/send?v=3`;
+
+    return this.httpService
+      .post(
+        url,
+        this.getSendTypingRequestBody(livePersonConversationId, true),
+        config,
+      )
+      .toPromise();
+  }
+
+  /**
    * Convert posted body to CCC message
    * @param body
    * @param params
@@ -309,6 +373,18 @@ export class LivePersonService
   }
 
   /**
+   * Determine if agent is typing
+   * @param message
+   */
+  isTyping(message: LivePersonWebhookBody): boolean {
+    return (
+      message.body.changes[0].event?.type === 'ChatStateEvent' &&
+      message.body.changes[0].event?.chatState === 'COMPOSING' &&
+      message.body.changes[0].originatorMetadata?.role === 'MANAGER'
+    );
+  }
+
+  /**
    * Determine if Agent has joined the chat
    * @param message
    */
@@ -317,20 +393,21 @@ export class LivePersonService
       message.body.changes[0].result?.conversationDetails?.participants[0]
         .role === 'MANAGER' &&
       message.body.changes[0].result?.conversationDetails?.state === 'OPEN' &&
-      message.body.changes[0].result?.effectiveTTR < 0 &&
       message.type === 'cqm.ExConversationChangeNotification'
     ) {
-      //console.log('joined_ ', JSON.stringify(message))
-      return true;
-      // const metadata = await this.middlewareApiService.metadata(message.body.changes[0].result.convId);
-      // if (!metadata.data.agent.chatStarted) {
-      //   const chatStarted = { chatStarted: true }
-      //   this.middlewareApiService.updateAgentMetadata(message.body.changes[0].result.convId,
-      //     { ...metadata.data.agent, ...chatStarted })
-      //   return true;
-      // }
-      return false;
+      const metadata = await this.middlewareApiService.metadata(
+        message.body.changes[0].result.convId,
+      );
+      if (!metadata.data.agent.chatStarted) {
+        const chatStarted = { chatStarted: true };
+        this.middlewareApiService.updateAgentMetadata(
+          message.body.changes[0].result.convId,
+          { ...metadata.data.agent, ...chatStarted },
+        );
+        return true;
+      }
     }
+    return false;
   }
 
   /**

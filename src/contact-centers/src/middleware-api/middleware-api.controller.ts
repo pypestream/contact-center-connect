@@ -200,7 +200,7 @@ export class MiddlewareApiController {
       );
       const isChatAcceptedFlagEnabled =
         await this.featureFlagService.isFlagEnabled(FeatureFlagEnum.PE_20878);
-      //const history: string = await this.getHistory(conversationId);
+      const history: string = await this.getHistory(conversationId);
 
       const metadata: publicComponents['schemas']['Metadata'] =
         isMetadataFlagEnabled
@@ -217,7 +217,7 @@ export class MiddlewareApiController {
         skill: body.skill,
         message: {
           id: messageId,
-          value: 'history',
+          value: history,
           type: MessageType.Text,
         },
         sender: {
@@ -274,8 +274,7 @@ export class MiddlewareApiController {
     if (
       !(
         agentService instanceof GenesysService ||
-        agentService instanceof FlexService ||
-        agentService instanceof LivePersonService
+        agentService instanceof FlexService
       )
     ) {
       await agentService
@@ -323,8 +322,7 @@ export class MiddlewareApiController {
     if (
       !(
         agentService instanceof GenesysService ||
-        agentService instanceof FlexService ||
-        agentService instanceof LivePersonService
+        agentService instanceof FlexService
       )
     ) {
       this.logger.log('set typing indicator to false');
@@ -362,11 +360,7 @@ export class MiddlewareApiController {
 
     const service: AgentServices = this.agentFactoryService.getAgentService();
     if (
-      !(
-        service instanceof GenesysService ||
-        service instanceof FlexService ||
-        service instanceof LivePersonService
-      )
+      !(service instanceof GenesysService || service instanceof FlexService)
     ) {
       this.logger.log('conversation end: set typing indicator to false');
       await service

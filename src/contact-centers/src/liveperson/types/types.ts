@@ -18,6 +18,7 @@ export type Changes = {
     type: string;
     message: string;
     contentType: string;
+    chatState?: string;
   };
   result: {
     convId?: string;

@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FlexController } from './flex.controller';
+import { LivePersonController } from './liveperson.controller';
 import { CccModule } from '../../ccc-module';
 import { forwardRef, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { FlexModule } from './flex.module';
+import { LivePersonModule } from './liveperson.module';
 import { HttpModule } from '@nestjs/axios';
 import { MiddlewareApiModule } from '../middleware-api/middleware-api.module';
 import { MiddlewareApiService } from '../middleware-api/middleware-api.service';
 
-describe('FlexController', () => {
+describe('LivePersonController', () => {
   let app: INestApplication;
   let body;
 
@@ -29,26 +29,37 @@ describe('FlexController', () => {
 
     app = moduleFixture.createNestApplication();
     body = {
-      ChannelSid: 'CH20af96abd9884e74a67999a39555b695',
-      ClientIdentity: 'si',
-      RetryCount: '0',
-      EventType: 'onMessageSend',
-      InstanceSid: 'IS3d2934585cab4fb59cc75a217bbf676a',
-      Attributes: '{}',
-      DateCreated: '2022-04-12T11:37:27.844Z',
-      From: 'si',
-      To: 'CH20af96abd9884e74a67999a39555b695',
-      Body: 'ok ok',
-      AccountSid: 'AC4534e2009d82c43795d4ae005b9b72e4',
-      Source: 'SDK',
+      kind: 'notification',
+      body: {
+        changes: [
+          {
+            sequence: 1,
+            originatorId: '15b9526e-0c5f-52a6-be8e-4949d2fff767',
+            originatorMetadata: {
+              id: '15b9526e-0c5f-52a6-be8e-4949d2fff767',
+              role: 'MANAGER',
+            },
+            serverTimestamp: 1658842897200,
+            event: {
+              type: 'ContentEvent',
+              message: 'look good thing there',
+              contentType: 'text/plain',
+            },
+            conversationId: '6e049680-db55-4113-96cd-952998c8b8b5',
+            dialogId: '6e049680-db55-4113-96cd-952998c8b8b5',
+            messageAudience: 'ALL',
+          },
+        ],
+      },
+      type: 'ms.MessagingEventNotification',
     };
     await app.init();
   });
 
-  describe('/flex/webhook (POST)', () => {
+  describe('/liveperson/webhook (POST)', () => {
     let postAction = () =>
       request(app.getHttpServer())
-        .post('/flex/webhook')
+        .post('/liveperson/webhook')
         .set('User-Agent', 'supertest')
         .set('Content-Type', 'application/octet-stream');
 
@@ -73,7 +84,7 @@ describe('FlexController', () => {
 
     it('Bad body', async () => {
       const response = await postAction().send(
-        JSON.stringify({ ...body, EventType: null }),
+        JSON.stringify({ ...body, type: null }),
       );
 
       expect(response.statusCode).toEqual(400);

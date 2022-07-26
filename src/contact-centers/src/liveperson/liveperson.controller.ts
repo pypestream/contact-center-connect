@@ -56,6 +56,7 @@ export class LivePersonController {
         },
         conversationId: chatId,
       };
+      await this.middlewareApiService.agentAcceptedEscalation(chatId);
       await this.middlewareApiService.sendMessage(message);
     }
 
@@ -75,6 +76,17 @@ export class LivePersonController {
       };
       await this.middlewareApiService.sendMessage(message);
       await this.middlewareApiService.endConversation(chatId);
+    }
+
+    const isTyping = this.livePersonService.isTyping(
+      body as LivePersonWebhookBody,
+    );
+    if (isTyping) {
+      const sendTypingRequest = this.middlewareApiService.sendTyping(
+        chatId,
+        isTyping,
+      );
+      requests.push(sendTypingRequest);
     }
 
     const hasNewMessageAction = this.livePersonService.hasNewMessageAction(
