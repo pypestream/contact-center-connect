@@ -16,4 +16,6 @@ export class PostBody {
   Body?: string;
   TaskAttributes?: string;
   TaskReEvaluatedReason?: string;
+  LastConsumedMessageIndex?: string;
+  UniqueName?: string;
 }

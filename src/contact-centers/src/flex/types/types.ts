@@ -14,6 +14,8 @@ export type FlexWebhookBody = {
   Body?: string;
   TaskAttributes?: string;
   TaskReEvaluatedReason?: string;
+  LastConsumedMessageIndex?: string;
+  UniqueName?: string;
 };
 /** Agent close/disable chat
  CreatedBy	system
