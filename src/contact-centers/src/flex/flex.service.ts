@@ -9,6 +9,8 @@ import {
   GenericWebhookInterpreter,
   AgentService,
 } from '../common/interfaces';
+
+import { FlexContentTypes } from './types';
 import axios, { AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -229,23 +231,12 @@ export class FlexService
   }
 
   /**
-   * Determine if Agent reject the chat
-   * @param message
-   */
-  hasAgentRejectedChat(message: FlexWebhookBody): boolean {
-    return (
-      message.EventType === 'reservation.rejected' ||
-      message.TaskReEvaluatedReason === 'reservation_rejected'
-    );
-  }
-
-  /**
    * Determine if Agent has joined the chat
    * @param message
    */
   hasAgentJoinedChat(message: FlexWebhookBody): boolean {
     return (
-      message.EventType === 'onMemberUpdated' &&
+      message.EventType === FlexContentTypes.ON_MEMBER_UPDATED &&
       message.LastConsumedMessageIndex === '0'
     );
   }
@@ -255,9 +246,10 @@ export class FlexService
    * @param message
    */
   hasAgentLeftChat(message: FlexWebhookBody): boolean {
+    const attributes = message.Attributes ? JSON.parse(message.Attributes) : {};
     return (
-      message.EventType === 'onChannelUpdated' &&
-      JSON.parse(message.Attributes)?.status === 'INACTIVE' &&
+      message.EventType === FlexContentTypes.ON_CHANNEL_UPDATED &&
+      attributes.status === 'INACTIVE' &&
       message.UniqueName !== '' &&
       message.Source === 'SDK'
     );

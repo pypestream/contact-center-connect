@@ -48,3 +48,8 @@ ClientIdentity	si
 RetryCount	0
 Identity	si
 */
+
+export enum FlexContentTypes {
+  ON_MEMBER_UPDATED = 'onMemberUpdated',
+  ON_CHANNEL_UPDATED = 'onChannelUpdated',
+}
