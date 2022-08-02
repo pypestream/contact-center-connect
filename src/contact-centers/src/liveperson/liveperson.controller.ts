@@ -3,6 +3,7 @@ import {
   Post,
   Req,
   Res,
+  Logger,
   HttpStatus,
   UseInterceptors,
 } from '@nestjs/common';
@@ -23,6 +24,8 @@ import {
 @UseInterceptors(BodyInterceptor)
 @Controller('liveperson')
 export class LivePersonController {
+  private readonly logger = new Logger(LivePersonController.name);
+
   constructor(
     private readonly livePersonService: LivePersonService,
     private readonly middlewareApiService: MiddlewareApiService,
@@ -34,9 +37,15 @@ export class LivePersonController {
     @Res() res: Response,
     @Body() body: PostBody,
   ) {
-    const chatId =
-      body.body.changes[0].result?.convId ||
-      body.body.changes[0].conversationId;
+    let chatId = null;
+    if (body.body.changes[0].result) {
+      chatId = body.body.changes[0].result.convId;
+    } else if (body.body.changes[0].conversationId) {
+      chatId = body.body.changes[0].conversationId;
+    }
+    if (!chatId) {
+      throw new Error('LivePerson: Not able to find chatId for body: ' + body);
+    }
 
     const requests = [];
 
@@ -111,6 +120,9 @@ export class LivePersonController {
         return res.status(HttpStatus.OK).send(data);
       })
       .catch((err) => {
+        this.logger.error(
+          `LivePersonController error: ${err.message}, stack: ${err.stack}`,
+        );
         return res.status(HttpStatus.BAD_REQUEST).send(err);
       });
   }
