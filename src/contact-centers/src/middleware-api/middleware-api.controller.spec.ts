@@ -18,6 +18,8 @@ describe('MiddlewareApiController', () => {
     'eyJhY2NvdW50U2lkIjoiQUM0NTM0ZTIwMDlkODJjNDM3OTVkNGFlMDA1YjlidDQ4NCIsImF1dGhUb2tlbiI6IngxMjN4YWJjIiwic2VydmljZVNpZCI6IklTM2QyOTM0NTg1Y2FiNGZiNTljYzc1YTIxN2JiZjY3M3MiLCJ3b3Jrc3BhY2VTaWQiOiJXU2E1Nzg3ZTYzOGY2MjFlMzM0MWRmNmM4YTBkNGMwbjFpIiwiZmxleEZsb3dTaWQiOiJGTzdjZmJhMjFjYmFhOTg4ZWFkOGQ3MWVlMGY0ZDQxYTg5In0=';
   const amazonConnectCustomerHeader =
     'eyAiYWNjZXNzS2V5SWQiOiAiWFhYWFhYWCIsCiAgICAgICAgICAgICJzZWNyZXRBY2Vzc0tleSI6ICJYWFhYWFhYWFhYWFhYWFhYWFgiLAogICAgICAgICAgICAicmVnaW9uIjoidXMtZWFzdC0xIiwKICAgICAgICAgICAgImluc3RhbmNlSWQiOiJlM2VmM2EzZi0yYWY1LTQ1NTYtOGUwMS05MGJieHhkZjMzMzQiLAogICAgICAgICAgICAiY29udGFjdEZsb3dJZCI6IjI5ZTZiZDJjLWE5ODctNDk4MC14ZTk5My0zNzIxNzFjZGY4N2YiLAogICAgICAgICAgICAiU05TVG9waWNBUk4iOiJhcm46YXdzOnNuczp1cy1lYXN0LTE6MTIzNDQ1NjY2Onh4eHh4eCIsCiAgICAgICAgICAgICJxdWV1ZXMiOiI0NTI2MGE5MC12dnNzZC14eHh4LWE2MjEtYjkxYTg0YjgxYTIyIn0=';
+  const livePersonCustomerHeader =
+    'ewogICAgICAgICAgICAiYWNjb3VudE51bWJlciI6ICI4NzZ4MTI1NzAiLAogICAgICAgICAgICAiY2xpZW50SWQiOiAieHh4eHh4eC14LXh4eHh4LTRkeHh4eGEwOTM5NDRiNjQiLAogICAgICAgICAgICAiY2xpZW50U2VjcmV0IjogInh4eHh4eHh4eHh4eCIsCiAgICAgICAgICAgICJzZW50aW5lbEJhc2VVcmkiOiAidmEuc2VudGluZWwubGl2ZXBlcnNvbi5uZXQiLAogICAgICAgICAgICAiaWRwQmFzZVVyaSI6ICJ2YS5pZHAubGl2ZXBlcnNvbi5uZXQiLAogICAgICAgICAgICAiYXN5bmNNZXNzYWdpbmdFbnRCYXNlVXJpIjogInZhLm1zZy5saXZlcGVyc29uLm5ldCIKICAgICAgICB9';
   beforeEach(async () => {
     // @ts-ignore
     LaunchDarkly.__mockFlags({
@@ -148,6 +150,20 @@ describe('MiddlewareApiController', () => {
       expect(response.body.queueDepth).toBeDefined();
     });
 
+    it('LivePerson: OK', async () => {
+      const response = await getAgentAvailability()
+        .query({ skill: 'Test1' })
+        .set('x-pypestream-customer', livePersonCustomerHeader)
+        .set('x-pypestream-integration', 'LivePerson');
+      console.log('LivepersonBOdy: ', response.body);
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.available).toBeDefined();
+      expect(response.body.estimatedWaitTime).toBeDefined();
+      expect(response.body.status).toBeDefined();
+      expect(response.body.hoursOfOperation).toBeDefined();
+      expect(response.body.queueDepth).toBeDefined();
+    });
+
     it('Bad Request no headers', async () => {
       const response = await getAgentAvailability().query({ skill: 'Test1' });
 
@@ -176,6 +192,14 @@ describe('MiddlewareApiController', () => {
       const response = await getAgentAvailability()
         .set('x-pypestream-customer', amazonConnectCustomerHeader)
         .set('x-pypestream-integration', 'AmazonConnect');
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('LivePerson: Bad request: skill param is required', async () => {
+      const response = await getAgentAvailability()
+        .set('x-pypestream-customer', livePersonCustomerHeader)
+        .set('x-pypestream-integration', 'LivePerson');
 
       expect(response.statusCode).toEqual(400);
     });
@@ -260,6 +284,20 @@ describe('MiddlewareApiController', () => {
       const response = await putMessage()
         .set('x-pypestream-customer', flexCustomerHeader)
         .set('x-pypestream-integration', 'Flex')
+        .send(JSON.stringify(body));
+
+      expect(response.statusCode).toEqual(204);
+    });
+
+    it('LivePerson: OK', async () => {
+      const body: publicComponents['schemas']['Message'] = {
+        content: 'I am new message',
+        senderId: 'user-123',
+        side: 'user',
+      };
+      const response = await putMessage()
+        .set('x-pypestream-customer', livePersonCustomerHeader)
+        .set('x-pypestream-integration', 'LivePerson')
         .send(JSON.stringify(body));
 
       expect(response.statusCode).toEqual(204);
@@ -403,6 +441,33 @@ describe('MiddlewareApiController', () => {
       expect(response.statusCode).toEqual(500);
     });
 
+    it('Escalate to LivePerson agent', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', livePersonCustomerHeader)
+        .set('x-pypestream-integration', 'LivePerson')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(201);
+    });
+
+    it('Escalate to LivePerson agent with bad body', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-customer', livePersonCustomerHeader)
+        .set('x-pypestream-integration', 'LivePerson')
+        .send(
+          JSON.stringify({
+            foo: 'bar',
+          }),
+        );
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('Escalate to LivePerson agent without x-pypestream-customer header', async () => {
+      const response = await postEscalate()
+        .set('x-pypestream-integration', 'LivePerson')
+        .send(JSON.stringify(body));
+      expect(response.statusCode).toEqual(500);
+    });
+
     it('Escalate to Unknown agent', async () => {
       const response = await postEscalate()
         .set('x-pypestream-customer', genesysCustomerHeader)
@@ -457,6 +522,19 @@ describe('MiddlewareApiController', () => {
         .set('Content-Type', 'application/octet-stream')
         .set('x-pypestream-customer', flexCustomerHeader)
         .set('x-pypestream-integration', 'Flex')
+        .send();
+
+      expect(response.statusCode).toEqual(204);
+    });
+
+    it('LivePerson agent: End chat', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/contactCenter/v1/conversations/conversation-123/end')
+        .set('Content-Type', 'application/json')
+        .set('User-Agent', 'supertest')
+        .set('Content-Type', 'application/octet-stream')
+        .set('x-pypestream-customer', livePersonCustomerHeader)
+        .set('x-pypestream-integration', 'LivePerson')
         .send();
 
       expect(response.statusCode).toEqual(204);

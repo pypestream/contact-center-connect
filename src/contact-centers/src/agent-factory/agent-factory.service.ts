@@ -3,6 +3,7 @@ import { ServiceNowService } from '../service-now/service-now.service';
 import { GenesysService } from '../genesys/genesys.service';
 import { AmazonConnectService } from '../amazon-connect/amazon-connect.service';
 import { FlexService } from '../flex/flex.service';
+import { LivePersonService } from '../liveperson/liveperson.service';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Scope } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
@@ -12,7 +13,6 @@ import { InjectMiddlewareApi } from '../middleware-api/decorators';
 import { MiddlewareApi } from '../middleware-api/middleware-api';
 
 import { IntegrationName } from '../common/types/agent-services';
-
 /**
  * MiddlewareApi service
  */
@@ -23,8 +23,9 @@ export class AgentFactoryService {
   constructor(
     private readonly serviceNowService: ServiceNowService,
     private readonly genesysService: GenesysService,
-    private readonly amazonConnectService: AmazonConnectService,
     private readonly flexService: FlexService,
+    private readonly amazonConnect: AmazonConnectService,
+    private readonly livePersonService: LivePersonService,
     @Inject(REQUEST) private readonly request: Request,
     @InjectMiddlewareApi() private readonly middlewareApi: MiddlewareApi,
   ) {}
@@ -51,7 +52,11 @@ export class AgentFactoryService {
     }
 
     if (integration === IntegrationName.AmazonConnect) {
-      return this.amazonConnectService;
+      return this.amazonConnect;
+    }
+
+    if (integration === IntegrationName.LivePerson) {
+      return this.livePersonService;
     }
 
     return null;

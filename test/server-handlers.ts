@@ -462,6 +462,62 @@ const handlers = [
       );
     },
   ),
+
+  rest.post(
+    'https://va.sentinel.liveperson.net/sentinel/api/account/876x12570/app/token?v=1.0&grant_type=client_credentials',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          access_token:
+            'eyJraWQiOiJhcHBqd3QtMTMtMDUtMTciLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI4NzY1NzU3MCIsImF6cCI6ImE0NGViMDVkLTA4ZWUtNGI5MS04ZGQ4LTRkYTA5Mzk0NGI2NCIsInNjb3BlIjoibXNnLmNvbnN1bWVyIiwiaXNzIjoiU2VudGluZWwiLCJleHAiOjE2NTg4NTA4MTEsImlhdCI6MTY1ODg0NzIxMX0.IRIKjxp4LhsXQgr0hFwK8ZwV_y-wVYktS1ofqoWMAWnKzaYpimecaUVqIw_CHKWLddnkVVcvV7KF-oa-QsUmV3NcTd50OwhwrAbeNVvDGtCcnCL09LZsqMy2_y0hRFO-zbB8fy2Obcv8TRYotkFb4pNmum98KZWa-u2pfjDemmpnXQ1txCHAkrT1kImtDoHrVs13ytLr4lrvpBcxeS-bTWf8YpVA6CnMoaEube7pMinfrD5sp_cuChSYICYqWBaFAmr8kBb0791J5zwX4rEhNjyO91uSUi68j6XA-EaIv6eu6GxxDHgIrFqq9rim4X2hrBPgOEpHMSdcZ7e-QjKHQA',
+          token_type: 'Bearer',
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://va.msg.liveperson.net/api/account/876x12570/messaging/consumer/conversation/send?v=3',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          reqId: '1',
+          body: { msg: 'OK Conversation resolved successfully' },
+          code: 'OK',
+        }),
+      );
+    },
+  ),
+
+  rest.post(
+    'https://va.idp.liveperson.net/api/account/876x12570/consumer?v=1.0',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json({
+          token:
+            'eyJraWQiOiJhcHBqd3QtMTMtMDUtMTciLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50X2lkIjoibGUzMTQ1Nzc4MCIsImV4dF9jb25zdW1lcl9pZCI6InJhbmRvbV9pZDAuMTczMDc3OTY4NzUiLCJscF9jb25zdW1lcl9pZCI6IjI5Y2FmMGMxMTQ4Njk5NmQ5Mzg3ZTNhNDRlYzM0MjI5ZDEyNzMwNGRiNDk2NmQ3NzUyNzE2YmNlYjUzOGZhMjQifQ.TAJgP31rmpHvGKqb_yLP9yzVi_7tu7YoRfoqQ3RfuXGwR_AOV7DWL5Njy1m2YpC5kd9L_oRmytjFwfckwyuFJewwPGYxeZAY1q1jR5tPdb0nsvRyrMdKzO1_AFWUJtD013H9fjyjxHvxwV_Q2xe6Xp00J0T_-I6d6BkUpUFSPww',
+        }),
+      );
+    },
+  ),
+  rest.post(
+    'https://va.msg.liveperson.net/api/account/876x12570/messaging/consumer/conversation?v=3',
+    async (req, res, ctx) => {
+      return res(
+        ctx.json([
+          {
+            reqId: '1,',
+            body: { msg: 'OK User Profile set successfully' },
+            code: 'OK',
+          },
+          {
+            reqId: '2,',
+            body: { conversationId: 'b8c62d2f-a2f7-4110-a835-31f203d1907d' },
+            code: 'OK',
+          },
+        ]),
+      );
+    },
+  ),
 ];
 
 export { handlers };

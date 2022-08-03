@@ -13,6 +13,6 @@ export interface AgentService {
    */
   startConversation(
     message: CccMessage,
-    metadata: publicComponents['schemas']['Metadata'],
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<StartConversationResponse>>;
 }

@@ -15,7 +15,7 @@ import { MiddlewareApi } from './middleware-api';
 import { AxiosResponse } from 'axios';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 import { FeatureFlagEnum } from '../feature-flag/feature-flag.enum';
-
+import { publicComponents } from '../middleware-api/types';
 /**
  * MiddlewareApi service
  */
@@ -110,6 +110,7 @@ export class MiddlewareApiService
    */
   async sendMessage(
     message: CccMessage,
+    metadata?: publicComponents['schemas']['Metadata'],
   ): Promise<AxiosResponse<SendMessageResponse>> {
     const headers = await this.getHeaders();
     return this.httpService
