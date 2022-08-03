@@ -44,7 +44,9 @@ export class LivePersonController {
       chatId = body.body.changes[0].conversationId;
     }
     if (!chatId) {
-      throw new Error('LivePerson: Not able to find chatId for body: ' + body);
+      throw new Error(
+        'LivePerson error: Not able to find chatId for body: ' + body,
+      );
     }
 
     const requests = [];
