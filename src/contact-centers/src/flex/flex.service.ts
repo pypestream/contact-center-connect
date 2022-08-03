@@ -9,6 +9,8 @@ import {
   GenericWebhookInterpreter,
   AgentService,
 } from '../common/interfaces';
+
+import { FlexContentTypes } from './types';
 import axios, { AxiosResponse } from 'axios';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -88,12 +90,19 @@ export class FlexService
   /**
    * @ignore
    */
-  private startConversationRequestBody(message: CccMessage) {
+  private startConversationRequestBody(
+    message: CccMessage,
+    metadata: publicComponents['schemas']['Metadata'],
+  ) {
+    const firstName = metadata.bot.first_name || 'Pypestream';
+    const lastName = metadata.bot.last_name || 'User';
+    const phone = metadata.bot.phone || '';
     const res = {
       FlexFlowSid: this.customer.flexFlowSid,
       Identity: message.conversationId,
-      ChatUserFriendlyName: 'PS User',
-      ChatFriendlyName: 'PS User',
+      ChatUserFriendlyName: `${firstName} ${lastName}`,
+      ChatFriendlyName: `${firstName} ${lastName}`,
+      Target: phone,
     };
 
     return res;
@@ -155,7 +164,7 @@ export class FlexService
     // Create a channel to start conversation
     const res = await axios.post(
       flexChannelUrl,
-      qs.stringify(this.startConversationRequestBody(message)),
+      qs.stringify(this.startConversationRequestBody(message, metadata)),
       { auth: auth },
     );
     const channelId = res.data.sid;
@@ -222,22 +231,14 @@ export class FlexService
   }
 
   /**
-   * Determine if Agent reject the chat
-   * @param message
-   */
-  hasAgentRejectedChat(message: FlexWebhookBody): boolean {
-    return (
-      message.EventType === 'reservation.rejected' ||
-      message.TaskReEvaluatedReason === 'reservation_rejected'
-    );
-  }
-
-  /**
    * Determine if Agent has joined the chat
    * @param message
    */
   hasAgentJoinedChat(message: FlexWebhookBody): boolean {
-    return message.EventType === 'reservation.accepted';
+    return (
+      message.EventType === FlexContentTypes.ON_MEMBER_UPDATED &&
+      message.LastConsumedMessageIndex === '0'
+    );
   }
 
   /**
@@ -245,7 +246,13 @@ export class FlexService
    * @param message
    */
   hasAgentLeftChat(message: FlexWebhookBody): boolean {
-    return message.EventType === 'reservation.wrapup';
+    const attributes = message.Attributes ? JSON.parse(message.Attributes) : {};
+    return (
+      message.EventType === FlexContentTypes.ON_CHANNEL_UPDATED &&
+      attributes.status === 'INACTIVE' &&
+      message.UniqueName !== '' &&
+      message.Source === 'SDK'
+    );
   }
 
   /**

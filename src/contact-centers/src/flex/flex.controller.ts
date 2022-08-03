@@ -39,6 +39,7 @@ export class FlexController {
     const requests = [];
 
     if (this.flexService.hasAgentJoinedChat(body as FlexWebhookBody)) {
+      await this.middlewareApiService.agentAcceptedEscalation(chatId);
       const message = {
         message: {
           value: agentJoinedChatMessage,
